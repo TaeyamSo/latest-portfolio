@@ -1,0 +1,9 @@
+# Normalise line endings across Windows/macOS/Linux.
+* text=auto eol=lf
+
+*.webp binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

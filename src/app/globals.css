@@ -1,0 +1,271 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — the 2025 palette (flame → amber, black type, white accents)
+   extended with a warm dusk range for the sunset finale.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-flame: #fd5d16;
+  --color-amber: #fd8916;
+  --color-gold: #ffb629;
+  --color-sunlight: #ffd84a;
+  --color-ember: #b3300c;
+  --color-dusk: #3b1409;
+  --color-night: #120705;
+  --color-ink: #0d0a08;
+  --color-paper: #fffaf4;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* Fluid type: huge and confident, like the original, but never clipped.
+     (--text-display is re-tuned for the side-by-side desktop hero below.) */
+  --text-display: clamp(3.6rem, 15vw, 8rem);
+  --text-display--line-height: 0.86;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: clamp(3rem, 8.2vw, 8.75rem);
+  --text-title--line-height: 0.9;
+  --text-title--letter-spacing: -0.015em;
+  --text-lead: clamp(1.35rem, 1.2vw + 0.95rem, 2.35rem);
+  --text-lead--line-height: 1.22;
+
+  --animate-marquee: marquee 38s linear infinite;
+}
+
+@theme inline {
+  --font-sans: var(--font-kanit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+}
+
+:root {
+  --gutter: clamp(1.25rem, 4.5vw, 4.5rem);
+  /* Width reserved for the fixed side navigation on large screens. */
+  --rail: 0px;
+  /* Where the concentric rings (and the hero sun) are centred. */
+  --rings-x: 76%;
+  --rings-y: 23%;
+  --ring: 21vw;
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --rail: 6.5rem;
+    --rings-x: 75%;
+    --rings-y: 50%;
+    --ring: 12.5vw;
+    --text-display: clamp(3.6rem, 9.6vw, 14rem);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    background-color: var(--color-flame);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100svh;
+    /* The exact gradient from the original site. */
+    background: linear-gradient(90deg, var(--color-flame), var(--color-amber) 49%);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-sunlight);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* Sections receive focus programmatically after in-page navigation. */
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  img,
+  svg,
+  canvas {
+    display: block;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+@utility shell {
+  padding-inline-start: calc(var(--gutter) + var(--rail));
+  padding-inline-end: var(--gutter);
+}
+
+/* Small technical labels, e.g. "(02) — About". */
+@utility meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: max(1.5px, 0.02em) currentColor;
+}
+
+/* ---------------------------------------------------------------------------
+   Atmosphere: concentric heat rings + film grain (both fixed, behind/over UI)
+--------------------------------------------------------------------------- */
+.rings {
+  position: fixed;
+  inset: -4%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--rings-x) var(--rings-y),
+    rgb(255 240 222 / 0.34) 0 calc(var(--ring) * 1),
+    rgb(255 240 222 / 0.25) calc(var(--ring) * 1 + 1px) calc(var(--ring) * 1.55),
+    rgb(255 240 222 / 0.17) calc(var(--ring) * 1.55 + 1px) calc(var(--ring) * 2.1),
+    rgb(255 240 222 / 0.1) calc(var(--ring) * 2.1 + 1px) calc(var(--ring) * 2.65),
+    rgb(255 240 222 / 0.05) calc(var(--ring) * 2.65 + 1px) calc(var(--ring) * 3.2),
+    transparent calc(var(--ring) * 3.2 + 1px)
+  );
+  transition: transform 1.2s var(--ease-expo);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.35 0 0 0 -.52'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------------------
+   Motion — intro runs in CSS so the hero animates on first paint, before JS.
+--------------------------------------------------------------------------- */
+.sun-spin {
+  transform-origin: center;
+  animation: spin 52s linear infinite; /* same pace as the original */
+}
+
+.intro-letter {
+  display: inline-block;
+  animation: letter-in 1.15s var(--ease-expo) both;
+  animation-delay: calc(120ms + var(--i, 0) * 55ms);
+}
+
+.intro-slide {
+  animation: slide-in 1.3s var(--ease-expo) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.intro-dash {
+  transform-origin: left;
+  animation: dash-in 1s var(--ease-expo) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.intro-sun {
+  animation: sun-in 1.8s var(--ease-expo) both;
+  animation-delay: 150ms;
+}
+
+.intro-from-right {
+  animation: from-right 1.5s var(--ease-expo) both;
+  animation-delay: var(--delay, 350ms);
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes letter-in {
+  from {
+    transform: translate3d(-0.25em, 108%, 0) rotate(6deg);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-3.5rem, 0, 0);
+  }
+}
+
+@keyframes dash-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes sun-in {
+  from {
+    opacity: 0;
+    transform: translate3d(22vw, 4vh, 0) rotate(-35deg) scale(0.82);
+  }
+}
+
+@keyframes from-right {
+  from {
+    opacity: 0;
+    transform: translate3d(38vw, 0, 0);
+  }
+}
+
+.scroll-cue {
+  animation: scroll-cue 2.4s var(--ease-quart) infinite;
+}
+
+/* Horizontal "water" stripes drifting over the sunset reflection (9px period). */
+.water-stripes {
+  animation: water 1.8s linear infinite;
+}
+
+@keyframes water {
+  to {
+    transform: translate3d(0, 9px, 0);
+  }
+}
+
+@keyframes scroll-cue {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sun-spin,
+  .intro-letter,
+  .intro-slide,
+  .intro-dash,
+  .intro-sun,
+  .intro-from-right,
+  .scroll-cue,
+  .water-stripes {
+    animation: none !important;
+  }
+
+  .rings {
+    transition: none;
+  }
+}
