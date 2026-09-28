@@ -4,11 +4,14 @@ import { DayCycle } from "@/components/providers/DayCycle";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
 import { Hero } from "@/components/sections/Hero";
+import { Journey } from "@/components/sections/Journey";
 import { Marquee } from "@/components/sections/Marquee";
+import { Process } from "@/components/sections/Process";
 import { Projects } from "@/components/sections/Projects";
-import { Skills } from "@/components/sections/Skills";
-import { Study } from "@/components/sections/Study";
-import { profile, skills } from "@/content/site";
+import { Services } from "@/components/sections/Services";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { profile, skills, testimonials } from "@/content/site";
+import { visibleItems } from "@/lib/mock";
 import { siteUrl } from "@/lib/site-url";
 
 const personJsonLd = {
@@ -22,7 +25,13 @@ const personJsonLd = {
   knowsAbout: skills.map((skill) => skill.name),
 };
 
+/**
+ * The story: who (hero, about) → what (services) → proof (work) → how
+ * (process) → background (journey) → trust (testimonials) → contact.
+ */
 export default function Home() {
+  const quotes = visibleItems(testimonials);
+
   return (
     <>
       <script
@@ -36,9 +45,11 @@ export default function Home() {
         <Hero />
         <Marquee />
         <About />
-        <Skills />
-        <Study />
+        <Services />
         <Projects />
+        <Process />
+        <Journey />
+        {quotes.length > 0 && <Testimonials items={quotes} />}
       </main>
       <Contact />
     </>

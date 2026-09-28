@@ -1,11 +1,10 @@
-import Image from "next/image";
-
 import { CountUp } from "@/components/ui/CountUp";
+import { Duotone } from "@/components/ui/Duotone";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrubText } from "@/components/ui/ScrubText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Tilt } from "@/components/ui/Tilt";
-import { about, facts, profile } from "@/content/site";
+import { about, facts, profile, sectionNumber } from "@/content/site";
 
 export function About() {
   return (
@@ -16,7 +15,7 @@ export function About() {
     >
       <div className="grid w-full items-center gap-x-16 gap-y-16 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <SectionHeading id="about-title" index="02" label="About" title="About *me*" />
+          <SectionHeading id="about-title" index={sectionNumber("about")} label="About" title="About *me*" />
 
           <ScrubText text={about.lead} className="mt-10 max-w-[30ch] text-lead lg:mt-14" />
 
@@ -42,12 +41,11 @@ export function About() {
           <Tilt max={6} className="w-[min(100%,26rem)]">
             <figure data-cursor-tone="light" className="group bg-ink p-4 sm:p-5">
               <div className="overflow-hidden">
-                <Image
+                <Duotone
                   src={about.portrait.src}
                   alt={about.portrait.alt}
                   sizes="(min-width: 1024px) 26rem, 90vw"
-                  placeholder="blur"
-                  className="w-full transition-transform duration-700 ease-expo group-hover:scale-110"
+                  className="transition-transform duration-700 ease-expo group-hover:scale-110"
                 />
               </div>
               <figcaption className="meta mt-4 flex justify-between gap-4 text-paper/65">

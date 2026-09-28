@@ -8,7 +8,8 @@ import { EASE_EXPO, Reveal, RevealWords } from "./Reveal";
 
 type Props = {
   id: string;
-  index: string;
+  /** "02" etc. — see `sectionNumber` in site.ts. Omit for unnumbered sections. */
+  index?: string;
   label: string;
   title: string;
   className?: string;
@@ -33,7 +34,7 @@ export function SectionHeading({
     <div className={cn("group/heading w-fit", className)}>
       <Reveal>
         <p className="meta mb-6 flex items-center gap-3">
-          <span>({index})</span>
+          {index && <span>({index})</span>}
           <span aria-hidden="true" className="h-px w-10 bg-current" />
           <span>{label}</span>
         </p>

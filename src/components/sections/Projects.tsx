@@ -8,7 +8,8 @@ import { EASE_EXPO, Reveal } from "@/components/ui/Reveal";
 import { RollText } from "@/components/ui/RollText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Tilt } from "@/components/ui/Tilt";
-import { projects } from "@/content/site";
+// The monitor features client work only; template builds go to the archive list.
+import { archiveProjects, featuredProjects as projects, sectionNumber } from "@/content/site";
 import { cn } from "@/lib/cn";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -44,12 +45,18 @@ export function Projects() {
 
   return (
     <section
-      id="projects"
+      id="work"
       aria-labelledby="projects-title"
-      className="shell relative flex min-h-svh items-center py-[clamp(7rem,16vh,12rem)] outline-none"
+      className="shell relative py-[clamp(7rem,16vh,12rem)] outline-none"
     >
       <div className="grid w-full gap-x-16 gap-y-12 lg:grid-cols-12 lg:gap-y-14">
-        <SectionHeading className="lg:col-span-12" id="projects-title" index="05" label="Projects" title="Selected *work*" />
+        <SectionHeading
+          className="lg:col-span-12"
+          id="projects-title"
+          index={sectionNumber("work")}
+          label="Projects"
+          title="Selected *work*"
+        />
 
         <div className="lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:self-center">
           <Monitor active={active} previous={previous} />
@@ -76,7 +83,7 @@ export function Projects() {
                   data-cursor="View"
                   data-cursor-tone={selected ? "light" : undefined}
                   className={cn(
-                    "group relative isolate flex w-full items-center gap-4 px-4 py-3 text-left transition-colors duration-300",
+                    "group relative isolate flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors duration-300",
                     selected && "text-paper",
                   )}
                 >
@@ -96,11 +103,9 @@ export function Projects() {
                       selected ? "mr-0 w-5" : "w-0 group-hover:mr-0 group-hover:w-5 group-focus-visible:mr-0 group-focus-visible:w-5",
                     )}
                   />
-                  <span className="text-[clamp(1.15rem,1.55vw,1.5rem)] font-semibold transition-transform duration-300 ease-expo group-hover:translate-x-1">
-                    {project.name}
-                  </span>
-                  <span className="meta ml-auto hidden opacity-85 sm:block">
-                    {project.kind === "Client" ? "Client" : "Template"}
+                  <span className="flex flex-col transition-transform duration-300 ease-expo group-hover:translate-x-1">
+                    <span className="text-[clamp(1.15rem,1.55vw,1.5rem)] leading-tight font-semibold">{project.name}</span>
+                    <span className="meta mt-1 text-[0.62rem] opacity-85">{project.category}</span>
                   </span>
                 </button>
               );
@@ -108,6 +113,34 @@ export function Projects() {
           </div>
         </Reveal>
       </div>
+
+      <Reveal className="mt-20 lg:mt-28">
+        <div className="flex items-baseline justify-between border-b-2 border-ink pb-3">
+          <h3 className="meta">Archive — template builds</h3>
+          <span className="meta">{pad(archiveProjects.length)}</span>
+        </div>
+        <ul>
+          {archiveProjects.map((project) => (
+            <li key={project.slug} className="border-b border-ink/25">
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor="Visit"
+                className="group grid grid-cols-[1fr_auto] items-baseline gap-4 py-4 sm:grid-cols-[minmax(10rem,16rem)_1fr_auto]"
+              >
+                <span className="text-xl font-semibold transition-transform duration-500 ease-expo group-hover:translate-x-2">
+                  {project.name}
+                </span>
+                <span className="meta hidden text-ink/85 sm:block">{project.category}</span>
+                <span className="meta link-dash">
+                  Visit ↗<span className="sr-only"> {project.name} (opens in a new tab)</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Reveal>
     </section>
   );
 }
@@ -204,9 +237,6 @@ function Monitor({ active, previous }: { active: number; previous: number | null
           <span className="sr-only">: {project.name} (opens in a new tab)</span>
         </a>
       </Tilt>
-      <p className="meta mt-6 text-center text-ink/85">
-        {project.category} · {project.kind}
-      </p>
     </Reveal>
   );
 }

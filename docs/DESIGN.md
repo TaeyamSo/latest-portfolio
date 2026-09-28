@@ -101,16 +101,30 @@ cursor.
 
 ## 3. What was built
 
-| Section | Enhancements |
+The page tells a story in order: **who** (hero, about) → **what** (services) → **proof** (work) →
+**how** (process) → **background** (journey) → **trust** (testimonials) → **contact**.
+
+| Section | What it does |
 | --- | --- |
-| Hero | Letter-by-letter mask reveal, WebGL sun (SVG until WebGL is ready), click-to-flare, scroll cue |
-| Marquee | Skills band that drifts, speeds up with scroll velocity and reverses when you scroll up |
-| About | Words light up as you scroll, count-up facts derived from the data, tilting framed portrait |
-| Skills | The original black tiles, now monochrome logos that bloom into brand colour on hover |
-| Study | Timeline with dash markers, all 9 Meta courses, one-click credential verification |
-| Projects | Keyboard-accessible tabs (↑ ↓ Home End), a black highlight that slides, monitor with URL bar, wipe transitions, preloaded screenshots |
-| Contact | New. Sunset finale, big mailto link, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | Smooth scrolling, scroll-spy side nav with labels, full-screen mobile menu, grain texture, branded 404, OG image, favicon, sitemap, robots, manifest, JSON-LD |
+| Hero | Letter-by-letter mask reveal with restored kerning, WebGL sun (SVG until WebGL is ready), click-to-flare, orbiting text ring, status kicker (availability + live local time) |
+| Marquee | What Tayam does, in alternating Kanit caps and serif italic; drifts, speeds up with scroll velocity, reverses on scroll up |
+| About | First-person lead that lights up word by word, count-up facts from the data, duotone portrait (ink → flame → sunlight) that reveals the original on hover |
+| Services | "What I *do*": four capability rows, each backed by real projects; a black block sweeps in on hover. The original skill tiles live on as a compact toolkit shelf |
+| Work | Client projects in keyboard-accessible tabs + the monitor (URL bar, wipe transitions); template builds in a separate archive list |
+| Process | "From idea to *launch*": four steps on a track that fills as you scroll, with a small sun riding the leading edge; soft skills as "Along the way" |
+| Journey | Freelance client work, the Meta certificate as a compact verifiable entry (badge, thumbnail, courses in a disclosure), the degree; sticky heading |
+| Testimonials | "Kind *words*": clients speak in the serif. Manual pager, no auto-rotation |
+| Contact | Sunset finale, big mailto link, copy-to-clipboard, GitHub, back to sunrise |
+| Site-wide | Smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG image, favicon, sitemap, robots, manifest, JSON-LD |
+
+### Draft and mock content
+
+- **DRAFT** (in comments) marks copy written from real facts — projects, certificate, skills — that
+  ships but should be read and adjusted.
+- **`mock: true`** marks placeholder content that would be a false claim if it shipped
+  (testimonials, availability, city). It renders **only in development**, with a dashed "Mock"
+  badge, and is left out of production builds automatically (`src/lib/mock.ts`). To preview it on a
+  deploy, set `NEXT_PUBLIC_SHOW_MOCKS=true`. Replace it with real content and drop the flag.
 
 ## 4. Architecture
 
@@ -119,12 +133,13 @@ src/
   app/            routes, metadata files (OG image, icons, sitemap, robots, manifest), global CSS
   content/        site.ts — every word, link and image on the site
   components/
-    chrome/       Header, SideNav, MobileMenu
-    sections/     Hero, Marquee, About, Skills, Study, Projects, Contact
-    sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → NoonCanvas (WebGL)
-    ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes
-    providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings)
-  lib/            hooks: active section, tone detection, media queries, scroll-to
+    chrome/       Header, SideNav, MobileMenu, Cursor
+    sections/     Hero, Marquee, About, Services, Projects (work), Process, Journey, Testimonials, Contact
+    sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → NoonCanvas (WebGL), OrbitText, SunsetStage
+    ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
+                  AccentText, Duotone, LocalTime, MockBadge
+    providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings), DayCycle (tint)
+  lib/            accent markup, kerning, mock gating, hooks (active section, tone, media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)
 ```
 
@@ -146,7 +161,7 @@ first paint; the initial JavaScript is ~260 KB gzipped (React, Next.js, Motion, 
 
 1. **WebGL sunset** — move the footer sun into the shader pipeline: god rays, a real water
    reflection with wave distortion, and twinkling stars in the dusk sky.
-2. **Case studies** — `/projects/[slug]` pages (the data model already has slugs) with shared-element
+2. **Case studies** — `/work/[slug]` pages (the data model already has slugs) with shared-element
    transitions from the monitor, using React's `<ViewTransition>`.
 3. **3D monitor** — replace the CSS monitor with an R3F scene: screenshots as textures, a
    scroll-driven camera orbit, a reflective desk.
@@ -157,12 +172,15 @@ first paint; the initial JavaScript is ~260 KB gzipped (React, Next.js, Motion, 
 
 ## 6. Content to confirm
 
-These should be checked by Tayam:
+These should be checked by Tayam (all in `src/content/site.ts`):
 
-- **Draft copy:** the hero tagline now reads "Front-end developer / crafting websites that feel
-  *alive*." (replacing "21 Year Old /") — a placeholder positioning line in `site.ts`, marked `DRAFT`.
-- "IT Student — Year 3".
+- **Mock — replace to make it appear on the live site:** the 3 testimonials, the availability line
+  ("Available for new projects") and the city/time zone (placeholder: Dubai).
+- **Draft — read and adjust:** the hero tagline ("crafting websites that feel *alive*.", replacing
+  "21 Year Old /"), the About lead and body, the four services and their one-liners, the four
+  process steps, the marquee words.
+- "IT Student — Year 3" and the Journey entries (add dates if you'd like them shown).
 - The contact email (`taeyamfrontend@gmail.com`, taken from the git author config).
-- The illustrated avatar in About — swap in a photo or original illustration if preferred.
+- A real photo for About — it gets the duotone treatment automatically.
 - Unused assets in the old repo (`baker.png` — Tayam's Bakery, `fin.jpg`, `htmllogo.png`) were
   not carried over; the bakery project could be added to `projects`.

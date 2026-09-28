@@ -1,7 +1,7 @@
 import { SunsetStage } from "@/components/sun/SunsetStage";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Reveal, RevealWords } from "@/components/ui/Reveal";
-import { profile } from "@/content/site";
+import { profile, sectionNumber } from "@/content/site";
 
 import { BackToTop, CopyEmail } from "./ContactActions";
 
@@ -25,7 +25,7 @@ export function Contact() {
       <div data-scroll-anchor data-scroll-offset="0.16" className="shell relative">
         <Reveal>
           <p className="meta mb-6 flex items-center gap-3 text-paper/70">
-            <span>(06)</span>
+            <span>({sectionNumber("contact")})</span>
             <span aria-hidden="true" className="h-px w-10 bg-current" />
             <span>Contact</span>
           </p>
