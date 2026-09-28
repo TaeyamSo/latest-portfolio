@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { SunGlyph } from "@/components/sun/SunGlyph";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { RollText } from "@/components/ui/RollText";
 import { profile } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { useDarkAt } from "@/lib/use-dark-at";
@@ -45,16 +46,16 @@ export function Header({ onHome = true }: { onHome?: boolean }) {
 
       <div className="intro-slide pointer-events-auto hidden lg:block">
         <Magnetic>
-        <a
-          href={href("#contact")}
-          onClick={onLink("#contact")}
-          className={cn(
-            "flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300",
-            dark ? "bg-paper text-ink hover:bg-sunlight" : "bg-ink text-paper hover:bg-paper hover:text-ink",
-          )}
-        >
-          Let&apos;s talk <span aria-hidden="true">→</span>
-        </a>
+          <a
+            href={href("#contact")}
+            onClick={onLink("#contact")}
+            className={cn(
+              "group/roll flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300",
+              dark ? "bg-paper text-ink hover:bg-sunlight" : "bg-ink text-paper hover:bg-paper hover:text-ink",
+            )}
+          >
+            <RollText>Let&apos;s talk</RollText> <span aria-hidden="true">→</span>
+          </a>
         </Magnetic>
       </div>
 

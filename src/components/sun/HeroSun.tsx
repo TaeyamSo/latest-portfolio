@@ -58,6 +58,7 @@ export function HeroSun() {
         type="button"
         onClick={flare}
         aria-label="Make the sun flare"
+        data-cursor="Flare"
         className="pointer-events-auto absolute inset-[20%] cursor-pointer rounded-full focus-visible:outline-offset-8"
       />
     </div>

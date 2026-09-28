@@ -19,6 +19,9 @@ import { cn } from "@/lib/cn";
 import { useReducedMotionSafe } from "@/lib/use-media-query";
 
 const words = ["Front-End", ...skills.map((skill) => skill.name)];
+// Doubled so each copy has an even count: the caps/serif alternation then
+// continues cleanly across copies and both copies stay identical (seamless loop).
+const sequence = [...words, ...words];
 
 /** Black band of skills. Drifts on its own, speeds up (and flips) with scroll. */
 export function Marquee() {
@@ -44,18 +47,19 @@ export function Marquee() {
   return (
     <div
       ref={ref}
+      data-cursor-tone="light"
       className="relative z-10 -mx-[4vw] -rotate-[1.5deg] overflow-hidden bg-ink py-5 text-amber select-none lg:py-7"
     >
       <p className="sr-only">Skills: {words.join(", ")}</p>
       <motion.div aria-hidden="true" style={{ x: translate }} className="flex w-max">
         {[0, 1].map((copy) => (
           <div key={copy} className="flex shrink-0 items-center">
-            {words.map((word, i) => (
-              <span key={word} className="flex items-center">
+            {sequence.map((word, i) => (
+              <span key={`${word}-${i}`} className="flex items-center text-[clamp(3rem,8.5vw,8.5rem)] leading-none">
                 <span
                   className={cn(
-                    "px-[0.35em] text-[clamp(3rem,8.5vw,8.5rem)] leading-none font-black tracking-[-0.01em] uppercase",
-                    i % 2 === 1 && "text-outline",
+                    "px-[0.35em]",
+                    i % 2 === 0 ? "font-black tracking-[-0.01em] uppercase" : "serif-accent",
                   )}
                 >
                   {word}

@@ -63,8 +63,32 @@ Keep every recognisable piece, then make it feel alive and give it a story:
 | `text-title` | `clamp(3rem, 8.2vw, 8.75rem)` | Section titles |
 | `ease-expo` | `cubic-bezier(.16, 1, .3, 1)` | Every reveal |
 
-Type: **Kanit** (now actually self-hosted via `next/font`) for everything, **JetBrains Mono**
-for small technical labels such as `(02) — About`.
+Type: **Kanit** (now actually self-hosted via `next/font`) is the voice, **Fraunces Italic** the
+accent, **JetBrains Mono** the small technical labels such as `(02) — About`.
+
+- **The accent rule:** one serif-italic word per composition, marked in copy with asterisks —
+  `"About *me*"`, `"Selected *work*"`, `"something *bright.*"`. `RevealWords` and `AccentText`
+  parse the markers (`src/lib/accent.ts`); accent masks carry extra room for the italic lean,
+  ascenders and descenders.
+- **Fraunces is a pinned static instance** (italic, 400, opsz 144, SOFT 100, WONK 1 — 21 KB) in
+  `src/assets/fonts/`, loaded with `next/font/local`. The variable font `next/font/google` would
+  ship is 146 KB. Its SIL OFL licence sits next to the file.
+- **The hero name is kerned by hand-off:** its letters are split for the intro, which drops the
+  font's kerning, so `src/lib/kerning.ts` restores Kanit ExtraBold's own pair values (measured from
+  the font; re-measure if the display font changes).
+
+### Time of day
+
+The page's colour follows the day: noon orange at the top deepens to golden hour by the projects
+(`DayCycle`, a scroll-linked opacity layer the browser animates on its scroll timeline), then the
+footer carries it into dusk and night. Every stop keeps ink text above 4.5:1.
+
+### Cursor
+
+On mouse devices a dot + trailing ring replaces the cursor. The ring grows over controls and shows
+a label from `data-cursor` (Flare, View, Visit, Verify, Copy, Rise); it turns light over surfaces
+marked `data-cursor-tone="light"`. Touch, pen, forced colours and reduced motion keep the native
+cursor.
 
 ### Motion principles
 
@@ -133,9 +157,11 @@ first paint; the initial JavaScript is ~260 KB gzipped (React, Next.js, Motion, 
 
 ## 6. Content to confirm
 
-These were carried over as-is and should be checked by Tayam:
+These should be checked by Tayam:
 
-- "21 Year Old" in the hero tagline, and "IT Student — Year 3".
+- **Draft copy:** the hero tagline now reads "Front-end developer / crafting websites that feel
+  *alive*." (replacing "21 Year Old /") — a placeholder positioning line in `site.ts`, marked `DRAFT`.
+- "IT Student — Year 3".
 - The contact email (`taeyamfrontend@gmail.com`, taken from the git author config).
 - The illustrated avatar in About — swap in a photo or original illustration if preferred.
 - Unused assets in the old repo (`baker.png` — Tayam's Bakery, `fin.jpg`, `htmllogo.png`) were

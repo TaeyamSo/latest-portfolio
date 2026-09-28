@@ -16,11 +16,11 @@ export function About() {
     >
       <div className="grid w-full items-center gap-x-16 gap-y-16 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <SectionHeading id="about-title" index="02" label="About" title="About me" />
+          <SectionHeading id="about-title" index="02" label="About" title="About *me*" />
 
           <ScrubText text={about.lead} className="mt-10 max-w-[30ch] text-lead lg:mt-14" />
 
-          <Reveal className="mt-8 max-w-[50ch] space-y-3 text-[1.05rem] leading-relaxed text-ink/80" delay={0.1}>
+          <Reveal className="mt-8 max-w-[50ch] space-y-3 text-[1.05rem] leading-relaxed text-ink/85" delay={0.1}>
             {about.body.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -29,7 +29,7 @@ export function About() {
           <dl className="mt-12 grid max-w-xl grid-cols-3 gap-6 border-t-2 border-ink pt-6">
             {facts.map((fact) => (
               <div key={fact.label} className="flex flex-col-reverse gap-2">
-                <dt className="meta text-ink/70">{fact.label}</dt>
+                <dt className="meta text-ink/85">{fact.label}</dt>
                 <dd className="text-[clamp(2.4rem,4.2vw,4rem)] leading-none font-extrabold tabular-nums">
                   <CountUp value={fact.value} />
                 </dd>
@@ -40,7 +40,7 @@ export function About() {
 
         <Reveal from="right" className="lg:col-span-5 lg:justify-self-end">
           <Tilt max={6} className="w-[min(100%,26rem)]">
-            <figure className="group bg-ink p-4 sm:p-5">
+            <figure data-cursor-tone="light" className="group bg-ink p-4 sm:p-5">
               <div className="overflow-hidden">
                 <Image
                   src={about.portrait.src}

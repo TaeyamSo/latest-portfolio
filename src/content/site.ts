@@ -30,8 +30,8 @@ export const profile = {
   lastName: "Soubuh",
   fullName: "Tayam Soubuh",
   role: "Front-End Developer",
-  // Carried over verbatim from the 2025 site — update the age when it changes.
-  tagline: ["21 Year Old /", "Front-End Developer"],
+  // DRAFT — replace with your own positioning line. `*word*` sets the serif accent.
+  tagline: ["Front-end developer", "crafting websites that feel *alive*."],
   email: "taeyamfrontend@gmail.com",
   socials: [{ label: "GitHub", href: "https://github.com/TaeyamSo" }],
 } as const;

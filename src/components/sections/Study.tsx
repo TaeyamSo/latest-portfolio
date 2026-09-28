@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/ui/Reveal";
+import { RollText } from "@/components/ui/RollText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Tilt } from "@/components/ui/Tilt";
 import { study } from "@/content/site";
@@ -20,19 +21,19 @@ export function Study() {
     >
       <div className="grid w-full items-center gap-16 lg:grid-cols-12">
         <div className="lg:col-span-6">
-          <SectionHeading id="study-title" index="04" label="Education" title="My study" />
+          <SectionHeading id="study-title" index="04" label="Education" title="My *study*" />
 
           <ol className="mt-12 ml-3 space-y-12 border-l-2 border-ink pl-8">
             <Reveal as="li" className="relative">
               <Marker />
-              <p className="meta text-ink/70">Degree</p>
+              <p className="meta text-ink/85">Degree</p>
               <h3 className="mt-2 text-[clamp(1.4rem,2vw,1.9rem)] leading-tight font-semibold">{degree.title}</h3>
               <p className="mt-1 text-lg">{degree.school}</p>
             </Reveal>
 
             <Reveal as="li" className="relative" delay={0.1}>
               <Marker />
-              <p className="meta text-ink/70">
+              <p className="meta text-ink/85">
                 {certificate.kind} · {certificate.date}
               </p>
               <h3 className="mt-2 text-[clamp(1.4rem,2vw,1.9rem)] leading-tight font-semibold">{certificate.title}</h3>
@@ -46,9 +47,10 @@ export function Study() {
                   href={certificate.verifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-paper hover:text-ink"
+                  data-cursor="Verify"
+                  className="group group/roll inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-paper hover:text-ink"
                 >
-                  Verify credential
+                  <RollText>Verify credential</RollText>
                   <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
                   <span className="sr-only">(opens Coursera in a new tab)</span>
                 </a>
@@ -72,6 +74,8 @@ export function Study() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Open the Meta Front-End Developer certificate on Coursera (new tab)"
+              data-cursor="Verify"
+              data-cursor-tone="light"
               className="group block bg-ink p-4 sm:p-5"
             >
               <div className="overflow-hidden">

@@ -61,6 +61,7 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
+          data-cursor-tone="light"
           className="pointer-events-auto fixed inset-0 z-[70] flex flex-col bg-ink px-(--gutter) pt-5 pb-8 text-paper lg:hidden"
           initial={{ clipPath: "circle(0% at calc(100% - 2.75rem) 2.6rem)" }}
           animate={{ clipPath: "circle(150% at calc(100% - 2.75rem) 2.6rem)" }}
@@ -100,11 +101,17 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
           </nav>
 
           <div className="meta flex flex-wrap items-center justify-between gap-4 text-paper/70">
-            <a href={`mailto:${profile.email}`} className="tracking-[0.06em] normal-case hover:text-paper">
+            <a href={`mailto:${profile.email}`} className="link-dash tracking-[0.06em] normal-case hover:text-paper">
               {profile.email}
             </a>
             {profile.socials.map((social) => (
-              <a key={social.href} href={social.href} target="_blank" rel="noopener noreferrer" className="hover:text-paper">
+              <a
+                key={social.href}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-dash hover:text-paper"
+              >
                 {social.label} ↗
               </a>
             ))}

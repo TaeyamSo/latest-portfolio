@@ -1,15 +1,23 @@
 import { HeroSun } from "@/components/sun/HeroSun";
+import { OrbitText } from "@/components/sun/OrbitText";
+import { AccentText } from "@/components/ui/AccentText";
 import { Dashes } from "@/components/ui/Dashes";
 import { profile } from "@/content/site";
+import { kern } from "@/lib/kerning";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
-/** One line of the name; each letter rises out of the line's mask. */
+/** One line of the name; each letter rises out of the line's mask (kerning restored). */
 function NameLine({ text, offset }: { text: string; offset: number }) {
+  const letters = Array.from(text);
   return (
     <span className="-my-[0.08em] block overflow-hidden py-[0.08em] transition-colors duration-300 hover:text-paper">
-      {Array.from(text).map((char, i) => (
-        <span key={i} className="intro-letter" style={{ "--i": offset + i } as Vars}>
+      {letters.map((char, i) => (
+        <span
+          key={i}
+          className="intro-letter"
+          style={{ "--i": offset + i, marginLeft: i ? `${kern(letters[i - 1], char)}em` : undefined } as Vars}
+        >
           {char}
         </span>
       ))}
@@ -26,12 +34,16 @@ export function Hero() {
     >
       {/* The sun sits exactly on the rings' centre (see --rings-x / --rings-y). */}
       <div className="pointer-events-none absolute top-(--rings-y) left-(--rings-x) aspect-square w-[min(92vw,50svh)] -translate-1/2 lg:w-[min(41vw,84svh)]">
+        {/* Desktop only: on narrow screens the ring would run through the header. */}
+        <div className="intro-sun absolute -inset-[9%] hidden lg:block">
+          <OrbitText className="orbit size-full text-ink/80" />
+        </div>
         <HeroSun />
         <p
           aria-hidden="true"
-          className="intro-from-right pointer-events-auto absolute top-1/2 left-[5%] -translate-y-1/2 text-[clamp(1.6rem,3.8vw,4.4rem)] font-black tracking-[0.03em] uppercase transition-colors duration-300 [text-shadow:0_4px_3px_rgb(0_0_0/0.4),0_8px_13px_rgb(0_0_0/0.1),0_18px_23px_rgb(0_0_0/0.1)] hover:text-paper"
+          className="intro-from-right serif-accent pointer-events-none absolute top-1/2 left-[4%] -translate-y-[58%] text-[clamp(2.6rem,5.6vw,6.6rem)] leading-none"
         >
-          Portfolio
+          portfolio
         </p>
       </div>
 
@@ -48,8 +60,11 @@ export function Hero() {
           className="intro-slide mt-7 text-[clamp(1.15rem,1.55vw,1.8rem)] leading-snug font-medium lg:mt-9"
           style={{ "--delay": "700ms" } as Vars}
         >
-          <span className="block transition-colors hover:text-paper">{profile.tagline[0]}</span>
-          <span className="block transition-colors hover:text-paper">{profile.tagline[1]}</span>
+          {profile.tagline.map((line) => (
+            <span key={line} className="block">
+              <AccentText text={line} />
+            </span>
+          ))}
         </p>
       </div>
 

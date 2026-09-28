@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Kanit } from "next/font/google";
+import localFont from "next/font/local";
 
+import { Cursor } from "@/components/chrome/Cursor";
 import { PointerParallax } from "@/components/providers/PointerParallax";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { profile } from "@/content/site";
@@ -22,6 +24,19 @@ const mono = JetBrains_Mono({
   variable: "--font-jetbrains",
   display: "swap",
   preload: false,
+});
+
+// The accent voice: Fraunces Italic, a soft, slightly wonky serif set against
+// Kanit's weight. Self-hosted as a static instance pinned to SOFT 100, WONK 1,
+// display optical size, weight 400 — 21 KB instead of the 146 KB variable font
+// next/font/google would ship (its `axes` option forces the full ranges).
+const fraunces = localFont({
+  src: "../assets/fonts/fraunces-italic-display.woff2",
+  style: "italic",
+  weight: "400",
+  variable: "--font-fraunces",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
 const title = `${profile.fullName} — ${profile.role}`;
@@ -55,7 +70,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${kanit.variable} ${mono.variable}`}>
+    <html lang="en" className={`${kanit.variable} ${mono.variable} ${fraunces.variable}`}>
       <body>
         <a
           href="#main"
@@ -66,6 +81,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PointerParallax />
         <SmoothScroll>{children}</SmoothScroll>
         <div className="grain" aria-hidden="true" />
+        <Cursor />
       </body>
     </html>
   );

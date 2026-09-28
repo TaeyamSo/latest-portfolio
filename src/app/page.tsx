@@ -1,5 +1,6 @@
 import { Header } from "@/components/chrome/Header";
 import { SideNav } from "@/components/chrome/SideNav";
+import { DayCycle } from "@/components/providers/DayCycle";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
 import { Hero } from "@/components/sections/Hero";
@@ -28,6 +29,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
       />
+      <DayCycle />
       <Header />
       <SideNav />
       <main id="main" className="relative z-10 overflow-x-clip outline-none">

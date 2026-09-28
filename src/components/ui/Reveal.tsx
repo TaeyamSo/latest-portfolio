@@ -1,7 +1,9 @@
 "use client";
 
 import { motion, stagger, type Variants } from "motion/react";
+import { Fragment } from "react";
 
+import { splitAccentWords } from "@/lib/accent";
 import { cn } from "@/lib/cn";
 
 export const EASE_EXPO = [0.16, 1, 0.3, 1] as const;
@@ -53,9 +55,14 @@ type RevealWordsProps = {
   delay?: number;
 };
 
-/** Each word rises out of its own mask — used for the big section titles. */
+/**
+ * Each word rises out of its own mask — used for the big section titles.
+ * `*accent*` words are set in the serif italic; their masks get extra room for
+ * descenders and the italic overhang (padding inside, cancelled by negative
+ * margins outside, so line spacing and the hidden state are unaffected).
+ */
 export function RevealWords({ text, className, delay = 0 }: RevealWordsProps) {
-  const words = text.split(" ");
+  const words = splitAccentWords(text);
   return (
     <motion.span
       className={cn("inline", className)}
@@ -65,16 +72,38 @@ export function RevealWords({ text, className, delay = 0 }: RevealWordsProps) {
       whileInView="shown"
       viewport={{ once: true, amount: 0.6 }}
     >
-      {words.map((word, i) => (
-        <span key={`${word}-${i}`}>
-          <span className="inline-block overflow-hidden pb-[0.06em] align-bottom">
-            <motion.span className="inline-block origin-bottom-left" variants={wordChild}>
-              {word}
-            </motion.span>
+      {words.map((pieces, i) => {
+        const accent = pieces.some((piece) => piece.accent);
+        return (
+          <span key={i}>
+            <span
+              className={cn(
+                "inline-block overflow-hidden align-bottom",
+                accent ? "-mt-[0.14em] -mr-[0.22em] -mb-[0.24em] -ml-[0.12em] pb-[0.06em]" : "pb-[0.06em]",
+              )}
+            >
+              <motion.span
+                className={cn(
+                  "inline-block origin-bottom-left",
+                  accent && "pt-[0.14em] pr-[0.22em] pb-[0.24em] pl-[0.12em]",
+                )}
+                variants={wordChild}
+              >
+                {pieces.map((piece, j) =>
+                  piece.accent ? (
+                    <span key={j} className="serif-accent">
+                      {piece.text}
+                    </span>
+                  ) : (
+                    <Fragment key={j}>{piece.text}</Fragment>
+                  ),
+                )}
+              </motion.span>
+            </span>
+            {i < words.length - 1 && " "}
           </span>
-          {i < words.length - 1 && " "}
-        </span>
-      ))}
+        );
+      })}
     </motion.span>
   );
 }

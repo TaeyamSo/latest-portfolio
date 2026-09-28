@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { EASE_EXPO, Reveal } from "@/components/ui/Reveal";
+import { RollText } from "@/components/ui/RollText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Tilt } from "@/components/ui/Tilt";
 import { projects } from "@/content/site";
@@ -48,7 +49,7 @@ export function Projects() {
       className="shell relative flex min-h-svh items-center py-[clamp(7rem,16vh,12rem)] outline-none"
     >
       <div className="grid w-full gap-x-16 gap-y-12 lg:grid-cols-12 lg:gap-y-14">
-        <SectionHeading className="lg:col-span-12" id="projects-title" index="05" label="Selected work" title="Projects" />
+        <SectionHeading className="lg:col-span-12" id="projects-title" index="05" label="Projects" title="Selected *work*" />
 
         <div className="lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:self-center">
           <Monitor active={active} previous={previous} />
@@ -72,9 +73,11 @@ export function Projects() {
                   tabIndex={selected ? 0 : -1}
                   onClick={() => select(i)}
                   onKeyDown={(event) => onKeyDown(event, i)}
+                  data-cursor="View"
+                  data-cursor-tone={selected ? "light" : undefined}
                   className={cn(
                     "group relative isolate flex w-full items-center gap-4 px-4 py-3 text-left transition-colors duration-300",
-                    selected ? "text-paper" : "hover:text-paper",
+                    selected && "text-paper",
                   )}
                 >
                   {selected && (
@@ -85,11 +88,18 @@ export function Projects() {
                       transition={{ type: "spring", stiffness: 420, damping: 38 }}
                     />
                   )}
-                  <span className="meta w-6 opacity-70">{pad(i + 1)}</span>
-                  <span className="text-[clamp(1.15rem,1.55vw,1.5rem)] font-semibold transition-transform duration-300 ease-expo group-hover:translate-x-1.5">
+                  <span className="meta w-6 opacity-85">{pad(i + 1)}</span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "-mr-4 h-[3px] rounded-full bg-current transition-[width,margin] duration-500 ease-expo",
+                      selected ? "mr-0 w-5" : "w-0 group-hover:mr-0 group-hover:w-5 group-focus-visible:mr-0 group-focus-visible:w-5",
+                    )}
+                  />
+                  <span className="text-[clamp(1.15rem,1.55vw,1.5rem)] font-semibold transition-transform duration-300 ease-expo group-hover:translate-x-1">
                     {project.name}
                   </span>
-                  <span className="meta ml-auto hidden opacity-60 sm:block">
+                  <span className="meta ml-auto hidden opacity-85 sm:block">
                     {project.kind === "Client" ? "Client" : "Template"}
                   </span>
                 </button>
@@ -128,7 +138,7 @@ function Monitor({ active, previous }: { active: number; previous: number | null
   return (
     <Reveal from="right" className="mx-auto w-full max-w-[54rem]">
       <Tilt max={4}>
-        <div className="bg-ink p-2.5 shadow-[0_50px_90px_-40px_rgb(0_0_0/0.65)] sm:p-3.5">
+        <div data-cursor-tone="light" className="bg-ink p-2.5 shadow-[0_50px_90px_-40px_rgb(0_0_0/0.65)] sm:p-3.5">
           <div className="flex items-center gap-3 px-1.5 pb-2.5 sm:pb-3">
             <span aria-hidden="true" className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-flame" />
@@ -184,16 +194,17 @@ function Monitor({ active, previous }: { active: number; previous: number | null
           href={project.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group mx-auto flex w-56 items-center justify-center gap-2 bg-ink py-3 text-sm font-medium tracking-wide text-paper transition-colors duration-300 hover:bg-paper hover:text-ink"
+          data-cursor="Visit"
+          className="group group/roll mx-auto flex w-56 items-center justify-center gap-2 bg-ink py-3 text-sm font-medium tracking-wide text-paper transition-colors duration-300 hover:bg-paper hover:text-ink"
         >
-          Visit website
+          <RollText>Visit website</RollText>
           <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
             ↗
           </span>
           <span className="sr-only">: {project.name} (opens in a new tab)</span>
         </a>
       </Tilt>
-      <p className="meta mt-6 text-center text-ink/75">
+      <p className="meta mt-6 text-center text-ink/85">
         {project.category} · {project.kind}
       </p>
     </Reveal>

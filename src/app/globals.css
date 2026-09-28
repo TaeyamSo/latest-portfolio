@@ -22,10 +22,10 @@
      (--text-display is re-tuned for the side-by-side desktop hero below.) */
   --text-display: clamp(3.6rem, 15vw, 8rem);
   --text-display--line-height: 0.86;
-  --text-display--letter-spacing: -0.02em;
+  --text-display--letter-spacing: -0.03em;
   --text-title: clamp(3rem, 8.2vw, 8.75rem);
   --text-title--line-height: 0.9;
-  --text-title--letter-spacing: -0.015em;
+  --text-title--letter-spacing: -0.02em;
   --text-lead: clamp(1.35rem, 1.2vw + 0.95rem, 2.35rem);
   --text-lead--line-height: 1.22;
 
@@ -35,6 +35,7 @@
 @theme inline {
   --font-sans: var(--font-kanit), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
 :root {
@@ -96,6 +97,19 @@
     outline: none;
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd,
+  figcaption {
+    text-wrap: pretty;
+  }
+
   img,
   svg,
   canvas {
@@ -121,21 +135,46 @@
   text-transform: uppercase;
 }
 
-@utility text-outline {
-  color: transparent;
-  -webkit-text-stroke: max(1.5px, 0.02em) currentColor;
+/* The accent voice (Fraunces italic). Don't combine with uppercase/font-black/
+   tracking-* on the same element — those utilities are emitted later and win. */
+@utility serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.1em;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* An underline that draws in from the left, like the double dash. */
+@utility link-dash {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 2px;
+  padding-bottom: 2px;
+  transition: background-size 0.6s var(--ease-expo);
+
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 2px;
+  }
 }
 
 /* ---------------------------------------------------------------------------
    Atmosphere: concentric heat rings + film grain (both fixed, behind/over UI)
 --------------------------------------------------------------------------- */
 .rings {
+  /* The box overhangs the viewport by 4% (room for parallax), so map the
+     viewport-relative centre into the box: (x + 4%) / 1.08. */
+  --rings-cx: calc((var(--rings-x) + 4%) / 1.08);
+  --rings-cy: calc((var(--rings-y) + 4%) / 1.08);
   position: fixed;
   inset: -4%;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background: radial-gradient(
-    circle at var(--rings-x) var(--rings-y),
+    circle at var(--rings-cx) var(--rings-cy),
     rgb(255 240 222 / 0.34) 0 calc(var(--ring) * 1),
     rgb(255 240 222 / 0.25) calc(var(--ring) * 1 + 1px) calc(var(--ring) * 1.55),
     rgb(255 240 222 / 0.17) calc(var(--ring) * 1.55 + 1px) calc(var(--ring) * 2.1),
@@ -144,6 +183,34 @@
     transparent calc(var(--ring) * 3.2 + 1px)
   );
   transition: transform 1.2s var(--ease-expo);
+}
+
+/* One heat wave rolls out from the sun on first paint. On a pseudo-element so
+   it never fights PointerParallax's inline transform. */
+.rings::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform-origin: var(--rings-cx) var(--rings-cy);
+  background: radial-gradient(
+    circle at var(--rings-cx) var(--rings-cy),
+    transparent calc(var(--ring) * 0.85),
+    rgb(255 246 232 / 0.55) calc(var(--ring) * 1.05),
+    transparent calc(var(--ring) * 1.4)
+  );
+  animation: heat-pulse 2.6s var(--ease-expo) 0.5s both;
+}
+
+@keyframes heat-pulse {
+  from {
+    opacity: 1;
+    scale: 0.55;
+  }
+  to {
+    opacity: 0;
+    scale: 2.6;
+  }
 }
 
 .grain {
@@ -161,6 +228,12 @@
 .sun-spin {
   transform-origin: center;
   animation: spin 52s linear infinite; /* same pace as the original */
+}
+
+/* The text ring around the hero sun turns the other way, slower. */
+.orbit {
+  transform-origin: center;
+  animation: spin 120s linear infinite reverse;
 }
 
 .intro-letter {
@@ -255,17 +328,43 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sun-spin,
+  .orbit,
   .intro-letter,
   .intro-slide,
   .intro-dash,
   .intro-sun,
   .intro-from-right,
   .scroll-cue,
-  .water-stripes {
+  .water-stripes,
+  .rings::after {
     animation: none !important;
   }
 
   .rings {
     transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Custom cursor (see components/chrome/Cursor.tsx). Unlayered so it beats
+   utilities like cursor-pointer; only active once a mouse has moved.
+--------------------------------------------------------------------------- */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none;
+}
+
+html.has-cursor :is(input, textarea, select, [contenteditable="true"]) {
+  cursor: auto;
+}
+
+@media (forced-colors: active) {
+  html.has-cursor,
+  html.has-cursor * {
+    cursor: auto;
+  }
+
+  .cursor {
+    display: none;
   }
 }

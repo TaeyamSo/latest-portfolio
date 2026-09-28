@@ -16,6 +16,7 @@ export function Contact() {
     <footer
       id="contact"
       aria-labelledby="contact-title"
+      data-cursor-tone="light"
       className="relative z-10 isolate overflow-hidden bg-[linear-gradient(to_bottom,transparent,var(--color-ember)_12svh,var(--color-dusk)_26svh,var(--color-night)_58svh)] pt-[38svh] text-paper outline-none"
     >
       {/* Marks the dark part of the footer so fixed UI can switch to light ink. */}
@@ -34,7 +35,7 @@ export function Contact() {
           <br />
           <RevealWords text="something" delay={0.12} />{" "}
           <span className="text-gold">
-            <RevealWords text="bright." delay={0.2} />
+            <RevealWords text="*bright.*" delay={0.2} />
           </span>
         </h2>
 
@@ -62,7 +63,7 @@ export function Contact() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 transition-colors hover:text-paper"
+                  className="link-dash transition-colors hover:text-paper"
                 >
                   {social.label} <span aria-hidden="true">↗</span>
                 </a>
