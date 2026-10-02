@@ -1,35 +1,24 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
-import { cn } from "@/lib/cn";
-
+import { FLARE_EVENT } from "./journey";
 import { SunGlyph } from "./SunGlyph";
-import { canUseWebGL, whenIdle } from "./webgl";
-
-const NoonCanvas = dynamic(() => import("./NoonCanvas"), { ssr: false });
 
 /**
- * The hero sun. Paints instantly as SVG, then — once the page is idle —
- * upgrades to the WebGL version and cross-fades. Click it for a solar flare.
+ * The hero sun. Paints instantly as SVG; once the page is idle the WebGL sun
+ * (SunJourney) takes over from exactly this spot and the glyph fades out.
+ * Click it for a solar flare.
  */
 export function HeroSun() {
-  const [enabled, setEnabled] = useState(false);
-  const [ready, setReady] = useState(false);
-  const flareRef = useRef(0);
   const glyphRef = useRef<HTMLSpanElement>(null);
 
-  useEffect(() => {
-    if (!canUseWebGL()) return;
-    return whenIdle(() => setEnabled(true));
-  }, []);
-
-  const onReady = useCallback(() => setReady(true), []);
-
   const flare = () => {
-    flareRef.current = 1;
-    if (ready || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (document.documentElement.classList.contains("sun-webgl")) {
+      window.dispatchEvent(new Event(FLARE_EVENT));
+      return;
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     glyphRef.current?.animate(
       [{ transform: "scale(1)" }, { transform: "scale(1.08) rotate(18deg)" }, { transform: "scale(1)" }],
       { duration: 900, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
@@ -42,18 +31,8 @@ export function HeroSun() {
         ref={glyphRef}
         id="hero-sun"
         spin
-        className={cn("absolute inset-0 size-full transition-opacity duration-1000", ready && "opacity-0")}
+        className="hero-sun-glyph absolute inset-0 size-full transition-opacity duration-1000"
       />
-      {enabled && (
-        <NoonCanvas
-          onReady={onReady}
-          flareRef={flareRef}
-          className={cn(
-            "absolute -inset-[18%] transition-opacity duration-1000",
-            ready ? "opacity-100" : "opacity-0",
-          )}
-        />
-      )}
       <button
         type="button"
         onClick={flare}

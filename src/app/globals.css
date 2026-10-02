@@ -368,3 +368,38 @@ html.has-cursor :is(input, textarea, select, [contenteditable="true"]) {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The sun's journey (components/sun/SunJourney.tsx). While the WebGL sun runs
+   it draws the hero sun, the footer sky and the sea itself, so their CSS and
+   SVG stand-ins step aside; removing the class brings them straight back.
+   Unlayered, so these win over the utility classes.
+--------------------------------------------------------------------------- */
+html.sun-webgl .sun-sky {
+  background: none;
+}
+
+html.sun-webgl .sunset-fallback {
+  display: none;
+}
+
+/* Cross-fades into the WebGL sun drawn exactly underneath it. */
+html.sun-webgl .hero-sun-glyph {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 1s var(--ease-expo),
+    visibility 0s linear 1s;
+}
+
+/* The rings follow the sun, moved every frame — scaled around their centre. */
+html.sun-webgl .rings {
+  transform-origin: var(--rings-cx) var(--rings-cy);
+  transition: none;
+}
+
+/* A soft shade under light copy the sun may pass behind. Invisible on the dark
+   sky; a filter on the parent, so the word masks of the heading can't clip it. */
+html.sun-webgl .sun-legible {
+  filter: drop-shadow(0 0 0.3em rgb(18 7 5 / 0.6));
+}

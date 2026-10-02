@@ -43,9 +43,12 @@ Keep every recognisable piece, then make it feel alive and give it a story:
 - **The sun is real-time.** A GPU shader draws the same faceted sun (same geometry,
   same colours) — its rays breathe, rotate on the original 52s cycle, lean towards
   the cursor, and flare when clicked. The disc has a subtle heat shimmer.
-- **The page is a day.** It opens at high noon and ends at sunset: the footer fades
-  into dusk, and the sun sinks into the horizon as you reach the bottom, mirrored on
-  shimmering water. Header and navigation switch to light ink automatically.
+- **The page is a day, and one sun lives through it.** It opens at high noon in the
+  hero; as you scroll the same sun lifts into the top-right of the sky, sinks a little
+  and warms through the afternoon, then sets in the footer: the dusk sky fills with
+  stars, the horizon rises to meet the sun and the sea mirrors it in rippling light.
+  The heat rings stay centred on it the whole way. Header and navigation switch to
+  light ink automatically.
 - **The double dash is the system.** Under headings, as nav indicators, list bullets,
   timeline markers, link underlines and the mobile menu button.
 - **Content is the hero.** Big type, black frames, real screenshots in a monitor with a
@@ -86,7 +89,7 @@ footer carries it into dusk and night. Every stop keeps ink text above 4.5:1.
 ### Cursor
 
 On mouse devices a dot + trailing ring replaces the cursor. The ring grows over controls and shows
-a label from `data-cursor` (Flare, View, Visit, Verify, Copy, Rise); it turns light over surfaces
+a label from `data-cursor` (Flare, Visit, Verify, Copy, Rise); it turns light over surfaces
 marked `data-cursor-tone="light"`. Touch, pen, forced colours and reduced motion keep the native
 cursor.
 
@@ -106,16 +109,16 @@ The page tells a story in order: **who** (hero, about) → **what** (services) �
 
 | Section | What it does |
 | --- | --- |
-| Hero | Letter-by-letter mask reveal with restored kerning, WebGL sun (SVG until WebGL is ready), click-to-flare, orbiting text ring, status kicker (availability + live local time) |
+| Hero | Letter-by-letter mask reveal with restored kerning, the sun (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, orbiting text ring that fades as the sun leaves, status kicker (availability + live local time) |
 | Marquee | What Tayam does, in alternating Kanit caps and serif italic; drifts, speeds up with scroll velocity, reverses on scroll up |
 | About | First-person lead that lights up word by word, count-up facts from the data, duotone portrait (ink → flame → sunlight) that reveals the original on hover |
 | Services | "What I *do*": four capability rows, each backed by real projects; a black block sweeps in on hover. The original skill tiles live on as a compact toolkit shelf |
-| Work | Client projects in keyboard-accessible tabs + the monitor (URL bar, wipe transitions); template builds in a separate archive list |
+| Work | Each client project is a full-screen dark card; from tablets up the cards pin and stack as you scroll, the previous one scaling back into the deck and dimming. The monitor turns paper-on-ink with "Visit website" as its stand; role, sector, year and stack sit underneath. Template builds follow in an archive list whose rows show a tilted preview that follows the cursor |
 | Process | "From idea to *launch*": four steps on a track that fills as you scroll, with a small sun riding the leading edge; soft skills as "Along the way" |
 | Journey | Freelance client work, the Meta certificate as a compact verifiable entry (badge, thumbnail, courses in a disclosure), the degree; sticky heading |
 | Testimonials | "Kind *words*": clients speak in the serif. Manual pager, no auto-rotation |
-| Contact | Sunset finale, big mailto link, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | Smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG image, favicon, sitemap, robots, manifest, JSON-LD |
+| Contact | Sunset finale: the travelling sun sets right of the copy (centred on phones) into a WebGL sea with ripples, a glitter path and stars; big mailto link, copy-to-clipboard, GitHub, back to sunrise |
+| Site-wide | One sun travelling the whole page, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG image, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
 
 ### Draft and mock content
 
@@ -135,7 +138,8 @@ src/
   components/
     chrome/       Header, SideNav, MobileMenu, Cursor
     sections/     Hero, Marquee, About, Services, Projects (work), Process, Journey, Testimonials, Contact
-    sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → NoonCanvas (WebGL), OrbitText, SunsetStage
+    sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → the journey (journey.ts path,
+                  journey-renderer.ts WebGL, SunJourney mount), OrbitText, SunsetStage (CSS sunset)
     ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
                   AccentText, Duotone, LocalTime, MockBadge
     providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings), DayCycle (tint)
@@ -147,38 +151,58 @@ src/
 The SVG glyph, favicon, OG image and the GLSL shader are all generated from it, so they can
 never drift apart.
 
-**Progressive enhancement.** The server renders a complete, readable page. The hero sun
-paints as SVG immediately; three.js and React Three Fiber are only downloaded once the page is
-idle (and skipped entirely on data-saver or without WebGL), then cross-fade in. The canvas
-stops rendering when it scrolls off-screen.
+**The sun's journey.** One fixed, full-viewport canvas and a single fragment shader, no 3D
+engine. Each frame `journey.ts` turns the scroll position and a few measured marks (the hero
+sun's box, the footer, the horizon) into the sun's position, size and tone:
+
+1. **Hero → sky** (the first 80% of the hero): it starts exactly on the hero sun and eases into
+   the top right, shrinking.
+2. **Afternoon** (the middle of the page): it sinks a little and its palette warms towards sunset.
+3. **Sunset** (the footer): it drifts down to where the horizon will be at the bottom of the page
+   while the horizon rises to meet it. It only moves over and grows once the contact copy has
+   passed, so on large screens it never sits behind the heading (three short lines leave the
+   right of the sky free). Light copy it may cross on phones gets a soft shade.
+
+While it runs, `html.sun-webgl` retires the stand-ins: the hero glyph cross-fades out (the rays
+start where the CSS spin has turned them, so nothing jumps), and the footer's gradient and the
+CSS sunset step aside because the shader paints the same gradient, then the stars, the sea and
+the reflection. The heat rings follow the sun (moved by the renderer, scaled a little less).
+
+**Progressive enhancement.** The server renders a complete, readable page. The hero sun paints as
+SVG immediately and the CSS/SVG sunset is a full fallback. The journey starts after the intro
+(~2s) once the page is idle, and is skipped without WebGL, on data saver, with reduced motion or
+forced colours; if the GPU context is lost it hands back to CSS. It renders at the display rate
+while you scroll or move the mouse and drops to ~30fps when only the slow spin is moving.
 
 **Performance.** The images in use went from 7.1 MB of PNG/JPG to 0.52 MB of WebP (and are
 served as AVIF/WebP at the right size by `next/image`). Fonts are self-hosted and subset. Every
-route is statically prerendered. The WebGL chunk (~240 KB gzipped) is lazy and never blocks
-first paint; the initial JavaScript is ~260 KB gzipped (React, Next.js, Motion, Lenis).
+route is statically prerendered. The WebGL renderer is a 6 KB (gzipped) chunk loaded after the
+intro; three.js and React Three Fiber (~240 KB) are gone. The initial JavaScript is ~265 KB
+gzipped (React, Next.js, Motion, Lenis).
 
 ## 5. Roadmap — where the visuals can go next
 
-1. **WebGL sunset** — move the footer sun into the shader pipeline: god rays, a real water
-   reflection with wave distortion, and twinkling stars in the dusk sky.
-2. **Case studies** — `/work/[slug]` pages (the data model already has slugs) with shared-element
-   transitions from the monitor, using React's `<ViewTransition>`.
-3. **3D monitor** — replace the CSS monitor with an R3F scene: screenshots as textures, a
-   scroll-driven camera orbit, a reflective desk.
-4. **Cursor-light** — let the sun "light" the page: a soft spotlight following the cursor that
-   subtly brightens the rings and frames.
-5. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
-6. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
+Done in Phase 3: the WebGL sunset (stars, a rippling water reflection) and one sun for the page.
+
+1. **Case studies (Phase 4)** — `/work/[slug]` pages (the data model already has slugs) with
+   shared-element transitions from the project cards, using React's `<ViewTransition>`.
+2. **Sunlight on the page** — let the sun's position light the frames and cards it passes (a soft
+   rim of light on the side facing it), and god rays through the dusk.
+3. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
+   orbit (this would bring three.js back, lazily, for that section only).
+4. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
+5. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
 
 ## 6. Content to confirm
 
 These should be checked by Tayam (all in `src/content/site.ts`):
 
 - **Mock — replace to make it appear on the live site:** the 3 testimonials, the availability line
-  ("Available for new projects") and the city/time zone (placeholder: Dubai).
+  ("Available for new projects"), the city/time zone (placeholder: Dubai), and each client
+  project's year and stack (`details` in `projects`).
 - **Draft — read and adjust:** the hero tagline ("crafting websites that feel *alive*.", replacing
   "21 Year Old /"), the About lead and body, the four services and their one-liners, the four
-  process steps, the marquee words.
+  process steps, the marquee words, and the role on each project ("Front-end development").
 - "IT Student — Year 3" and the Journey entries (add dates if you'd like them shown).
 - The contact email (`taeyamfrontend@gmail.com`, taken from the git author config).
 - A real photo for About — it gets the duotone treatment automatically.

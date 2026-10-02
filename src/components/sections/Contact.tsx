@@ -8,6 +8,9 @@ import { BackToTop, CopyEmail } from "./ContactActions";
 /**
  * Contact lives in the page footer — the day ends at sunset. The top of the
  * footer fades from the orange page into dusk, so there's no hard edge.
+ * `sun-sky` marks the backgrounds the WebGL sun paints itself while it runs
+ * (its shader mirrors this gradient), and `sun-legible` the copy it may pass
+ * behind on its way down to the sea.
  */
 export function Contact() {
   const year = new Date().getFullYear();
@@ -17,7 +20,7 @@ export function Contact() {
       id="contact"
       aria-labelledby="contact-title"
       data-cursor-tone="light"
-      className="relative z-10 isolate overflow-hidden bg-[linear-gradient(to_bottom,transparent,var(--color-ember)_12svh,var(--color-dusk)_26svh,var(--color-night)_58svh)] pt-[38svh] text-paper outline-none"
+      className="sun-sky relative z-10 isolate overflow-hidden bg-[linear-gradient(to_bottom,transparent,var(--color-ember)_12svh,var(--color-dusk)_26svh,var(--color-night)_58svh)] pt-[38svh] text-paper outline-none"
     >
       {/* Marks the dark part of the footer so fixed UI can switch to light ink. */}
       <div data-tone="dark" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[18svh] bottom-0" />
@@ -30,10 +33,12 @@ export function Contact() {
             <span>Contact</span>
           </p>
         </Reveal>
-        <h2 id="contact-title" className="text-title font-extrabold uppercase">
+        {/* Three short lines keep the right of the sky clear for the setting sun. */}
+        <h2 id="contact-title" className="sun-legible text-title font-extrabold uppercase">
           <RevealWords text="Let's build" />
           <br />
-          <RevealWords text="something" delay={0.12} />{" "}
+          <RevealWords text="something" delay={0.12} />
+          <br />
           <span className="text-gold">
             <RevealWords text="*bright.*" delay={0.2} />
           </span>
@@ -43,7 +48,7 @@ export function Contact() {
           <Magnetic strength={0.12}>
             <a
               href={`mailto:${profile.email}`}
-              className="group relative text-[clamp(1.35rem,3.6vw,3.4rem)] leading-tight font-medium break-all"
+              className="sun-legible group relative text-[clamp(1.35rem,3.6vw,3.4rem)] leading-tight font-medium break-all"
             >
               {profile.email}
               <span
@@ -56,7 +61,7 @@ export function Contact() {
         </Reveal>
 
         <Reveal delay={0.25}>
-          <ul className="meta mt-10 flex flex-wrap gap-6 text-paper/75">
+          <ul className="sun-legible meta mt-10 flex flex-wrap gap-6 text-paper/75">
             {profile.socials.map((social) => (
               <li key={social.href}>
                 <a
@@ -75,11 +80,11 @@ export function Contact() {
 
       <SunsetStage />
 
-      <div className="shell meta relative flex flex-col gap-3 bg-[#0a0403] pt-2 pb-8 text-paper/55 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sun-sky shell meta relative flex flex-col gap-3 bg-[#0a0403] pt-2 pb-8 text-paper/55 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {year} {profile.fullName}
         </p>
-        <p>Built with Next.js, React Three Fiber &amp; plenty of sunlight</p>
+        <p>Built with Next.js, WebGL &amp; plenty of sunlight</p>
         <BackToTop />
       </div>
     </footer>

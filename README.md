@@ -2,8 +2,8 @@
 
 The rebuild of my 2025 Nuxt portfolio in **Next.js 16**. Same identity — the flame-orange
 gradient, heavy Kanit type, the sun and its heat rings, the double dash — now fully responsive,
-accessible, fast, and alive: a real-time WebGL sun, smooth scrolling, and a page that plays out
-like a day, from high noon to sunset.
+accessible, fast, and alive: one real-time WebGL sun that travels the page as you scroll, from
+high noon in the hero to sunset over the sea in the footer.
 
 → Design rationale, audit of the old site and roadmap: [`docs/DESIGN.md`](docs/DESIGN.md)
 
@@ -13,7 +13,7 @@ like a day, from high noon to sunset.
 - [Tailwind CSS 4](https://tailwindcss.com) with design tokens in `src/app/globals.css`
 - [Motion](https://motion.dev) for reveals and scroll-linked animation
 - [Lenis](https://lenis.darkroom.engineering) for smooth scrolling
-- [three.js](https://threejs.org) + [React Three Fiber](https://r3f.docs.pmnd.rs) for the WebGL sun (lazy-loaded)
+- Plain WebGL: one hand-written fragment shader for the sun's journey (a 6 KB lazy chunk)
 
 ## Getting started
 

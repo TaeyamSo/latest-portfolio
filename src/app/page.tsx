@@ -10,6 +10,7 @@ import { Process } from "@/components/sections/Process";
 import { Projects } from "@/components/sections/Projects";
 import { Services } from "@/components/sections/Services";
 import { Testimonials } from "@/components/sections/Testimonials";
+import { SunJourney } from "@/components/sun/SunJourney";
 import { profile, skills, testimonials } from "@/content/site";
 import { visibleItems } from "@/lib/mock";
 import { siteUrl } from "@/lib/site-url";
@@ -39,6 +40,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
       />
       <DayCycle />
+      <SunJourney />
       <Header />
       <SideNav />
       <main id="main" className="relative z-10 overflow-x-clip outline-none">

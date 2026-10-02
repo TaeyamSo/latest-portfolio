@@ -1,132 +1,216 @@
 "use client";
 
-import { animate, motion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
+import { MockBadge } from "@/components/ui/MockBadge";
 import { EASE_EXPO, Reveal } from "@/components/ui/Reveal";
 import { RollText } from "@/components/ui/RollText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Tilt } from "@/components/ui/Tilt";
-// The monitor features client work only; template builds go to the archive list.
-import { archiveProjects, featuredProjects as projects, sectionNumber } from "@/content/site";
-import { cn } from "@/lib/cn";
+import { archiveProjects, featuredProjects, sectionNumber, type Project } from "@/content/site";
+import { visible } from "@/lib/mock";
+import { useMediaQuery, useReducedMotionSafe } from "@/lib/use-media-query";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
+/**
+ * Each client project gets a full-screen moment: dark cards that pin and stack
+ * as you scroll (from tablet up), the previous one scaling back into the deck.
+ * Template builds follow in an archive list with cursor-following previews.
+ */
 export function Projects() {
-  const [active, setActive] = useState(0);
-  const [previous, setPrevious] = useState<number | null>(null);
-  const tabs = useRef<Array<HTMLButtonElement | null>>([]);
+  const stackRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: stackRef, offset: ["start start", "end end"] });
 
-  const select = (index: number) => {
-    if (index === active) return;
-    setPrevious(active);
-    setActive(index);
-  };
+  return (
+    <section id="work" aria-labelledby="projects-title" className="relative py-[clamp(7rem,16vh,12rem)] outline-none">
+      <div className="shell">
+        <SectionHeading id="projects-title" index={sectionNumber("work")} label="Projects" title="Selected *work*" />
+      </div>
 
-  const onKeyDown = (event: React.KeyboardEvent, index: number) => {
-    const last = projects.length - 1;
-    const keys: Record<string, number> = {
-      ArrowDown: index === last ? 0 : index + 1,
-      ArrowRight: index === last ? 0 : index + 1,
-      ArrowUp: index === 0 ? last : index - 1,
-      ArrowLeft: index === 0 ? last : index - 1,
-      Home: 0,
-      End: last,
-    };
-    const next = keys[event.key];
-    if (next === undefined) return;
-    event.preventDefault();
-    select(next);
-    tabs.current[next]?.focus();
+      <div ref={stackRef} className="relative mt-16 lg:mt-20">
+        {featuredProjects.map((project, i) => (
+          <ProjectCard
+            key={project.slug}
+            project={project}
+            index={i}
+            count={featuredProjects.length}
+            progress={scrollYProgress}
+          />
+        ))}
+      </div>
+
+      <Archive />
+    </section>
+  );
+}
+
+type CardProps = { project: Project; index: number; count: number; progress: MotionValue<number> };
+
+function ProjectCard({ project, index, count, progress }: CardProps) {
+  const stacking = useMediaQuery("(min-width: 48rem)");
+  const still = useReducedMotionSafe();
+  const last = index === count - 1;
+  const span = Math.max(1, count - 1);
+  const start = index / span;
+  // Cards further back in the deck end up smaller and darker.
+  const scale = useTransform(progress, last ? [0, 1] : [start, 1], [1, last ? 1 : 1 - (count - 1 - index) * 0.04]);
+  const dim = useTransform(progress, last ? [0, 1] : [start, Math.min(1, start + 1 / span)], [0, last ? 0 : 0.6]);
+  const animate = stacking && !still;
+  const details = project.details && visible(project.details) ? project.details : null;
+
+  return (
+    <div
+      style={{ "--i": index, zIndex: index + 1 } as React.CSSProperties}
+      className="px-(--gutter) pb-6 md:sticky md:top-0 md:h-svh md:px-0 md:pt-[calc(7svh+var(--i)*1.4rem)] md:pb-0"
+    >
+      <motion.article
+        data-tone="dark"
+        data-cursor-tone="light"
+        aria-labelledby={`project-${project.slug}`}
+        style={animate ? { scale } : undefined}
+        className="relative origin-top overflow-hidden bg-ink text-paper md:h-[min(78svh,50rem)]"
+      >
+        <div className="md:shell grid h-full gap-8 px-5 py-8 md:grid-rows-[auto_1fr_auto] md:py-10 lg:py-12">
+          <div className="meta flex flex-wrap justify-between gap-3 text-paper/70">
+            <span>
+              ({pad(index + 1)} / {pad(count)})
+            </span>
+            <span>{project.kind}</span>
+          </div>
+
+          <div className="grid items-center gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <h3
+                id={`project-${project.slug}`}
+                className="text-[clamp(2.4rem,5vw,5.4rem)] leading-[0.92] font-extrabold uppercase"
+              >
+                {project.name}
+              </h3>
+            </div>
+            <div className="lg:col-span-7">
+              <Monitor project={project} />
+            </div>
+          </div>
+
+          <dl className="meta grid grid-cols-2 gap-x-6 gap-y-4 border-t border-paper/15 pt-5 text-paper/70 sm:grid-cols-4">
+            {project.role && <Detail term="Role" value={project.role} />}
+            <Detail term="Sector" value={project.category} />
+            {details && <Detail term="Year" value={details.year} mock={details.mock} />}
+            {details && <Detail term="Stack" value={details.stack} mock={details.mock} />}
+          </dl>
+        </div>
+
+        <motion.div
+          aria-hidden="true"
+          style={animate ? { opacity: dim } : { opacity: 0 }}
+          className="pointer-events-none absolute inset-0 bg-ink"
+        />
+      </motion.article>
+    </div>
+  );
+}
+
+function Detail({ term, value, mock }: { term: string; value: string; mock?: boolean }) {
+  return (
+    <div>
+      <dt className="flex items-center gap-2">
+        {term}
+        {mock && <MockBadge className="text-paper/70" />}
+      </dt>
+      <dd className="mt-1.5 tracking-[0.08em] text-paper normal-case">{value}</dd>
+    </div>
+  );
+}
+
+/** The original monitor, inverted for the dark cards: paper bezel, neck, and "Visit website" as its base. */
+function Monitor({ project }: { project: Project }) {
+  return (
+    <Tilt max={4} className="mx-auto w-full max-w-[46rem]">
+      <div className="group bg-paper p-2 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-3">
+        <div className="flex items-center gap-3 px-1.5 pb-2 sm:pb-2.5">
+          <span aria-hidden="true" className="flex gap-1.5">
+            <span className="size-2.5 rounded-full bg-flame" />
+            <span className="size-2.5 rounded-full bg-amber" />
+            <span className="size-2.5 rounded-full bg-sunlight" />
+          </span>
+          <span className="meta flex-1 truncate rounded-full bg-ink/8 px-3 py-1 text-center text-[0.6rem] tracking-[0.08em] text-ink/80 normal-case">
+            {displayUrl(project.url)}
+          </span>
+        </div>
+        <div className="relative aspect-[16/9] overflow-hidden bg-night">
+          <Image
+            src={project.image}
+            alt={`${project.name} — home page screenshot`}
+            fill
+            sizes="(min-width: 1024px) 46rem, 92vw"
+            placeholder="blur"
+            className="object-cover object-top transition-transform duration-[1200ms] ease-expo group-hover:scale-[1.04]"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/12 via-transparent to-transparent"
+          />
+        </div>
+      </div>
+      <div aria-hidden="true" className="mx-auto h-8 w-4 bg-paper sm:h-10" />
+      <a
+        href={project.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor="Visit"
+        data-cursor-tone="dark"
+        className="group group/roll mx-auto flex w-56 items-center justify-center gap-2 bg-paper py-3 text-sm font-medium tracking-wide text-ink transition-colors duration-300 hover:bg-sunlight"
+      >
+        <RollText>Visit website</RollText>
+        <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+          ↗
+        </span>
+        <span className="sr-only">: {project.name} (opens in a new tab)</span>
+      </a>
+    </Tilt>
+  );
+}
+
+/** Template builds. On mouse devices a preview of the site follows the cursor. */
+function Archive() {
+  const fine = useMediaQuery("(hover: hover) and (pointer: fine)");
+  const [active, setActive] = useState<number | null>(null);
+  const x = useSpring(0, { stiffness: 320, damping: 30, mass: 0.6 });
+  const y = useSpring(0, { stiffness: 320, damping: 30, mass: 0.6 });
+
+  const onPointerMove = (event: React.PointerEvent) => {
+    if (event.pointerType !== "mouse") return;
+    x.set(event.clientX);
+    y.set(event.clientY);
   };
 
   return (
-    <section
-      id="work"
-      aria-labelledby="projects-title"
-      className="shell relative py-[clamp(7rem,16vh,12rem)] outline-none"
-    >
-      <div className="grid w-full gap-x-16 gap-y-12 lg:grid-cols-12 lg:gap-y-14">
-        <SectionHeading
-          className="lg:col-span-12"
-          id="projects-title"
-          index={sectionNumber("work")}
-          label="Projects"
-          title="Selected *work*"
-        />
-
-        <div className="lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:self-center">
-          <Monitor active={active} previous={previous} />
-        </div>
-
-        <Reveal className="lg:col-span-5 lg:row-start-2 lg:self-center" delay={0.1}>
-          <div role="tablist" aria-orientation="vertical" aria-labelledby="projects-title" className="-mx-4">
-            {projects.map((project, i) => {
-              const selected = i === active;
-              return (
-                <button
-                  key={project.slug}
-                  ref={(el) => {
-                    tabs.current[i] = el;
-                  }}
-                  type="button"
-                  role="tab"
-                  id={`project-tab-${project.slug}`}
-                  aria-selected={selected}
-                  aria-controls="project-panel"
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => select(i)}
-                  onKeyDown={(event) => onKeyDown(event, i)}
-                  data-cursor="View"
-                  data-cursor-tone={selected ? "light" : undefined}
-                  className={cn(
-                    "group relative isolate flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors duration-300",
-                    selected && "text-paper",
-                  )}
-                >
-                  {selected && (
-                    <motion.span
-                      layoutId="project-highlight"
-                      aria-hidden="true"
-                      className="absolute inset-0 -z-10 bg-ink"
-                      transition={{ type: "spring", stiffness: 420, damping: 38 }}
-                    />
-                  )}
-                  <span className="meta w-6 opacity-85">{pad(i + 1)}</span>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "-mr-4 h-[3px] rounded-full bg-current transition-[width,margin] duration-500 ease-expo",
-                      selected ? "mr-0 w-5" : "w-0 group-hover:mr-0 group-hover:w-5 group-focus-visible:mr-0 group-focus-visible:w-5",
-                    )}
-                  />
-                  <span className="flex flex-col transition-transform duration-300 ease-expo group-hover:translate-x-1">
-                    <span className="text-[clamp(1.15rem,1.55vw,1.5rem)] leading-tight font-semibold">{project.name}</span>
-                    <span className="meta mt-1 text-[0.62rem] opacity-85">{project.category}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </Reveal>
-      </div>
-
-      <Reveal className="mt-20 lg:mt-28">
+    <div className="shell mt-20 lg:mt-28">
+      <Reveal>
         <div className="flex items-baseline justify-between border-b-2 border-ink pb-3">
           <h3 className="meta">Archive — template builds</h3>
           <span className="meta">{pad(archiveProjects.length)}</span>
         </div>
-        <ul>
-          {archiveProjects.map((project) => (
-            <li key={project.slug} className="border-b border-ink/25">
+        <ul onPointerMove={fine ? onPointerMove : undefined} onPointerLeave={() => setActive(null)}>
+          {archiveProjects.map((project, i) => (
+            <li key={project.slug} className="border-b border-ink/25" onPointerEnter={() => setActive(i)}>
               <a
                 href={project.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor="Visit"
+                onFocus={() => setActive(null)}
                 className="group grid grid-cols-[1fr_auto] items-baseline gap-4 py-4 sm:grid-cols-[minmax(10rem,16rem)_1fr_auto]"
               >
                 <span className="text-xl font-semibold transition-transform duration-500 ease-expo group-hover:translate-x-2">
@@ -141,102 +225,25 @@ export function Projects() {
           ))}
         </ul>
       </Reveal>
-    </section>
-  );
-}
 
-/** The original "monitor": black bezel, a neck, and "Visit website" as its base. */
-function Monitor({ active, previous }: { active: number; previous: number | null }) {
-  const layers = useRef<Array<HTMLDivElement | null>>([]);
-  const first = useRef(true);
-  const project = projects[active];
-
-  // Wipe the newly selected screenshot in from the left, over the previous one.
-  useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    const layer = layers.current[active];
-    if (!layer) return;
-    const controls = animate(
-      layer,
-      { clipPath: ["inset(0% 100% 0% 0%)", "inset(0% 0% 0% 0%)"] },
-      { duration: 0.95, ease: EASE_EXPO },
-    );
-    // If another project is picked mid-wipe, finish this one so it sits fully underneath.
-    return () => controls.complete();
-  }, [active]);
-
-  return (
-    <Reveal from="right" className="mx-auto w-full max-w-[54rem]">
-      <Tilt max={4}>
-        <div data-cursor-tone="light" className="bg-ink p-2.5 shadow-[0_50px_90px_-40px_rgb(0_0_0/0.65)] sm:p-3.5">
-          <div className="flex items-center gap-3 px-1.5 pb-2.5 sm:pb-3">
-            <span aria-hidden="true" className="flex gap-1.5">
-              <span className="size-2.5 rounded-full bg-flame" />
-              <span className="size-2.5 rounded-full bg-amber" />
-              <span className="size-2.5 rounded-full bg-sunlight" />
-            </span>
-            <span className="meta flex-1 truncate rounded-full bg-paper/10 px-3 py-1 text-center text-[0.6rem] tracking-[0.08em] text-paper/70 normal-case">
-              {displayUrl(project.url)}
-            </span>
-          </div>
-
-          <div
-            id="project-panel"
-            role="tabpanel"
-            aria-labelledby={`project-tab-${project.slug}`}
-            className="relative aspect-[16/9] overflow-hidden bg-night"
-          >
-            {projects.map((item, i) => {
-              const isActive = i === active;
-              const isPrevious = i === previous;
-              return (
-                <div
-                  key={item.slug}
-                  ref={(el) => {
-                    layers.current[i] = el;
-                  }}
-                  aria-hidden={!isActive}
-                  className={cn(
-                    "absolute inset-0 transition-transform duration-[1200ms] ease-expo",
-                    isActive ? "z-20" : isPrevious ? "z-10 scale-[1.04]" : "invisible z-0",
-                  )}
-                >
-                  <Image
-                    src={item.image}
-                    alt={isActive ? `${item.name} — home page screenshot` : ""}
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 92vw"
-                    placeholder="blur"
-                    className="object-cover object-top"
-                  />
-                </div>
-              );
-            })}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-30 bg-linear-to-br from-white/12 via-transparent to-transparent"
-            />
-          </div>
-        </div>
-
-        <div aria-hidden="true" className="mx-auto h-10 w-4 bg-ink sm:h-12" />
-        <a
-          href={project.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-cursor="Visit"
-          className="group group/roll mx-auto flex w-56 items-center justify-center gap-2 bg-ink py-3 text-sm font-medium tracking-wide text-paper transition-colors duration-300 hover:bg-paper hover:text-ink"
-        >
-          <RollText>Visit website</RollText>
-          <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-            ↗
-          </span>
-          <span className="sr-only">: {project.name} (opens in a new tab)</span>
-        </a>
-      </Tilt>
-    </Reveal>
+      {fine && (
+        <motion.div aria-hidden="true" style={{ x, y }} className="pointer-events-none fixed top-0 left-0 z-[80]">
+          <AnimatePresence>
+            {active !== null && (
+              <motion.div
+                key={archiveProjects[active].slug}
+                initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
+                animate={{ opacity: 1, scale: 1, rotate: -3 }}
+                exit={{ opacity: 0, scale: 0.9, rotate: 0 }}
+                transition={{ duration: 0.45, ease: EASE_EXPO }}
+                className="absolute top-0 left-10 w-72 -translate-y-1/2 bg-ink p-1.5 shadow-[0_30px_60px_-25px_rgb(0_0_0/0.6)]"
+              >
+                <Image src={archiveProjects[active].image} alt="" sizes="288px" className="w-full" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </div>
   );
 }

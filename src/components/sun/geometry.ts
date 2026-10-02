@@ -35,6 +35,19 @@ export const PALETTES = {
 
 export type SunTone = keyof typeof PALETTES;
 
+/**
+ * The footer's evening: sky stops (the ember → dusk → night tokens in
+ * globals.css), the sea and the horizon line. Shared by the CSS sunset and
+ * the shader that replaces it.
+ */
+export const EVENING = {
+  ember: "#b3300c",
+  dusk: "#3b1409",
+  night: "#120705",
+  sea: "#0a0403",
+  gold: "#ffb629",
+} as const;
+
 type Layer = (typeof SUN)["long"] | (typeof SUN)["short"];
 type Point = [number, number];
 

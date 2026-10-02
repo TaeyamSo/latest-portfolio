@@ -134,6 +134,10 @@ export type Project = {
   kind: "Client" | "Template build";
   url: string;
   image: StaticImageData;
+  /** DRAFT — what Tayam did on it. */
+  role?: string;
+  /** MOCK until confirmed — shown on the project cards in development only. */
+  details?: { year: string; stack: string; mock?: boolean };
 };
 
 export const projects: Project[] = [
@@ -144,6 +148,8 @@ export const projects: Project[] = [
     kind: "Client",
     url: "https://baddarfurniture.com/",
     image: baddar,
+    role: "Front-end development",
+    details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
   },
   {
     slug: "hazo",
@@ -152,6 +158,8 @@ export const projects: Project[] = [
     kind: "Client",
     url: "https://hazoco.net",
     image: hazo,
+    role: "Front-end development",
+    details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
   },
   {
     slug: "alaktabout",
@@ -160,6 +168,8 @@ export const projects: Project[] = [
     kind: "Client",
     url: "https://alaktabout.net/",
     image: alaktabout,
+    role: "Front-end development",
+    details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
   },
   {
     slug: "al-ain",
@@ -168,6 +178,8 @@ export const projects: Project[] = [
     kind: "Client",
     url: "https://aatb-rak.net/",
     image: alAin,
+    role: "Front-end development",
+    details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
   },
   {
     slug: "elzero",

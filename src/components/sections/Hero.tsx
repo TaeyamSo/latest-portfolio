@@ -66,11 +66,18 @@ export function Hero() {
       aria-label="Introduction"
       className="shell relative isolate flex min-h-svh flex-col justify-end pb-[17svh] outline-none lg:justify-center lg:pb-0"
     >
-      {/* The sun sits exactly on the rings' centre (see --rings-x / --rings-y). */}
-      <div className="pointer-events-none absolute top-(--rings-y) left-(--rings-x) aspect-square w-[min(92vw,50svh)] -translate-1/2 lg:w-[min(41vw,84svh)]">
-        {/* Desktop only: on narrow screens the ring would run through the header. */}
+      {/* The sun sits exactly on the rings' centre (see --rings-x / --rings-y). The WebGL
+          sun starts its journey from this box (data-sun-stage). */}
+      <div
+        data-sun-stage
+        className="pointer-events-none absolute top-(--rings-y) left-(--rings-x) aspect-square w-[min(92vw,50svh)] -translate-1/2 lg:w-[min(41vw,84svh)]"
+      >
+        {/* Desktop only: on narrow screens the ring would run through the header.
+            It fades out as the sun leaves (data-sun-orbit). */}
         <div className="intro-sun absolute -inset-[9%] hidden lg:block">
-          <OrbitText className="orbit size-full text-ink/80" />
+          <div data-sun-orbit className="size-full">
+            <OrbitText className="orbit size-full text-ink/80" />
+          </div>
         </div>
         <HeroSun />
         <p

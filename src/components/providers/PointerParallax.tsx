@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 
 /**
  * The fixed concentric heat rings from the original site. They drift a few
- * pixels against the cursor for depth (fine pointers only).
+ * pixels against the cursor for depth (fine pointers only). While the WebGL
+ * sun is travelling it moves the rings itself, so this steps aside.
  */
 export function PointerParallax() {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,6 +25,7 @@ export function PointerParallax() {
       y = (event.clientY / window.innerHeight) * 2 - 1;
       frame ||= requestAnimationFrame(() => {
         frame = 0;
+        if (document.documentElement.classList.contains("sun-webgl")) return;
         el.style.transform = `translate3d(${(x * -14).toFixed(2)}px, ${(y * -14).toFixed(2)}px, 0)`;
       });
     };
