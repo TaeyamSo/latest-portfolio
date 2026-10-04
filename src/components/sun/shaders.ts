@@ -1,26 +1,44 @@
 /**
- * GLSL for the sun's journey. Shapes and colours are injected from geometry.ts,
- * so the shader draws exactly the same sun as the SVG fallback — just alive.
- * Colours go straight to the (premultiplied) framebuffer as sRGB, the way CSS
- * paints, so the shader's sky continues the page's gradients seamlessly.
+ * GLSL for the sun's journey. The disc and bloom ramps are generated from the
+ * same numbers as the SVG/CSS sun (disc.ts), so the shader draws exactly that
+ * sun — just alive. Colours go straight to the (premultiplied) framebuffer as
+ * sRGB, the way CSS paints, so the shader's sky continues the page seamlessly.
  */
-import { EVENING, PALETTES, SUN } from "./geometry";
-
-const NOON = PALETTES.noon;
-const SUNSET = PALETTES.sunset;
-
-/** Furthest a ray can reach (breathing, flares, leaning), in disc radii. */
-const REACH = SUN.extent + 0.5;
-/** Where the glow around the sun has faded out, in disc radii. */
-const GLOW = 3.4;
+import { BLOOM, DISC, DISC_STOPS, bloomStops } from "./disc";
+import { EVENING } from "./geometry";
 
 const f = (n: number) => n.toFixed(4);
-const vec3 = (hex: string) => {
-  const v = hex.replace("#", "").match(/.{2}/g)!.map((c) => parseInt(c, 16) / 255);
-  return `vec3(${v.map(f).join(", ")})`;
+const rgb = (hex: string) => hex.replace("#", "").match(/.{2}/g)!.map((c) => parseInt(c, 16) / 255);
+const vec3 = (hex: string) => `vec3(${rgb(hex).map(f).join(", ")})`;
+
+/** Piecewise-linear colour ramp over the disc stops, noon → sunset by `tone`. */
+const discRamp = () => {
+  const stop = (i: number) => `mix(${vec3(DISC.noon[i])}, ${vec3(DISC.sunset[i])}, tone)`;
+  const steps = DISC_STOPS.slice(1).map(
+    (at, i) => `c = mix(c, ${stop(i + 1)}, clamp((x - ${f(DISC_STOPS[i])}) / ${f(at - DISC_STOPS[i])}, 0.0, 1.0));`,
+  );
+  return `vec3 discColor(float x, float tone) {
+    vec3 c = ${stop(0)};
+    ${steps.join("\n    ")}
+    return c;
+  }`;
 };
-/** A colour that moves from its noon value to its sunset value with `tone`. */
-const toned = (noon: string, sunset: string) => `mix(${vec3(noon)}, ${vec3(sunset)}, tone)`;
+
+/** Piecewise-linear bloom opacity over distance, sampled exactly like the CSS gradient. */
+const bloomRamp = (name: string, mood: keyof typeof BLOOM) => {
+  const stops = bloomStops(mood);
+  const steps = stops
+    .slice(1)
+    .map(
+      (s, i) =>
+        `a = mix(a, ${f(s.alpha)}, clamp((d - ${f(stops[i].d)}) / ${f(s.d - stops[i].d)}, 0.0, 1.0));`,
+    );
+  return `float ${name}(float d) {
+    float a = ${f(stops[0].alpha)};
+    ${steps.join("\n    ")}
+    return a;
+  }`;
+};
 
 export const journeyVertex = /* glsl */ `
   attribute vec2 position;
@@ -37,17 +55,13 @@ export const journeyFragment = /* glsl */ `
     precision mediump float;
   #endif
 
-  #define PI 3.14159265
-  #define TAU 6.28318531
-
   uniform vec2 uRes;      // drawing buffer, device px
   uniform float uDpr;     // device px per CSS px
   uniform float uTime;
   uniform vec4 uSun;      // centre x, y and disc radius (viewport CSS px, y down), tone
-  uniform vec2 uRot;      // rotation of the long and the short rays
   uniform vec3 uPointer;  // pointer relative to the sun in disc radii (y down), presence
   uniform float uFlare;   // 0…1 click impulse
-  uniform float uIntro;   // 0…1 fade-in of what the SVG sun never had (glow, stars)
+  uniform float uIntro;   // 0…1 fade-in of what the SVG sun doesn't have (shimmer, stars)
   uniform vec4 uFooter;   // footer top, small viewport height, horizon, sea depth (CSS px)
 
   const vec3 EMBER = ${vec3(EVENING.ember)};
@@ -55,6 +69,8 @@ export const journeyFragment = /* glsl */ `
   const vec3 NIGHT = ${vec3(EVENING.night)};
   const vec3 SEA = ${vec3(EVENING.sea)};
   const vec3 GOLD = ${vec3(EVENING.gold)};
+  const vec3 BLOOM_DAY = ${vec3(BLOOM.day.color)};
+  const vec3 BLOOM_DUSK = ${vec3(BLOOM.dusk.color)};
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -89,47 +105,28 @@ export const journeyFragment = /* glsl */ `
     return src + dst * (1.0 - src.a);
   }
 
-  // Coverage (x), facet side (y: 0 light, 1 dark) and distance along the ray (z)
-  // for the nearest ray of a layer. Rays are triangles, like the SVG polygons.
-  vec3 rayLayer(vec2 p, float count, float offset, float base, float halfW, float tip,
-                float rot, float px, float breathe, float lean, vec2 leanDir) {
-    float sector = TAU / count;
-    float a = atan(p.y, p.x) + PI * 0.5 - rot;
-    float k = floor(a / sector - offset + 0.5);
-    float ang = (k + offset) * sector - PI * 0.5 + rot;
-    vec2 dir = vec2(cos(ang), sin(ang));
-    float u = dot(p, dir);
-    float v = dot(p, vec2(-dir.y, dir.x));
-    float reach = tip + breathe * sin(uTime * 1.3 + k * 1.7) + lean * max(dot(dir, leanDir), 0.0);
-    float w = halfW * (reach - u) / (reach - base);
-    float cover = step(base, u) * (1.0 - smoothstep(w - px, w + px, abs(v)));
-    return vec3(cover, step(0.0, v), u);
-  }
+  ${discRamp()}
 
-  // The faceted sun in sun space (disc radius 1, y down), palette mixed by tone.
-  // Flat facets like the SVG sun — no shading — so the hand-over is seamless.
-  vec4 sunBody(vec2 q, float px, float lean, vec2 leanDir, float tone) {
+  ${bloomRamp("bloomDay", "day")}
+
+  ${bloomRamp("bloomDusk", "dusk")}
+
+  // The glowing disc in sun space (radius 1, y down): white-hot in the middle,
+  // gold at the rim. Its edge breathes a little, the surface simmers, and a
+  // click whitens it — all scaled by uIntro, so the first frame is the SVG sun.
+  vec4 discBody(vec2 q, float px, float tone, float detail) {
     float d = length(q);
-    float breathe = 0.022 + uFlare * 0.05;
-    vec4 col = vec4(0.0);
-
-    vec3 s = rayLayer(q, ${f(SUN.short.count)}, ${f(SUN.short.offset)}, ${f(SUN.short.base)}, ${f(SUN.short.halfWidth)},
-                      ${f(SUN.short.tip)} + uFlare * 0.1, uRot.y, px, breathe, lean * 0.6, leanDir);
-    vec3 sCol = mix(${toned(NOON.short.light, SUNSET.short.light)}, ${toned(NOON.short.dark, SUNSET.short.dark)}, s.y);
-    col = over(col, vec4(sCol, 1.0) * s.x);
-
-    vec3 l = rayLayer(q, ${f(SUN.long.count)}, ${f(SUN.long.offset)}, ${f(SUN.long.base)}, ${f(SUN.long.halfWidth)},
-                      ${f(SUN.long.tip)} + uFlare * 0.18, uRot.x, px, breathe, lean, leanDir);
-    vec3 lCol = mix(${toned(NOON.long.light, SUNSET.long.light)}, ${toned(NOON.long.dark, SUNSET.long.dark)}, l.y);
-    col = over(col, vec4(lCol, 1.0) * l.x);
-
-    float disc = 1.0 - smoothstep(1.0 - px, 1.0 + px, d);
-    vec3 dCol = mix(${toned(NOON.disc.top, SUNSET.disc.top)}, ${toned(NOON.disc.bottom, SUNSET.disc.bottom)},
-                    clamp(q.y * 0.5 + 0.5, 0.0, 1.0));
-    dCol = mix(dCol, ${toned(NOON.disc.rim, SUNSET.disc.rim)}, smoothstep(0.78, 1.0, d) * 0.55);
-    dCol += (fbm(q * 2.3 + vec2(uTime * 0.06, -uTime * 0.09)) - 0.5) * 0.04; // faint heat shimmer
-    dCol += uFlare * 0.08;
-    return over(col, vec4(dCol, 1.0) * disc);
+    vec2 dir = q / max(d, 1e-4);
+    float wobble = (noise(dir * 2.2 + uTime * vec2(0.21, -0.17)) - 0.5) * 2.0 * mix(0.006, 0.014, tone);
+    float dd = d / (1.0 + wobble * uIntro + 0.03 * uFlare);
+    vec3 c = discColor(min(dd, 1.0), tone);
+    if (detail > 0.0 && d < 1.05) {
+      float grain = fbm(q * 7.0 + uTime * vec2(0.05, -0.04)) - 0.5;
+      c *= 1.0 + grain * mix(0.06, 0.09, tone) * smoothstep(0.15, 0.8, dd) * detail * uIntro;
+    }
+    c += (noise(q * 1.6 + vec2(0.0, uTime * 0.12)) - 0.5) * 0.025 * uIntro;
+    c = mix(c, vec3(1.0, 0.99, 0.95), 0.3 * uFlare * (1.0 - min(dd, 1.0)));
+    return vec4(c, 1.0) * (1.0 - smoothstep(1.0 - px, 1.0 + px, dd));
   }
 
   // The footer's CSS background: linear-gradient(transparent, ember 12svh, dusk 26svh, night 58svh).
@@ -163,24 +160,20 @@ export const journeyFragment = /* glsl */ `
   void main() {
     vec2 frag = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uDpr; // viewport CSS px, y down
     float r = uSun.z;
-    vec2 rel = (frag - uSun.xy) / r;
-    float d = length(rel);
+    float hover = uPointer.z;
+    vec2 pull = uPointer.xy / max(1.0, length(uPointer.xy) / 3.0);
+    vec2 q = (frag - uSun.xy) / r - pull * 0.02 * hover; // the sun leans a touch towards the cursor
+    float d = length(q);
     float sky = frag.y - uFooter.x; // how far into the footer
 
-    // Most of the page: nothing but the sun and its glow.
-    if (sky < 0.0 && d > ${f(GLOW)}) {
+    // Most of the page: nothing but the sun and its day bloom.
+    if (sky < 0.0 && d > ${f(BLOOM.day.end)} * (1.0 + 0.35 * uFlare)) {
       gl_FragColor = vec4(0.0);
       return;
     }
 
     float tone = uSun.w;
     float depth = frag.y - uFooter.z; // below the horizon when positive
-    float hover = uPointer.z;
-    float reach = length(uPointer.xy);
-    vec2 pull = uPointer.xy / max(1.0, reach / 3.0);
-    float near = hover * fall(1.1, 5.5, reach);
-    vec2 leanDir = uPointer.xy / max(reach, 1e-4);
-    vec2 q = rel - pull * 0.02 * hover; // the whole sun leans a touch towards the cursor
     float low = fall(0.4, 3.0, (uFooter.z - uSun.y) / r); // 1 once the sun is down on the horizon
 
     vec4 col = vec4(0.0);
@@ -193,14 +186,21 @@ export const journeyFragment = /* glsl */ `
       col = over(col, lightPool(frag.x, depth) * mix(0.55, 1.0, low));
     }
 
-    // A warm glow around the sun — only against the dusk sky. Over the orange
-    // page a halo reads as a shadow, so by day the sun stays crisp.
-    float glow = exp(-max(length(q) - 1.0, 0.0) * 1.7) * fall(${f(GLOW - 0.8)}, ${f(GLOW)}, d);
-    col.rgb += vec3(1.0, 0.58, 0.26) * glow * (0.3 + 0.28 * uFlare) * dusk * uIntro;
+    // The bloom: light around the disc that's always lighter than the sky behind
+    // it — the day bloom over the page, the warmer dusk bloom over the dark sky.
+    // A flare widens and brightens it.
+    if (d > 0.9) {
+      float spread = 1.0 + (d - 1.0) / (1.0 + 0.35 * uFlare);
+      float boost = 1.0 + 0.6 * uFlare;
+      float aDay = min(bloomDay(spread) * boost, 0.9) * (1.0 - smoothstep(0.2, 0.6, tone));
+      float aDusk = min(bloomDusk(spread) * boost, 0.9);
+      vec4 bloom = mix(vec4(BLOOM_DAY * aDay, aDay), vec4(BLOOM_DUSK * aDusk, aDusk), dusk);
+      col = over(col, bloom * clamp(0.5 - depth * uDpr, 0.0, 1.0));
+    }
 
-    // The sun itself, clipped by the horizon.
-    if (d < ${f(REACH)}) {
-      vec4 sun = sunBody(q, 1.0 / (r * uDpr), 0.15 * near, leanDir, tone);
+    // The disc itself, clipped by the horizon.
+    if (d < 1.1) {
+      vec4 sun = discBody(q, 1.0 / (r * uDpr), tone, 1.0);
       col = over(col, sun * clamp(0.5 - depth * uDpr, 0.0, 1.0));
     }
 
@@ -215,8 +215,8 @@ export const journeyFragment = /* glsl */ `
       float ripple = smoothstep(0.0, 0.12, band) * fall(0.5, 0.62, band);
       float sway = (sin(w * 0.12 - uTime * 1.7) * 0.7 + sin(w * 0.047 + uTime * 0.8)) * (1.5 + w * 0.05);
       vec2 m = (vec2(frag.x + sway, uFooter.z - w * 0.72) - uSun.xy) / r; // mirrored, stretched
-      if (length(m) < ${f(REACH)}) {
-        sea = over(sea, sunBody(m, 1.5 / (r * uDpr), 0.0, leanDir, tone) * 0.55 * fade * ripple);
+      if (length(m) < 1.1) {
+        sea = over(sea, discBody(m, 1.5 / (r * uDpr), tone, 0.0) * 0.55 * fade * ripple);
       }
 
       float column = exp(-pow((frag.x - uSun.x) / (r * (0.9 + 1.6 * k)), 2.0));
@@ -229,7 +229,7 @@ export const journeyFragment = /* glsl */ `
     float line = exp(-abs(depth) * uDpr * 0.8) * step(0.0, sky);
     col.rgb += GOLD * line * (0.25 + 0.75 * exp(-abs(frag.x - uSun.x) / (0.3 * uRes.x / uDpr))) * 0.9;
 
-    // A touch of dither keeps the long dusk gradient free of banding.
+    // A touch of dither keeps the long gradients free of banding.
     col.rgb += (fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) - 0.5) / 255.0;
     gl_FragColor = clamp(col, 0.0, 1.0);
   }

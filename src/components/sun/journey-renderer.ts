@@ -1,10 +1,10 @@
+import { DAY_TONE_MAX } from "./disc";
 import { SUN } from "./geometry";
 import { FLARE_EVENT, smooth, sunPath, type Spot } from "./journey";
 import { journeyFragment, journeyVertex } from "./shaders";
 
-/** Radians per second: one turn every 52s, the pace of the CSS sun. */
-const TURN = (Math.PI * 2) / 52;
-const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uRot", "uPointer", "uFlare", "uIntro", "uFooter"] as const;
+const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uPointer", "uFlare", "uIntro", "uFooter"] as const;
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /**
  * Draws the travelling sun on a fixed, full-viewport canvas with one fragment
@@ -15,7 +15,8 @@ const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uRot", "uPointer", "uFlare",
  * `[data-sun-orbit]`. Once its first frames are on screen it sets
  * `html.sun-webgl`, which retires the SVG/CSS stand-ins (see globals.css).
  *
- * Renders at the display rate while something moves, ~30fps otherwise.
+ * Renders at the display rate while something moves, ~30fps when only the
+ * shimmer is moving.
  * Returns a cleanup that hands everything back to CSS.
  */
 export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
@@ -52,11 +53,7 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   const sea = horizon?.parentElement;
   const orbit = document.querySelector<HTMLElement>("[data-sun-orbit]");
 
-  // Start the rays where the CSS sun has turned them, so the hand-over is seamless.
-  const spin = stage?.querySelector(".sun-spin")?.getAnimations()[0];
   const start = performance.now();
-  const spun = typeof spin?.currentTime === "number" ? spin.currentTime : start;
-  const rot0 = ((spun % 52000) / 1000) * TURN;
 
   // 100svh, measured: the sky anchors use it, so mobile toolbars don't move the sun.
   const probe = document.createElement("div");
@@ -124,12 +121,14 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
       if (opacity !== lastOrbit) orbit.style.opacity = lastOrbit = opacity;
     }
 
-    const turned = ((now - start) / 1000) * TURN + flare * 0.55;
+    // The disc only deepens to red once the dark footer sky is behind it; over
+    // the orange page it stays bright, so its rim never sinks below its bloom.
+    const skyBehind = clamp01((sun.y - footerTop) / (0.12 * svh));
+    const tone = Math.min(sun.tone, DAY_TONE_MAX) + (sun.tone - Math.min(sun.tone, DAY_TONE_MAX)) * skyBehind;
     gl.uniform2f(u.uRes, canvas.width, canvas.height);
     gl.uniform1f(u.uDpr, dpr);
     gl.uniform1f(u.uTime, time);
-    gl.uniform4f(u.uSun, sun.x, sun.y, sun.r, sun.tone);
-    gl.uniform2f(u.uRot, rot0 + turned, rot0 + turned * 0.92); // the short rays lag a touch behind
+    gl.uniform4f(u.uSun, sun.x, sun.y, sun.r, tone);
     gl.uniform3f(u.uPointer, lean.x, lean.y, lean.hover);
     gl.uniform1f(u.uFlare, flare);
     gl.uniform1f(u.uIntro, intro);
@@ -164,7 +163,7 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
       lastScroll = scroll;
       activeUntil = now + 500;
     }
-    // When nothing but the slow spin is moving, every other frame is plenty.
+    // When nothing but the slow shimmer is moving, every other frame is plenty.
     const busy = now < activeUntil || flare > 0.002 || intro < 1;
     if (busy || now - last >= 30) render(now);
   };

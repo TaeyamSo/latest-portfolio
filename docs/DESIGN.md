@@ -40,17 +40,23 @@ serving that build and inspecting it at laptop sizes (1440×900 and 1366×768).
 
 Keep every recognisable piece, then make it feel alive and give it a story:
 
-- **The sun is real-time.** A GPU shader draws the same faceted sun (same geometry,
-  same colours, the same flat facets — no halo or shading, so it stays crisp on the
-  orange) — its rays breathe, rotate on the original 52s cycle, lean towards the
-  cursor, and flare when clicked. Only at sunset, against the dark sky, does it glow.
+- **The sun is a glowing disc.** White-hot in the middle, gold at the rim (brightest in the
+  centre, like a real sun), in a soft bloom of light that is always *lighter* than the sky
+  — never a dark ring — so it stands clear of the orange. A GPU shader draws it live: the
+  edge breathes, the surface simmers, a click makes it flare. At sunset it deepens to red
+  over the dark sky. The faceted sunburst lives on as the brand mark (logo, favicon, marquee).
+- **A landscape at noon.** Layered poster mountains at the foot of the hero, far ridges hazy
+  and near ones deep ember, with the sun sitting in the dip between two peaks and a cloud
+  drifting across it. As you scroll the mountains sink away behind the marquee and the sun
+  rises out of them; clouds keep drifting through the sky for the rest of the page, warming
+  to golden hour, and dark streaks cross the setting sun at the end.
 - **The page is a day, and one sun lives through it.** It opens at high noon in the
   hero; as you scroll the same sun lifts into the top-right of the sky, sinks a little
   and warms through the afternoon, then sets in the footer: the dusk sky fills with
   stars, the horizon rises to meet the sun and the sea mirrors it in rippling light.
   Header and navigation switch to light ink automatically.
-- **A clean sky.** The 2025 site's concentric heat rings are gone (Phase 5): the flat
-  flame gradient, the grain and the sun itself carry the hero.
+- **A clean sky.** The 2025 site's concentric heat rings are gone: the flat flame gradient,
+  the grain, the sun and the landscape carry the hero.
 - **The double dash is the system.** Under headings, as nav indicators, list bullets,
   timeline markers, link underlines and the mobile menu button.
 - **Content is the hero.** Big type, black frames, real screenshots in a monitor with a
@@ -145,10 +151,14 @@ src/
   content/        site.ts — every word, link and image on the site
   components/
     case/         CaseBackdrop (the morph target), CaseTour ("A closer look"), CaseMarker
+    scenery/      ridges.ts (seeded mountain silhouettes), HeroLandscape (ridges + hero clouds),
+                  HeroScroll (the hero's scroll progress, SinkLayer), Cloud (poster cloud art),
+                  CloudLayer (clouds through the page)
     chrome/       Header, SideNav, MobileMenu, SectionLink, Cursor
     sections/     Hero, Marquee, About, Services, Projects (work), Process, Journey, Testimonials, Contact
-    sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → the journey (journey.ts path,
-                  journey-renderer.ts WebGL, SunJourney mount), OrbitText, SunsetStage (CSS sunset)
+    sun/          disc.ts → SunDisc (SVG/CSS) + shaders.ts → the journey (journey.ts path,
+                  journey-renderer.ts WebGL, SunJourney mount), SunsetStage (CSS sunset), OrbitText;
+                  geometry.ts → SunGlyph, the faceted brand mark
     ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
     providers/    SmoothScroll (Lenis + Motion), PointerSync (hover while scrolling), DayCycle (tint),
@@ -158,9 +168,31 @@ src/
   assets/         optimised WebP images (see scripts/optimize-images.mjs)
 ```
 
-**One sun, many renderers.** `sun/geometry.ts` defines the ray counts, shapes and palettes.
-The SVG glyph, favicon, OG image and the GLSL shader are all generated from it, so they can
-never drift apart.
+**One sun, two renderers.** `sun/disc.ts` holds the disc's colour stops and the bloom's
+light (as formulas, sampled into gradient stops). `SunDisc` paints them as SVG + CSS for the
+first frame and without WebGL; `shaders.ts` builds its GLSL ramps from the same arrays, so the
+two are the same sun and the hand-over at ~2s is invisible (the bloom steps aside at once, the
+disc cross-fades). One rule shapes the colours: moving outwards from the centre, brightness may
+only fall — the bloom just past the rim is never brighter than the rim — so the sun can't wear
+a dark ring; a development check warns if a change breaks it over any sky the sun meets. By day
+the disc stays bright (tone capped); it only deepens to red once the dark footer sky is behind
+it. `sun/geometry.ts` keeps the faceted sunburst for the brand mark (SunGlyph, favicon, OG).
+
+**The landscape.** Mountains are three layers of faceted silhouettes generated from a few
+anchor points plus seeded jitter (`scenery/ridges.ts`, rendered on the server, identical every
+time), with protected zones so they never sit behind the scroll cue or the "portfolio" word.
+Desktop and phone ranges are both in the page and CSS picks one. Back to front the hero is: sun
+→ hero clouds → orbit ring and "portfolio" → ridges → text, so a cloud can cross the sun with or
+without WebGL. As the hero leaves, each layer sinks by a set amount (`SinkLayer`: far 85svh, mid
+70svh, near 50svh, clouds 45svh), so far ridges barely move and the sun climbs out of them; the
+layers slip behind the marquee band. Clouds are flat poster shapes (`Cloud`): a lit rim on the
+side facing the sun, the body, a shade below — no filters. `CloudLayer` is a fixed layer
+between the sun's canvas and the page, so clouds pass in front of the sun but behind the copy;
+each rises at its depth's pace, is placed so it has left by 90% of the page (never over the
+sunset's sea), cross-fades to golden hour with the page, and the layer fades out as the footer
+arrives. The sunset has its own clouds, clipped at the horizon. Every movement is a transform
+or opacity tied to scroll; reduced motion keeps the scenery still (and drops the page clouds),
+forced colours hide it.
 
 **The sun's journey.** One fixed, full-viewport canvas and a single fragment shader, no 3D
 engine. Each frame `journey.ts` turns the scroll position and a few measured marks (the hero
@@ -174,16 +206,15 @@ sun's box, the footer, the horizon) into the sun's position, size and tone:
    passed, so on large screens it never sits behind the heading (three short lines leave the
    right of the sky free). Light copy it may cross on phones gets a soft shade.
 
-While it runs, `html.sun-webgl` retires the stand-ins: the hero glyph cross-fades out (the rays
-start where the CSS spin has turned them, so nothing jumps), and the footer's gradient and the
-CSS sunset step aside because the shader paints the same gradient, then the stars, the sea and
-the reflection.
+While it runs, `html.sun-webgl` retires the stand-ins: the hero disc cross-fades out and its
+bloom steps aside, and the footer's gradient and the CSS sunset step aside because the shader
+paints the same gradient, then the stars, the sea and the reflection.
 
 **Progressive enhancement.** The server renders a complete, readable page. The hero sun paints as
 SVG immediately and the CSS/SVG sunset is a full fallback. The journey starts after the intro
 (~2s) once the page is idle, and is skipped without WebGL, on data saver, with reduced motion or
 forced colours; if the GPU context is lost it hands back to CSS. It renders at the display rate
-while you scroll or move the mouse and drops to ~30fps when only the slow spin is moving.
+while you scroll or move the mouse and drops to ~30fps when only the shimmer is moving.
 
 **Case studies and page transitions.** The pages are prerendered from `site.ts`
 (`generateStaticParams`; any other slug is the 404). Moving between the work and a case study
@@ -214,16 +245,16 @@ gzipped (React, Next.js, Motion, Lenis).
 ## 5. Roadmap — where the visuals can go next
 
 Done: Phase 3, the WebGL sunset (stars, a rippling water reflection) and one sun for the page;
-Phase 4, case studies with page transitions.
+Phase 4, case studies with page transitions; then a clean sky (no rings), hover that keeps up
+with scrolling, the glowing-disc sun and the hero landscape with clouds through the page.
+(Edge sunlight and sunbeams were tried and removed.)
 
 1. **Richer case studies** — more screens per project (inner pages, mobile, the Arabic version)
    in the "closer look", and real numbers in the story once there are some.
-2. **Sunlight on the page** — let the sun's position light the frames and cards it passes (a soft
-   rim of light on the side facing it), and god rays through the dusk.
-3. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
+2. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
    orbit (this would bring three.js back, lazily, for that section only).
-4. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
-5. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
+3. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
+4. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
 
 ## 6. Content to confirm
 

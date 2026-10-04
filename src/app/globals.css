@@ -212,6 +212,29 @@
   animation-delay: var(--delay, 350ms);
 }
 
+/* The hero sun climbs out of the ridges on first paint. */
+.intro-rise {
+  animation: sun-rise 1.8s var(--ease-expo) both;
+  animation-delay: 150ms;
+}
+
+/* The ridges settle into place (each layer sets --rise); clouds float in. */
+.intro-ridge {
+  animation: ridge-in 1.4s var(--ease-expo) both;
+  animation-delay: 100ms;
+}
+
+.intro-cloud {
+  animation: cloud-in 1.6s var(--ease-expo) both;
+  animation-delay: var(--delay, 600ms);
+}
+
+/* Clouds wander slowly side to side. On `translate`, so the scroll-linked
+   transform on their wrapper stays free. */
+.cloud-drift {
+  animation: cloud-drift var(--drift-time, 90s) ease-in-out var(--drift-delay, 0s) infinite alternate;
+}
+
 @keyframes spin {
   to {
     rotate: 360deg;
@@ -251,6 +274,35 @@
   }
 }
 
+@keyframes sun-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18%, 0) scale(0.94);
+  }
+}
+
+@keyframes ridge-in {
+  from {
+    transform: translate3d(0, var(--rise, 6svh), 0);
+  }
+}
+
+@keyframes cloud-in {
+  from {
+    opacity: 0;
+    transform: translate3d(10vw, 0, 0);
+  }
+}
+
+@keyframes cloud-drift {
+  from {
+    translate: calc(var(--drift, 3vw) * -1) 0;
+  }
+  to {
+    translate: var(--drift, 3vw) 0;
+  }
+}
+
 .scroll-cue {
   animation: scroll-cue 2.4s var(--ease-quart) infinite;
 }
@@ -283,9 +335,20 @@
   .intro-dash,
   .intro-sun,
   .intro-from-right,
+  .intro-rise,
+  .intro-ridge,
+  .intro-cloud,
+  .cloud-drift,
   .scroll-cue,
   .water-stripes {
     animation: none !important;
+  }
+}
+
+/* The scenery is decoration; forced colours would flatten it into blocks. */
+@media (forced-colors: active) {
+  .scenery {
+    display: none;
   }
 }
 
@@ -327,13 +390,18 @@ html.sun-webgl .sunset-fallback {
   display: none;
 }
 
-/* Cross-fades into the WebGL sun drawn exactly underneath it. */
-html.sun-webgl .hero-sun-glyph {
+/* The WebGL sun is drawn exactly underneath: the disc cross-fades into it,
+   and the bloom steps aside at once (two translucent blooms would stack). */
+html.sun-webgl .hero-sun-disc {
   opacity: 0;
   visibility: hidden;
   transition:
     opacity 1s var(--ease-expo),
     visibility 0s linear 1s;
+}
+
+html.sun-webgl .hero-sun-bloom {
+  visibility: hidden;
 }
 
 /* A soft shade under light copy the sun may pass behind. Invisible on the dark

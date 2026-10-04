@@ -1,3 +1,4 @@
+import { DAY_TONE_MAX } from "./disc";
 import { SUN } from "./geometry";
 
 /** Fired by the hero sun's button; the WebGL sun answers with a solar flare. */
@@ -63,7 +64,7 @@ export function sunPath(l: JourneyLayout): SunState {
   }
   if (l.scroll < l.footerStart) {
     const t = smooth(l.heroEnd, l.footerStart, l.scroll);
-    return { ...between(high, low, t), tone: 0.55 * t };
+    return { ...between(high, low, t), tone: DAY_TONE_MAX * t };
   }
   const v = (l.scroll - l.footerStart) / (l.footerEnd - l.footerStart);
   const down = smooth(0, 1, v);
@@ -72,6 +73,6 @@ export function sunPath(l: JourneyLayout): SunState {
     x: mix(low.x, set.x, across),
     y: mix(low.y, set.y, down),
     r: mix(low.r, set.r, across),
-    tone: mix(0.55, 1, down),
+    tone: mix(DAY_TONE_MAX, 1, down),
   };
 }

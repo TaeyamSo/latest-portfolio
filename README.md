@@ -1,10 +1,10 @@
 # Tayam Soubuh — Portfolio v2
 
 The rebuild of my 2025 Nuxt portfolio in **Next.js 16**. Same identity — the flame-orange
-gradient, heavy Kanit type, the faceted sun, the double dash — now fully responsive,
-accessible, fast, and alive: one real-time WebGL sun that travels the page as you scroll, from
-high noon in the hero to sunset over the sea in the footer, and a case study for each client
-project that opens out of its card.
+gradient, heavy Kanit type, the sun, the double dash — now fully responsive, accessible, fast,
+and alive: a glowing sun over a layered mountain landscape that rises and travels the page as you
+scroll, with clouds drifting by, from high noon in the hero to sunset over the sea in the footer,
+and a case study for each client project that opens out of its card.
 
 → Design rationale, audit of the old site and roadmap: [`docs/DESIGN.md`](docs/DESIGN.md)
 

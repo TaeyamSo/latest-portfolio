@@ -22,6 +22,8 @@ export function Contact() {
       data-cursor-tone="light"
       className="sun-sky relative z-10 isolate overflow-hidden bg-[linear-gradient(to_bottom,transparent,var(--color-ember)_12svh,var(--color-dusk)_26svh,var(--color-night)_58svh)] pt-[38svh] text-paper outline-none"
     >
+      {/* The page's drifting clouds fade out while this first stretch of dusk comes in. */}
+      <div data-cloud-fade aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[40svh]" />
       {/* Marks the dark part of the footer so fixed UI can switch to light ink. */}
       <div data-tone="dark" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[18svh] bottom-0" />
 

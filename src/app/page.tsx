@@ -10,6 +10,7 @@ import { Marquee } from "@/components/sections/Marquee";
 import { Process } from "@/components/sections/Process";
 import { Projects } from "@/components/sections/Projects";
 import { Services } from "@/components/sections/Services";
+import { CloudLayer } from "@/components/scenery/CloudLayer";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { SunJourney } from "@/components/sun/SunJourney";
 import { profile, skills, testimonials } from "@/content/site";
@@ -43,6 +44,7 @@ export default function Home() {
       <HomeLanding />
       <DayCycle />
       <SunJourney />
+      <CloudLayer />
       <Header />
       <SideNav />
       <main id="main" className="relative z-10 overflow-x-clip outline-none">
