@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 
 import { Cursor } from "@/components/chrome/Cursor";
 import { PointerSync } from "@/components/providers/PointerSync";
+import { ScrollbarTone } from "@/components/providers/ScrollbarTone";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { profile } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="grain [view-transition-name:grain]" aria-hidden="true" />
         <Cursor />
         <PointerSync />
+        <ScrollbarTone />
       </body>
     </html>
   );

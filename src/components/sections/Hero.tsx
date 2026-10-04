@@ -92,7 +92,7 @@ export function Hero() {
         <div aria-hidden="true" className={STAGE}>
           {/* Desktop only: on narrow screens the ring would run through the header.
               It fades out as the sun leaves (data-sun-orbit). */}
-          <div className="intro-sun absolute -inset-[9%] hidden lg:block">
+          <div className="absolute -inset-[9%] hidden lg:block">
             <div data-sun-orbit className="size-full">
               <OrbitText className="orbit size-full text-ink/80" />
             </div>

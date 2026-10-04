@@ -121,7 +121,7 @@ The page tells a story in order: **who** (hero, about) → **what** (services) �
 
 | Section | What it does |
 | --- | --- |
-| Hero | Letter-by-letter mask reveal with restored kerning, the sun (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, orbiting text ring that fades as the sun leaves, status kicker (availability + live local time) |
+| Hero | Letter-by-letter mask reveal with restored kerning, the sun (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, a text ring that writes itself letter by letter around the sun, keeps orbiting and fades as the sun leaves, status kicker (availability + live local time) |
 | Marquee | What Tayam does, in alternating Kanit caps and serif italic; drifts, speeds up with scroll velocity, reverses on scroll up |
 | About | First-person lead that lights up word by word, count-up facts from the data, duotone portrait (ink → flame → sunlight) that reveals the original on hover |
 | Services | "What I *do*": four capability rows, each backed by real projects; a black block sweeps in on hover. The original skill tiles live on as a compact toolkit shelf |
@@ -131,7 +131,7 @@ The page tells a story in order: **who** (hero, about) → **what** (services) �
 | Journey | Freelance client work, the Meta certificate as a compact verifiable entry (badge, thumbnail, courses in a disclosure), the degree; sticky heading |
 | Testimonials | "Kind *words*": clients speak in the serif. Manual pager, no auto-rotation |
 | Contact | Sunset finale: the travelling sun sets right of the copy (centred on phones) into a WebGL sea with ripples, a glitter path and stars; big mailto link, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | One sun travelling the whole page, page transitions between the work and the case studies, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+| Site-wide | One sun travelling the whole page, page transitions between the work and the case studies, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, a hairline scrollbar in the colour of the section beside it, time-of-day tint, grain, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
 
 ### Draft and mock content
 
@@ -162,7 +162,8 @@ src/
     ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
     providers/    SmoothScroll (Lenis + Motion), PointerSync (hover while scrolling), DayCycle (tint),
-                  HomeLanding (where the home page opens when you arrive from another page)
+                  ScrollbarTone (scrollbar colours), HomeLanding (where the home page opens when you
+                  arrive from another page)
   lib/            accent markup, kerning, mock gating, work-return, hooks (active section, tone,
                   media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)

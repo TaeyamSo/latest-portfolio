@@ -3,12 +3,18 @@ import { profile } from "@/content/site";
 const RADIUS = 46; // in a 100×100 viewBox
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+type Vars = React.CSSProperties & Record<`--${string}`, number>;
+
 /**
- * A ring of mono text orbiting the hero sun. `textLength` pins it to the exact
- * circumference, so the loop stays seamless even while the web font swaps in.
+ * A ring of mono text orbiting the hero sun. It writes itself on first paint,
+ * letter by letter around the circle, until the ring is complete (CSS only —
+ * `.orbit-write` in globals.css; shown at once with reduced motion), and keeps
+ * turning slowly. `textLength` pins it to the exact circumference, so the loop
+ * stays seamless even while the web font swaps in.
  */
 export function OrbitText({ className }: { className?: string }) {
   const phrase = `Portfolio • ${profile.role} • ${profile.fullName} • ${new Date().getFullYear()} • `;
+  const letters = Array.from(phrase.repeat(3));
   return (
     <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false" className={className}>
       <defs>
@@ -17,9 +23,13 @@ export function OrbitText({ className }: { className?: string }) {
           d={`M ${50 - RADIUS},50 a ${RADIUS},${RADIUS} 0 1,1 ${RADIUS * 2},0 a ${RADIUS},${RADIUS} 0 1,1 -${RADIUS * 2},0`}
         />
       </defs>
-      <text className="fill-current font-mono text-[2px] font-medium tracking-[0.2em] uppercase">
+      <text className="fill-current font-mono text-[2px] font-medium tracking-[0.2em] whitespace-pre uppercase">
         <textPath href="#orbit-path" textLength={CIRCUMFERENCE} lengthAdjust="spacing">
-          {phrase.repeat(3)}
+          {letters.map((letter, i) => (
+            <tspan key={i} className="orbit-write" style={{ "--i": i } as Vars}>
+              {letter}
+            </tspan>
+          ))}
         </textPath>
       </text>
     </svg>

@@ -202,9 +202,11 @@
   animation-delay: var(--delay, 0ms);
 }
 
-.intro-sun {
-  animation: sun-in 1.8s var(--ease-expo) both;
-  animation-delay: 150ms;
+/* The ring around the hero sun writes itself, letter by letter, once the sun
+   has risen: each letter appears bright, like fresh ink, then settles. */
+.orbit-write {
+  animation: write-in 0.9s var(--ease-quart) both;
+  animation-delay: calc(600ms + var(--i, 0) * 26ms);
 }
 
 .intro-from-right {
@@ -260,10 +262,14 @@
   }
 }
 
-@keyframes sun-in {
+@keyframes write-in {
   from {
     opacity: 0;
-    transform: translate3d(22vw, 4vh, 0) rotate(-35deg) scale(0.82);
+    fill: var(--color-paper);
+  }
+  35% {
+    opacity: 1;
+    fill: var(--color-paper);
   }
 }
 
@@ -333,7 +339,7 @@
   .intro-letter,
   .intro-slide,
   .intro-dash,
-  .intro-sun,
+  .orbit-write,
   .intro-from-right,
   .intro-rise,
   .intro-ridge,
@@ -349,6 +355,43 @@
 @media (forced-colors: active) {
   .scenery {
     display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbar: a thin line in the colours of the section beside it. The track
+   matches the page there; ScrollbarTone keeps both colours in step as you
+   scroll. (Chrome/Safari use the ::-webkit-scrollbar pseudos; setting the
+   standard properties as well would switch those off, so Firefox gets them
+   on its own.)
+--------------------------------------------------------------------------- */
+:root {
+  --scrollbar-track: #fd8916;
+  --scrollbar-thumb: rgb(13 10 8 / 0.45);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 }
 
