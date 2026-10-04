@@ -1,3 +1,4 @@
+import { SunLit } from "@/components/sun/SunLit";
 import { CountUp } from "@/components/ui/CountUp";
 import { Duotone } from "@/components/ui/Duotone";
 import { Reveal } from "@/components/ui/Reveal";
@@ -39,7 +40,7 @@ export function About() {
 
         <Reveal from="right" className="lg:col-span-5 lg:justify-self-end">
           <Tilt max={6} className="w-[min(100%,26rem)]">
-            <figure data-cursor-tone="light" className="group bg-ink p-4 sm:p-5">
+            <figure data-cursor-tone="light" className="group relative bg-ink p-4 sm:p-5">
               <div className="overflow-hidden">
                 <Duotone
                   src={about.portrait.src}
@@ -52,6 +53,7 @@ export function About() {
                 <span>{profile.fullName}</span>
                 <span>{profile.role}</span>
               </figcaption>
+              <SunLit />
             </figure>
           </Tilt>
         </Reveal>

@@ -51,6 +51,11 @@ Keep every recognisable piece, then make it feel alive and give it a story:
   Header and navigation switch to light ink automatically.
 - **A clean sky.** The 2025 site's concentric heat rings are gone (Phase 5): the flat
   flame gradient, the grain and the sun itself carry the hero.
+- **The sun lights the page — without shadows.** As it travels, the dark surfaces it
+  passes (the project cards, the portrait and certificate frames, the marquee band)
+  catch a warm line of light on the edges facing it, brightest at the point nearest the
+  sun, with a soft warm wash just inside. At sunset, soft sunbeams fan out through the
+  dusk sky.
 - **The double dash is the system.** Under headings, as nav indicators, list bullets,
   timeline markers, link underlines and the mobile menu button.
 - **Content is the hero.** Big type, black frames, real screenshots in a monitor with a
@@ -179,6 +184,14 @@ start where the CSS spin has turned them, so nothing jumps), and the footer's gr
 CSS sunset step aside because the shader paints the same gradient, then the stars, the sea and
 the reflection.
 
+**Sunlight.** A dark surface opts in with `<SunLit />` (`sun/SunLit.tsx`): five invisible layers —
+a glow and one line per edge. Each frame the page scrolls, `sun/sunlight.ts` measures those
+surfaces and, from the direction to the sun, slides each edge's bright spot to the point nearest
+it and fades in the edges that face it (stronger as the day warms and as the sun comes closer).
+Only transform and opacity change, so nothing repaints; off-screen surfaces are skipped. The
+sunbeams are in the shader: noise sampled by direction around the sun (no seam), only over the
+dark sky and only once the sun is low.
+
 **Progressive enhancement.** The server renders a complete, readable page. The hero sun paints as
 SVG immediately and the CSS/SVG sunset is a full fallback. The journey starts after the intro
 (~2s) once the page is idle, and is skipped without WebGL, on data saver, with reduced motion or
@@ -207,23 +220,22 @@ would.
 
 **Performance.** The images in use went from 7.1 MB of PNG/JPG to 0.52 MB of WebP (and are
 served as AVIF/WebP at the right size by `next/image`). Fonts are self-hosted and subset. Every
-route is statically prerendered. The WebGL renderer is a 6 KB (gzipped) chunk loaded after the
+route is statically prerendered. The WebGL renderer (with the sunlight) is a 6.5 KB (gzipped) chunk loaded after the
 intro; three.js and React Three Fiber (~240 KB) are gone. The initial JavaScript is ~265 KB
 gzipped (React, Next.js, Motion, Lenis).
 
 ## 5. Roadmap — where the visuals can go next
 
 Done: Phase 3, the WebGL sunset (stars, a rippling water reflection) and one sun for the page;
-Phase 4, case studies with page transitions.
+Phase 4, case studies with page transitions; Phase 5, a clean sky (no rings, no halo by day),
+hover that keeps up with scrolling, and sunlight on the dark surfaces with sunbeams at dusk.
 
 1. **Richer case studies** — more screens per project (inner pages, mobile, the Arabic version)
    in the "closer look", and real numbers in the story once there are some.
-2. **Sunlight on the page** — let the sun's position light the frames and cards it passes (a soft
-   rim of light on the side facing it), and god rays through the dusk.
-3. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
+2. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
    orbit (this would bring three.js back, lazily, for that section only).
-4. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
-5. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
+3. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
+4. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
 
 ## 6. Content to confirm
 

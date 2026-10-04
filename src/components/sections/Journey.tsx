@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { SunLit } from "@/components/sun/SunLit";
 import { Reveal } from "@/components/ui/Reveal";
 import { RollText } from "@/components/ui/RollText";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -81,9 +82,10 @@ export function Journey() {
                   aria-label="Open the Meta Front-End Developer certificate on Coursera (new tab)"
                   data-cursor="Verify"
                   data-cursor-tone="light"
-                  className="block rotate-2 bg-ink p-2 shadow-[0_24px_40px_-20px_rgb(0_0_0/0.6)] transition-transform duration-500 ease-expo hover:rotate-0"
+                  className="relative block rotate-2 bg-ink p-2 shadow-[0_24px_40px_-20px_rgb(0_0_0/0.6)] transition-transform duration-500 ease-expo hover:rotate-0"
                 >
                   <Image src={certificate.image} alt={certificate.imageAlt} sizes="176px" placeholder="blur" className="w-full" />
+                  <SunLit />
                 </a>
               </Tilt>
             </div>
