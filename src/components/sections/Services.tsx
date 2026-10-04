@@ -1,3 +1,4 @@
+import { InkLabel } from "@/components/ui/InkLabel";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { sectionNumber, services, skills } from "@/content/site";
@@ -18,9 +19,7 @@ export function Services() {
     >
       <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
         <SectionHeading id="services-title" index={sectionNumber("services")} label="Services" title="What I *do*" />
-        <Reveal from="right" className="max-w-sm text-lead lg:pb-12">
-          <p>{services.intro}</p>
-        </Reveal>
+        <InkLabel text={services.intro} className="max-w-sm text-lead lg:pb-12" />
       </div>
 
       <ol className="mt-16 border-b-2 border-ink lg:mt-20">
