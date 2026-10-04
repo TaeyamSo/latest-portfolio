@@ -198,16 +198,6 @@ export const journeyFragment = /* glsl */ `
     float glow = exp(-max(length(q) - 1.0, 0.0) * 1.7) * fall(${f(GLOW - 0.8)}, ${f(GLOW)}, d);
     col.rgb += vec3(1.0, 0.58, 0.26) * glow * (0.3 + 0.28 * uFlare) * dusk * uIntro;
 
-    // Sunbeams: soft shafts fanning out from the low sun through the dusk sky.
-    // Noise sampled around a circle (by direction), so the fan has no seam.
-    if (dusk > 0.0 && depth < 0.0 && low > 0.0) {
-      vec2 dir = rel / max(d, 1e-3);
-      float shafts = noise(dir * 7.0 + vec2(uTime * 0.04, 3.1)) * 0.65
-                   + noise(dir * 17.0 + vec2(-5.3, uTime * 0.03)) * 0.35;
-      float reach = smoothstep(1.05, 1.8, d) * exp(-max(d - 1.8, 0.0) * 0.3);
-      col.rgb += vec3(1.0, 0.62, 0.3) * smoothstep(0.45, 0.8, shafts) * reach * dusk * low * 0.135 * uIntro;
-    }
-
     // The sun itself, clipped by the horizon.
     if (d < ${f(REACH)}) {
       vec4 sun = sunBody(q, 1.0 / (r * uDpr), 0.15 * near, leanDir, tone);

@@ -1,7 +1,6 @@
 import { SUN } from "./geometry";
 import { FLARE_EVENT, smooth, sunPath, type Spot } from "./journey";
 import { journeyFragment, journeyVertex } from "./shaders";
-import { createSunlight } from "./sunlight";
 
 /** Radians per second: one turn every 52s, the pace of the CSS sun. */
 const TURN = (Math.PI * 2) / 52;
@@ -9,12 +8,11 @@ const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uRot", "uPointer", "uFlare",
 
 /**
  * Draws the travelling sun on a fixed, full-viewport canvas with one fragment
- * shader (no 3D engine needed), lights the dark surfaces it passes (SunLit),
- * and fades the hero's orbit text as it leaves.
+ * shader (no 3D engine needed), and fades the hero's orbit text as it leaves.
  *
  * It finds its marks in the page: `[data-sun-stage]` (the hero sun's box),
- * `#home`, `#contact`, `[data-horizon]` (inside the sunset stage),
- * `[data-sun-orbit]` and `[data-sunlit]`. Once its first frames are on screen it sets
+ * `#home`, `#contact`, `[data-horizon]` (inside the sunset stage) and
+ * `[data-sun-orbit]`. Once its first frames are on screen it sets
  * `html.sun-webgl`, which retires the SVG/CSS stand-ins (see globals.css).
  *
  * Renders at the display rate while something moves, ~30fps otherwise.
@@ -53,7 +51,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   const horizon = document.querySelector<HTMLElement>("[data-horizon]");
   const sea = horizon?.parentElement;
   const orbit = document.querySelector<HTMLElement>("[data-sun-orbit]");
-  const sunlight = createSunlight();
 
   // Start the rays where the CSS sun has turned them, so the hand-over is seamless.
   const spin = stage?.querySelector(".sun-spin")?.getAnimations()[0];
@@ -82,7 +79,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   let last = start;
   let activeUntil = 0;
   let lastScroll = Number.NaN;
-  let litScroll = Number.NaN;
   let lastOrbit = "";
 
   const render = (now: number) => {
@@ -123,11 +119,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     time += dt;
     if (frames >= 2) intro = Math.min(1, intro + dt / 1.2);
 
-    // Light the surfaces it passes — only when something moved.
-    if (scroll !== litScroll || intro < 1) {
-      litScroll = scroll;
-      sunlight.update(sun, canvas.clientWidth, vh, (0.75 + 0.25 * sun.tone) * intro);
-    }
     if (orbit) {
       const opacity = (1 - smooth(0, heroEnd * 0.45, scroll)).toFixed(3);
       if (opacity !== lastOrbit) orbit.style.opacity = lastOrbit = opacity;
@@ -157,7 +148,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
     svh = probe.offsetHeight || window.innerHeight;
     heroEnd = Math.max(1, (hero?.offsetHeight ?? svh) * 0.8);
-    litScroll = Number.NaN; // re-light at the new size
     if (width === canvas.width && height === canvas.height) return;
     // Resizing clears the canvas, so paint again right away (no blank frame).
     canvas.width = width;
@@ -215,7 +205,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     canvas.removeEventListener("webglcontextlost", onContextLost);
     probe.remove();
     root.classList.remove("sun-webgl");
-    sunlight.reset();
     if (orbit) orbit.style.opacity = "";
     if (gl && !gl.isContextLost()) {
       gl.deleteBuffer(buffer);

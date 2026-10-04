@@ -14,7 +14,6 @@ import {
 import { useRef } from "react";
 
 import { SunGlyph } from "@/components/sun/SunGlyph";
-import { SunLit } from "@/components/sun/SunLit";
 import { marquee as words } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { useReducedMotionSafe } from "@/lib/use-media-query";
@@ -70,7 +69,6 @@ export function Marquee() {
           </div>
         ))}
       </motion.div>
-      <SunLit />
     </div>
   );
 }

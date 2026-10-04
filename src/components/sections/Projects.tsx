@@ -12,7 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, ViewTransition } from "react";
 
-import { SunLit } from "@/components/sun/SunLit";
 import { BrowserFrame } from "@/components/ui/BrowserFrame";
 import { MockBadge } from "@/components/ui/MockBadge";
 import { EASE_EXPO, Reveal } from "@/components/ui/Reveal";
@@ -140,7 +139,6 @@ function ProjectCard({ project, index, count, progress }: CardProps) {
             </dl>
           </div>
 
-          <SunLit />
           <motion.div
             aria-hidden="true"
             style={animate ? { opacity: dim } : { opacity: 0 }}

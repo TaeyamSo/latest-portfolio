@@ -14,7 +14,7 @@ project that opens out of its card.
 - [Tailwind CSS 4](https://tailwindcss.com) with design tokens in `src/app/globals.css`
 - [Motion](https://motion.dev) for reveals and scroll-linked animation
 - [Lenis](https://lenis.darkroom.engineering) for smooth scrolling
-- Plain WebGL: one hand-written fragment shader for the sun's journey (a 6.5 KB lazy chunk)
+- Plain WebGL: one hand-written fragment shader for the sun's journey (a 6 KB lazy chunk)
 
 ## Getting started
 
