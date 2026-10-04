@@ -359,13 +359,33 @@ export const services = {
   ],
 };
 
-// DRAFT — how a project runs, start to finish. On the cards it's a climb: each
-// step is a milestone on the same mountain trail.
+// DRAFT — how a project runs, start to finish. Each card shows the same site in
+// a browser at that stage: its address, and a one-word caption.
 export const steps = [
-  { title: "Discover", milestone: "Trailhead", description: "We talk goals, audience and content, and agree on what success looks like." },
-  { title: "Design", milestone: "Halfway", description: "A visual direction and key screens you can react to early, before any code." },
-  { title: "Build", milestone: "Base camp", description: "Clean, responsive code with motion and detail, shared as a live preview as it grows." },
-  { title: "Launch", milestone: "Summit", description: "Testing on real devices and speed checks, then going live — with support after." },
+  {
+    title: "Discover",
+    stage: "Brief",
+    address: "about:blank",
+    description: "We talk goals, audience and content, and agree on what success looks like.",
+  },
+  {
+    title: "Design",
+    stage: "Wireframe",
+    address: "draft / homepage",
+    description: "A visual direction and key screens you can react to early, before any code.",
+  },
+  {
+    title: "Build",
+    stage: "Code",
+    address: "localhost:3000",
+    description: "Clean, responsive code with motion and detail, shared as a live preview as it grows.",
+  },
+  {
+    title: "Launch",
+    stage: "Live",
+    address: "your-business.com",
+    description: "Testing on real devices and speed checks, then going live — with support after.",
+  },
 ];
 
 // DRAFT — the band under the hero.

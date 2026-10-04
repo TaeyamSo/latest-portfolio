@@ -179,6 +179,40 @@
   }
 }
 
+/* The process cards' browsers: once the track's sun reaches a card, its page
+   builds itself — parts rise in one after another (--d), code lines type
+   out, the cursor glides in. */
+.step-pop,
+.step-grow,
+.step-cursor {
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.8s var(--ease-expo);
+  transition-delay: var(--d, 0ms);
+}
+
+.step-pop {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.step-grow {
+  transform: scaleX(0);
+  transform-box: fill-box;
+  transform-origin: left;
+}
+
+.step-cursor {
+  opacity: 0;
+  transform: translate(60px, 50px);
+  transition-duration: 0.4s, 1.1s;
+}
+
+[data-shown] :is(.step-pop, .step-grow, .step-cursor) {
+  opacity: 1;
+  transform: none;
+}
+
 /* ---------------------------------------------------------------------------
    Atmosphere: film grain over everything
 --------------------------------------------------------------------------- */
@@ -370,7 +404,10 @@
     animation: none !important;
   }
 
-  .ink-label {
+  .ink-label,
+  .step-pop,
+  .step-grow,
+  .step-cursor {
     transition: none;
   }
 }

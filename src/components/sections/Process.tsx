@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
-import { useRef } from "react";
+import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
+import { useRef, useState } from "react";
 
 import { SunGlyph } from "@/components/sun/SunGlyph";
 import { Reveal } from "@/components/ui/Reveal";
@@ -12,50 +12,12 @@ import { useReducedMotionSafe } from "@/lib/use-media-query";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** The sky behind each card's mountain, morning to evening as the climb goes on. */
-const SKIES = [
-  "linear-gradient(var(--color-ember), var(--color-flame) 45%, var(--color-gold))",
-  "linear-gradient(var(--color-flame), var(--color-amber) 55%, var(--color-gold))",
-  "linear-gradient(var(--color-amber), var(--color-gold) 60%, var(--color-sunlight))",
-  "linear-gradient(var(--color-dusk), var(--color-ember) 45%, var(--color-flame) 80%, var(--color-gold))",
-];
-
-// The scene, in a 500 × 300 window: a far range, the mountain, foreground hills.
-const FAR = "M0,300 L0,170 L50,160 L95,175 L150,140 L205,158 L260,120 L330,150 L390,118 L450,140 L500,128 L500,300 Z";
-const MOUNTAIN = "M0,300 L0,248 L70,236 L140,206 L200,170 L250,140 L300,104 L360,62 L400,96 L440,88 L500,120 L500,300 Z";
-const HILLS = "M0,300 L0,276 L80,268 L150,282 L230,272 L300,286 L380,274 L440,282 L500,270 L500,300 Z";
-
-/** The trail: switchbacks from the foot of the mountain to its summit. */
-const TRAIL = [
-  [56, 262],
-  [190, 250],
-  [128, 228],
-  [262, 206],
-  [214, 176],
-  [322, 152],
-  [300, 124],
-  [360, 64],
-] as const;
-const TRAIL_POINTS = TRAIL.map(([x, y]) => `${x},${y}`).join(" ");
-
-/** How far along the trail (0–1) each bend is. */
-const ALONG = (() => {
-  const run = [0];
-  for (let i = 1; i < TRAIL.length; i++) {
-    run.push(run[i - 1] + Math.hypot(TRAIL[i][0] - TRAIL[i - 1][0], TRAIL[i][1] - TRAIL[i - 1][1]));
-  }
-  return run.map((d) => d / run[run.length - 1]);
-})();
-
-/** Where each step's milestone stands: the trailhead, halfway, the hillside camp, the summit. */
-const STOPS = [0, 3, 5, TRAIL.length - 1];
-
 /**
- * How a project runs, as a climb: four framed cards (the About card's frame)
- * showing the same mountain, one milestone further up the trail each time.
- * On large screens a track fills as you scroll and a small sun rides its
- * leading edge; as it crosses a card, the card's edge fills, its window
- * brightens and that stretch of the trail is walked.
+ * How a project runs. Four framed cards (the About card's frame), each with a
+ * small browser showing the same website at that stage: notes on a blank page,
+ * a wireframe, half built with the code open, then live. On large screens a
+ * track fills as you scroll and a small sun rides its leading edge; as it
+ * reaches a card, the card's edge fills and its page builds itself.
  */
 export function Process() {
   const ref = useRef<HTMLOListElement>(null);
@@ -99,7 +61,8 @@ export function Process() {
 
 type StepProps = {
   title: string;
-  milestone: string;
+  stage: string;
+  address: string;
   description: string;
   index: number;
   count: number;
@@ -107,13 +70,17 @@ type StepProps = {
   still: boolean;
 };
 
-function Step({ title, milestone, description, index, count, progress, still }: StepProps) {
+function Step({ title, stage, address, description, index, count, progress, still }: StepProps) {
   const start = index / count;
-  const end = (index + 1) / count;
-  const edge = useTransform(progress, [start, end], [0, 1]);
-  const veil = useTransform(progress, [start, start + 0.12], [0.6, 0]);
-  const from = index ? ALONG[STOPS[index - 1]] : 0;
-  const walked = useTransform(progress, [start, end], [from, ALONG[STOPS[index]]]);
+  const edge = useTransform(progress, [start, (index + 1) / count], [0, 1]);
+
+  // The page builds itself once the track's sun reaches the card, and stays built.
+  // (Progress starts at 0 and is measured after mount, so landing further down
+  // the page fires this too.)
+  const [reached, setReached] = useState(false);
+  useMotionValueEvent(progress, "change", (v) => {
+    if (v >= start + 0.04) setReached(true);
+  });
 
   return (
     <li>
@@ -124,14 +91,14 @@ function Step({ title, milestone, description, index, count, progress, still }: 
             className="absolute inset-x-0 top-0 h-[3px] origin-left bg-sunlight"
             style={{ scaleX: still ? 1 : edge }}
           />
-          <TrailWindow index={index} walked={still ? ALONG[STOPS[index]] : walked} veil={still ? undefined : veil} />
+          <Browser index={index} address={address} shown={still || reached} />
           <h3 className="mt-6 text-[clamp(1.6rem,2.1vw,2.3rem)] leading-none font-extrabold uppercase">{title}</h3>
           <p className="mt-3 flex-1 text-[1rem] leading-relaxed text-paper/80">{description}</p>
           <p className="meta mt-6 flex justify-between gap-4 text-paper/65">
             <span>
               {pad(index + 1)} / {pad(count)}
             </span>
-            <span>{milestone}</span>
+            <span>{stage}</span>
           </p>
         </div>
       </Tilt>
@@ -139,124 +106,233 @@ function Step({ title, milestone, description, index, count, progress, still }: 
   );
 }
 
-type TrailWindowProps = { index: number; walked: MotionValue<number> | number; veil?: MotionValue<number> };
+const PAGES = [Brief, Wireframe, Code, Live];
 
-/**
- * The card's picture: the mountain with the trail on it — planned as a dotted
- * route, walked in sunlight up to this step's milestone, earlier milestones
- * left behind in a fainter tone. It zooms on hover like the About portrait.
- */
-function TrailWindow({ index, walked, veil }: TrailWindowProps) {
-  const [x, y] = TRAIL[STOPS[index]];
-  const past = (stop: number) => STOPS.slice(0, index).includes(stop);
+/** The card's picture: a paper browser (as on the project cards) with the site at this stage inside. */
+function Browser({ index, address, shown }: { index: number; address: string; shown: boolean }) {
+  const Page = PAGES[index];
+  const live = index === PAGES.length - 1;
   return (
-    <div aria-hidden="true" className="relative aspect-[5/3] overflow-hidden">
-      {/* A pixel of overdraw so no sky shows at the frame's edges. */}
-      <div className="absolute -inset-px transition-transform duration-700 ease-expo group-hover:scale-110" style={{ background: SKIES[index] }}>
-        <svg viewBox="0 0 500 300" className="absolute inset-0 size-full">
-          <path d={FAR} className="fill-ink/20" />
-          <path d={MOUNTAIN} className="fill-[#6e210c]" />
-          <path d={HILLS} className="fill-[#2a0d06]" />
-
-          <polyline
-            points={TRAIL_POINTS}
-            fill="none"
-            strokeWidth={4}
-            strokeDasharray="1 10"
-            strokeLinecap="round"
-            className="stroke-paper/60"
-          />
-          {index > 0 && (
-            <motion.polyline
-              points={TRAIL_POINTS}
-              fill="none"
-              strokeWidth={5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="stroke-sunlight"
-              style={{ pathLength: walked }}
-            />
-          )}
-
-          {/* Milestones already passed, quieter. */}
-          {past(STOPS[0]) && <Pin at={TRAIL[STOPS[0]]} faded />}
-          {past(STOPS[1]) && <Flag at={TRAIL[STOPS[1]]} faded />}
-          {past(STOPS[2]) && <Camp at={TRAIL[STOPS[2]]} faded built />}
-
-          {/* This step's milestone. */}
-          {index === 0 && (
-            <>
-              <Goal at={TRAIL[TRAIL.length - 1]} />
-              <Pin at={[x, y]} />
-            </>
-          )}
-          {index === 1 && <Flag at={[x, y]} />}
-          {index === 2 && <Camp at={[x, y]} />}
-          {index === 3 && <Flag at={[x, y]} summit />}
+    <div aria-hidden="true" data-shown={shown || undefined} className="bg-paper">
+      <div className="flex items-center gap-2 px-2.5 py-2">
+        <span className="flex gap-1">
+          <span className="size-1.5 rounded-full bg-flame" />
+          <span className="size-1.5 rounded-full bg-amber" />
+          <span className="size-1.5 rounded-full bg-sunlight" />
+        </span>
+        <span className="meta flex-1 truncate rounded-full bg-ink/8 px-2 py-0.5 text-center text-[0.55rem] tracking-[0.06em] text-ink/75 normal-case">
+          {address}
+        </span>
+        {live && (
+          <span className="step-pop meta flex items-center gap-1 text-[0.55rem] tracking-[0.1em] text-ink" style={delay(1200)}>
+            <span className="size-1.5 rounded-full bg-[#2fbf71]" />
+            Live
+          </span>
+        )}
+      </div>
+      <div className="relative aspect-[8/5] overflow-hidden border-t border-ink/10">
+        <svg viewBox="0 0 400 250" className="absolute inset-0 size-full">
+          <Page id={`process-${index}`} />
         </svg>
       </div>
-      {veil && <motion.span className="absolute inset-0 bg-dusk" style={{ opacity: veil }} />}
     </div>
   );
 }
 
-type MarkProps = { at: readonly [number, number]; faded?: boolean };
+/* ---------------------------------------------------------------------------
+   The website, in a 400 × 250 page: a nav, a hero (heading, a line of text, a
+   button and a picture) and three cards — as a wireframe or built. Parts
+   appear one after another (`.step-pop` in globals.css).
+--------------------------------------------------------------------------- */
 
-const place = ([x, y]: readonly [number, number], faded?: boolean) => ({
-  transform: `translate(${x} ${y})`,
-  opacity: faded ? 0.45 : 1,
-});
+type Vars = React.CSSProperties & Record<`--${string}`, string>;
+const delay = (ms: number) => ({ "--d": `${ms}ms` }) as Vars;
+const serif = { fontFamily: "var(--font-serif)", fontStyle: "italic" } as const;
 
-/** Discover: a map pin at the trailhead. */
-function Pin({ at, faded }: MarkProps) {
+function Pop({ d, children }: { d: number; children: React.ReactNode }) {
   return (
-    <g {...place(at, faded)}>
-      <path d="M0,0 C-5,-9 -13,-15 -13,-25 A13,13 0 1 1 13,-25 C13,-15 5,-9 0,0 Z" className="fill-sunlight" />
-      <circle cy={-25} r={5} className="fill-ink" />
+    <g className="step-pop" style={delay(d)}>
+      {children}
     </g>
   );
 }
 
-/** Where the route is headed: an X on the summit. */
-function Goal({ at }: MarkProps) {
+type Part = { built?: boolean };
+
+function Nav({ built }: Part) {
   return (
-    <g {...place(at)} strokeWidth={4} strokeLinecap="round" className="stroke-paper">
-      <path d="M-7,-15 L7,-1 M7,-15 L-7,-1" />
+    <g>
+      <circle cx={30} cy={22} r={7} className={built ? "fill-flame" : "fill-ink/15"} />
+      <rect x={44} y={19} width={46} height={6} rx={3} className={built ? "fill-ink" : "fill-ink/12"} />
+      <rect x={300} y={19} width={30} height={6} rx={3} className={built ? "fill-ink/50" : "fill-ink/12"} />
+      <rect x={342} y={19} width={30} height={6} rx={3} className={built ? "fill-ink/50" : "fill-ink/12"} />
     </g>
   );
 }
 
-/** Design: a flag halfway; Launch: a bigger one on the summit. */
-function Flag({ at, faded, summit }: MarkProps & { summit?: boolean }) {
-  const h = summit ? 48 : 34;
-  const w = summit ? 34 : 24;
+function HeroText({ built }: Part) {
   return (
-    <g {...place(at, faded)}>
-      <path d={`M0,0 L0,${-h}`} strokeWidth={4} strokeLinecap="round" className="stroke-paper" />
-      <path d={`M0,${-h} L${w},${-h + w * 0.32} L0,${-h + w * 0.64} Z`} className="fill-sunlight" />
-      {summit && (
-        <g strokeWidth={3} strokeLinecap="round" className="stroke-sunlight">
-          <path d="M-14,-44 L-24,-50 M-16,-30 L-28,-30 M46,-52 L54,-60 M50,-36 L62,-36" />
-        </g>
-      )}
-    </g>
-  );
-}
-
-/** Build: a structure going up on the hillside — scaffolding and a crane, or finished once passed. */
-function Camp({ at, faded, built }: MarkProps & { built?: boolean }) {
-  return (
-    <g {...place(at, faded)}>
-      <rect x={-18} y={built ? -34 : -18} width={36} height={built ? 34 : 18} className="fill-paper" />
+    <g>
+      <rect x={24} y={56} width={166} height={18} rx={2} className={built ? "fill-ink" : "fill-ink/12"} />
+      <rect x={24} y={82} width={120} height={18} rx={2} className={built ? "fill-ink" : "fill-ink/12"} />
+      <rect x={24} y={112} width={150} height={7} rx={3.5} className={built ? "fill-ink/30" : "fill-ink/8"} />
       {built ? (
-        <path d="M-22,-34 L0,-48 L22,-34 Z" className="fill-sunlight" />
+        <rect x={24} y={134} width={78} height={24} rx={12} className="fill-flame" />
       ) : (
-        <g fill="none" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M-18,-18 L-18,-38 L18,-38 L18,-18 M-18,-38 L18,-18 M18,-38 L-18,-18" className="stroke-paper/70" />
-          <path d="M28,0 L28,-58 M14,-58 L62,-58 M28,-48 L40,-58 M54,-58 L54,-42" className="stroke-sunlight" />
-          <rect x={49} y={-42} width={10} height={8} className="fill-sunlight stroke-none" />
-        </g>
+        <rect x={24.75} y={134.75} width={76.5} height={22.5} rx={11} fill="none" strokeWidth={1.5} strokeDasharray="4 3" className="stroke-ink/30" />
       )}
     </g>
+  );
+}
+
+/** The hero picture; `fill` is how much of it is built, from the left (0–1). */
+function Picture({ id, fill = 0 }: { id: string; fill?: number }) {
+  const [x, y, w, h] = [218, 50, 158, 108];
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={4} className="fill-ink/8" />
+      {fill > 0 && (
+        <>
+          <defs>
+            <linearGradient id={`${id}-pic`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="var(--color-gold)" />
+              <stop offset="1" stopColor="var(--color-flame)" />
+            </linearGradient>
+            <clipPath id={`${id}-clip`}>
+              <rect x={x} y={y} width={w * fill} height={h} />
+            </clipPath>
+          </defs>
+          <g clipPath={`url(#${id}-clip)`}>
+            <rect x={x} y={y} width={w} height={h} rx={4} fill={`url(#${id}-pic)`} />
+            <path d={`M${x},${y + 84} L${x + 52},${y + 58} L${x + 96},${y + 80} L${x + w},${y + 54} L${x + w},${y + h} L${x},${y + h} Z`} className="fill-ember" />
+          </g>
+        </>
+      )}
+    </g>
+  );
+}
+
+function Cards({ built }: Part) {
+  return (
+    <g>
+      {[24, 146, 268].map((x) =>
+        built ? (
+          <rect key={x} x={x} y={180} width={108} height={50} rx={4} className="fill-ink" />
+        ) : (
+          <rect key={x} x={x + 0.75} y={180.75} width={106.5} height={48.5} rx={4} fill="none" strokeWidth={1.5} strokeDasharray="4 3" className="stroke-ink/25" />
+        ),
+      )}
+    </g>
+  );
+}
+
+/** The page's parts, appearing top to bottom. */
+function Site({ id, built, picture, cards }: { id: string; built: boolean; picture: number; cards: boolean }) {
+  return (
+    <>
+      <Pop d={0}>
+        <Nav built={built} />
+      </Pop>
+      <Pop d={120}>
+        <HeroText built={built} />
+      </Pop>
+      <Pop d={240}>
+        <Picture id={id} fill={picture} />
+      </Pop>
+      <Pop d={360}>
+        <Cards built={cards} />
+      </Pop>
+    </>
+  );
+}
+
+/** Discover: two notes on an empty page. */
+function Brief() {
+  return (
+    <>
+      <Pop d={0}>
+        <g transform="translate(140 112) rotate(-6)">
+          <rect x={-50} y={-46} width={100} height={92} className="fill-sunlight" />
+          <text y={26} textAnchor="middle" fontSize={68} style={serif} className="fill-ink">
+            ?
+          </text>
+        </g>
+      </Pop>
+      <Pop d={220}>
+        <g transform="translate(266 140) rotate(5)">
+          <rect x={-50} y={-46} width={100} height={92} className="fill-amber" />
+          {[-20, -4, 12].map((y, i) => (
+            <rect key={y} x={-32} y={y} width={[64, 48, 56][i]} height={6} rx={3} className="fill-ink/45" />
+          ))}
+        </g>
+      </Pop>
+    </>
+  );
+}
+
+/** Design: the page as a wireframe, with its colours and type. */
+function Wireframe({ id }: { id: string }) {
+  return (
+    <>
+      <Site id={id} built={false} picture={0} cards={false} />
+      <Pop d={520}>
+        <g transform="translate(276 136)">
+          <rect width={104} height={76} rx={6} strokeWidth={1} className="fill-paper stroke-ink/20" />
+          {["fill-flame", "fill-amber", "fill-ink"].map((fill, i) => (
+            <circle key={fill} cx={22 + i * 28} cy={24} r={10} className={fill} />
+          ))}
+          <text x={14} y={62} fontSize={28} style={serif} className="fill-ink">
+            Aa
+          </text>
+        </g>
+      </Pop>
+    </>
+  );
+}
+
+/** Build: the top of the page built, the rest on its way, the code open beside it. */
+function Code({ id }: { id: string }) {
+  const lines = [
+    [0, 64, "fill-flame"],
+    [14, 80, "fill-sunlight"],
+    [14, 56, "fill-paper/50"],
+    [0, 40, "fill-flame"],
+  ] as const;
+  return (
+    <>
+      <Site id={id} built picture={0.5} cards={false} />
+      <Pop d={480}>
+        <g transform="translate(236 116)">
+          <rect width={148} height={114} rx={6} className="fill-ink" />
+          <text x={16} y={30} fontSize={18} fontWeight={600} style={{ fontFamily: "var(--font-mono)" }} className="fill-sunlight">
+            {"</>"}
+          </text>
+          {lines.map(([indent, width, fill], i) => (
+            <rect
+              key={i}
+              x={16 + indent}
+              y={46 + i * 14}
+              width={width}
+              height={6}
+              rx={3}
+              className={`step-grow ${fill}`}
+              style={delay(700 + i * 160)}
+            />
+          ))}
+        </g>
+      </Pop>
+    </>
+  );
+}
+
+/** Launch: the finished page, and a visitor's cursor gliding in to click the button. */
+function Live({ id }: { id: string }) {
+  return (
+    <>
+      <Site id={id} built picture={1} cards />
+      <g className="step-cursor" style={delay(600)}>
+        <path d="M84,148 l0,24 l6,-6 l5,11 l4,-2 l-5,-10 l8,0 Z" strokeWidth={1.5} strokeLinejoin="round" className="fill-ink stroke-paper" />
+      </g>
+    </>
   );
 }
