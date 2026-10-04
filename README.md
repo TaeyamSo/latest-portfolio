@@ -3,7 +3,8 @@
 The rebuild of my 2025 Nuxt portfolio in **Next.js 16**. Same identity — the flame-orange
 gradient, heavy Kanit type, the sun and its heat rings, the double dash — now fully responsive,
 accessible, fast, and alive: one real-time WebGL sun that travels the page as you scroll, from
-high noon in the hero to sunset over the sea in the footer.
+high noon in the hero to sunset over the sea in the footer, and a case study for each client
+project that opens out of its card.
 
 → Design rationale, audit of the old site and roadmap: [`docs/DESIGN.md`](docs/DESIGN.md)
 
@@ -41,6 +42,9 @@ lives in [`src/content/site.ts`](src/content/site.ts). Components never hard-cod
    ```
 
 2. Import it in `site.ts` and add an entry to `projects`.
+3. For a case study, give it a `caseStudy`: a one-line `summary` and a few `highlights`, each with
+   the spot on the screenshot to zoom into (`focus`: x and y from 0 to 1, and a zoom). The page at
+   `/work/<slug>` and its share image are generated from it.
 
 ## Deploying
 

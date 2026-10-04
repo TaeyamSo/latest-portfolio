@@ -8,6 +8,8 @@ import { EASE_EXPO } from "@/components/ui/Reveal";
 import { profile, sections } from "@/content/site";
 import { useScrollTo } from "@/lib/use-scroll-to";
 
+import { SectionLink } from "./SectionLink";
+
 type Props = { open: boolean; onClose: () => void; onHome: boolean };
 
 /** Full-screen menu for small screens; opens like a sunrise from the button. */
@@ -45,8 +47,10 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
     };
   }, [open, lenis, onClose]);
 
+  // On the home page: close first, then glide to the section. Elsewhere the
+  // link navigates and the home page takes it from there.
   const go = (hash: string) => (event: React.MouseEvent) => {
-    if (!onHome) return;
+    if (!onHome) return onClose();
     event.preventDefault();
     onClose();
     requestAnimationFrame(() => scrollTo(hash));
@@ -85,8 +89,9 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.9, ease: EASE_EXPO, delay: 0.15 + i * 0.05 }}
                 >
-                  <a
-                    href={onHome ? `#${section.id}` : `/#${section.id}`}
+                  <SectionLink
+                    hash={`#${section.id}`}
+                    onHome={false}
                     onClick={go(`#${section.id}`)}
                     className="group flex items-baseline gap-4 py-1 text-[clamp(2.6rem,12vw,4.5rem)] leading-none font-extrabold uppercase"
                   >
@@ -94,7 +99,7 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
                     <span className="transition-colors group-hover:text-amber group-focus-visible:text-amber">
                       {section.label}
                     </span>
-                  </a>
+                  </SectionLink>
                 </motion.li>
               ))}
             </ul>

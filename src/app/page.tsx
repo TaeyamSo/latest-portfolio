@@ -1,6 +1,7 @@
 import { Header } from "@/components/chrome/Header";
 import { SideNav } from "@/components/chrome/SideNav";
 import { DayCycle } from "@/components/providers/DayCycle";
+import { HomeLanding } from "@/components/providers/HomeLanding";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
 import { Hero } from "@/components/sections/Hero";
@@ -39,6 +40,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
       />
+      <HomeLanding />
       <DayCycle />
       <SunJourney />
       <Header />

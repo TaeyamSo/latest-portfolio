@@ -10,20 +10,21 @@ import { profile } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { useDarkAt } from "@/lib/use-dark-at";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { useScrollTo } from "@/lib/use-scroll-to";
 
 import { MobileMenu } from "./MobileMenu";
+import { SectionLink } from "./SectionLink";
 
-/** `onHome` is false on other routes (e.g. 404), where links point back to "/". */
+/**
+ * `onHome` is false on other routes (case studies, 404), where links lead back
+ * to the home page's sections. The header keeps a fixed view-transition name,
+ * so it stays put while pages morph underneath it.
+ */
 export function Header({ onHome = true }: { onHome?: boolean }) {
   const dark = useDarkAt(0.05);
-  const scrollTo = useScrollTo();
   const desktop = useMediaQuery("(min-width: 64rem)");
   const [open, setOpen] = useState(false);
   const [tucked, setTucked] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const href = (hash: string) => (onHome ? hash : `/${hash}`);
-  const onLink = (hash: string) => (event: React.MouseEvent) => onHome && scrollTo(hash, event);
 
   // Get out of the way while reading (scrolling down), come back on the way up.
   const { scrollY } = useScroll();
@@ -37,7 +38,7 @@ export function Header({ onHome = true }: { onHome?: boolean }) {
   }, []);
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 [view-transition-name:site-header]">
       {/* The bar slides; the menu stays outside it, because a transformed
           ancestor would trap the menu's fixed positioning. */}
       <div
@@ -47,27 +48,27 @@ export function Header({ onHome = true }: { onHome?: boolean }) {
           tucked && !open && "-translate-y-[140%]",
         )}
       >
-        <a
-          href={href("#home")}
-          onClick={onLink("#home")}
+        <SectionLink
+          hash="#home"
+          onHome={onHome}
           className="intro-slide group pointer-events-auto flex items-center gap-2.5 text-[1.05rem] font-semibold tracking-[0.06em]"
         >
           <SunGlyph id="logo-sun" spin className="size-7 transition-transform duration-700 ease-expo group-hover:rotate-90" />
           {profile.fullName}
-        </a>
+        </SectionLink>
 
         <div className="intro-slide pointer-events-auto hidden lg:block">
           <Magnetic>
-            <a
-              href={href("#contact")}
-              onClick={onLink("#contact")}
+            <SectionLink
+              hash="#contact"
+              onHome={onHome}
               className={cn(
                 "group/roll flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300",
                 dark ? "bg-paper text-ink hover:bg-sunlight" : "bg-ink text-paper hover:bg-paper hover:text-ink",
               )}
             >
               <RollText>Let&apos;s talk</RollText> <span aria-hidden="true">→</span>
-            </a>
+            </SectionLink>
           </Magnetic>
         </div>
 

@@ -403,3 +403,153 @@ html.sun-webgl .rings {
 html.sun-webgl .sun-legible {
   filter: drop-shadow(0 0 0.3em rgb(18 7 5 / 0.6));
 }
+
+/* ---------------------------------------------------------------------------
+   Page transitions (React <ViewTransition>; see app/work/[slug]/page.tsx).
+   Opening a case study grows its card into the page and flies the screenshot
+   to the top of it; leaving folds the page back into the card. The header,
+   grain and cursor stay put above it all.
+--------------------------------------------------------------------------- */
+::view-transition {
+  pointer-events: none; /* clicks during a transition reach the page */
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+}
+
+::view-transition-group(site-header),
+::view-transition-group(grain),
+::view-transition-group(cursor) {
+  animation: none;
+}
+::view-transition-group(site-header) {
+  z-index: 50;
+}
+::view-transition-group(grain) {
+  z-index: 51;
+}
+::view-transition-group(cursor) {
+  z-index: 52;
+}
+::view-transition-old(site-header),
+::view-transition-old(grain),
+::view-transition-old(cursor) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(grain),
+::view-transition-new(cursor) {
+  animation: none;
+}
+
+/* The card ⇄ page morph and the flying screenshot. */
+::view-transition-group(.case-open),
+::view-transition-group(.case-close),
+::view-transition-group(.case-shot) {
+  animation-duration: 0.8s;
+  animation-timing-function: var(--ease-expo);
+}
+::view-transition-group(.case-open),
+::view-transition-group(.case-close) {
+  z-index: 1;
+}
+::view-transition-group(.case-shot) {
+  z-index: 3;
+}
+::view-transition-old(.case-open),
+::view-transition-new(.case-open),
+::view-transition-old(.case-close),
+::view-transition-new(.case-close) {
+  height: 100%;
+  mix-blend-mode: normal;
+}
+/* The card's contents keep their size while the dark page stretches around them. */
+::view-transition-old(.case-open),
+::view-transition-new(.case-close) {
+  object-fit: none;
+  object-position: top;
+}
+::view-transition-new(.case-open),
+::view-transition-old(.case-close) {
+  object-fit: fill;
+}
+/* Opening: the card's contents fade under the dark page as it grows. */
+::view-transition-old(.case-open) {
+  animation: none;
+}
+::view-transition-new(.case-open) {
+  animation: vt-fade-in 0.25s ease-out both;
+}
+/* Closing: the dark page shrinks onto the card, then the card shows through. */
+::view-transition-old(.case-close) {
+  animation: none;
+}
+::view-transition-new(.case-close) {
+  animation: vt-fade-in 0.3s ease-out 0.45s both;
+}
+::view-transition-old(.case-shot),
+::view-transition-new(.case-shot) {
+  animation-duration: 0.5s;
+}
+
+/* The case study's content rises in once the page has opened and steps aside
+   quickly on the way out; "Next project" slides it along. */
+::view-transition-group(.case-content-in) {
+  z-index: 2;
+}
+::view-transition-new(.case-content-in) {
+  animation: vt-rise 0.7s var(--ease-expo) 0.3s both;
+}
+::view-transition-old(.case-content-out) {
+  animation: vt-fade-out 0.2s ease-out both;
+}
+::view-transition-old(.case-slide-out) {
+  animation: vt-leave 0.35s var(--ease-quart) both;
+}
+::view-transition-new(.case-slide-in) {
+  animation: vt-arrive 0.8s var(--ease-expo) 0.12s both;
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    translate: 0 2.5rem;
+  }
+}
+
+@keyframes vt-leave {
+  to {
+    opacity: 0;
+    translate: -5rem 0;
+  }
+}
+
+@keyframes vt-arrive {
+  from {
+    opacity: 0;
+    translate: 5rem 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

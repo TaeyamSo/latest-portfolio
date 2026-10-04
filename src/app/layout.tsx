@@ -80,7 +80,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <PointerParallax />
         <SmoothScroll>{children}</SmoothScroll>
-        <div className="grain" aria-hidden="true" />
+        <div className="grain [view-transition-name:grain]" aria-hidden="true" />
         <Cursor />
       </body>
     </html>

@@ -127,6 +127,18 @@ export const study = {
   },
 };
 
+/** A detail of the live site, and where to look for it on the screenshot (0–1 from the top left). */
+export type Highlight = { title: string; text: string; focus: { x: number; y: number; zoom: number } };
+
+export type CaseStudy = {
+  /** DRAFT — what the site is, written from what's on it. One `*accent*` word. */
+  summary: string;
+  /** DRAFT — details you can see on the live site; the case page zooms into each one. */
+  highlights: Highlight[];
+  /** MOCK — the story behind the project, in Tayam's words once written. */
+  story?: { brief: string; approach: string; outcome: string; mock?: boolean };
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -138,6 +150,8 @@ export type Project = {
   role?: string;
   /** MOCK until confirmed — shown on the project cards in development only. */
   details?: { year: string; stack: string; mock?: boolean };
+  /** Client projects get a page at /work/[slug]. */
+  caseStudy?: CaseStudy;
 };
 
 export const projects: Project[] = [
@@ -150,6 +164,33 @@ export const projects: Project[] = [
     image: baddar,
     role: "Front-end development",
     details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
+    caseStudy: {
+      summary:
+        "An online store for Baddar Furniture: office furniture and sofas by category, every piece with its model code, its price in dirhams and an *order* button — in English and Arabic.",
+      highlights: [
+        {
+          title: "Bilingual from the first click",
+          text: "A gold menu bar holds the whole catalogue — products, new collections, catalogues — with an Arabic switch at the end.",
+          focus: { x: 0.5, y: 0.15, zoom: 2 },
+        },
+        {
+          title: "Shop by category",
+          text: "Office furniture, sofas and steel office furniture sit in a sidebar right next to the product grid.",
+          focus: { x: 0.2, y: 0.45, zoom: 2.2 },
+        },
+        {
+          title: "One tap to order",
+          text: "Every piece shows its code and price with an Order Now button, and WhatsApp is always a tap away.",
+          focus: { x: 0.8, y: 0.72, zoom: 2 },
+        },
+      ],
+      story: {
+        mock: true,
+        brief: "Baddar wanted its whole catalogue online in both languages, so customers could browse every collection and order without visiting the showroom.",
+        approach: "A responsive catalogue with category navigation and reusable product cards, an Arabic version laid out right to left, and the brand's gold carried through every page.",
+        outcome: "Every collection went online, and orders now start on the site or with a single WhatsApp tap.",
+      },
+    },
   },
   {
     slug: "hazo",
@@ -160,6 +201,28 @@ export const projects: Project[] = [
     image: hazo,
     role: "Front-end development",
     details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
+    caseStudy: {
+      summary:
+        "The website of Hazo Interiors, an interior design and furnishing company: a full-screen slider of *interiors* up front, with projects, services, clients and certificates a click away — in English and Arabic.",
+      highlights: [
+        {
+          title: "One bar for everything",
+          text: "Projects, services, profile, clients and certificates share one menu, with an Arabic switch and social links beside it.",
+          focus: { x: 0.5, y: 0.08, zoom: 2 },
+        },
+        {
+          title: "Photography first",
+          text: "A full-screen slider lets the rooms speak, with the company's name set quietly over each image.",
+          focus: { x: 0.5, y: 0.56, zoom: 1.5 },
+        },
+      ],
+      story: {
+        mock: true,
+        brief: "Hazo needed a site as calm and considered as its interiors, one that lets the work speak before the words do.",
+        approach: "Full-bleed photography, a restrained palette and a menu that reaches every part of the company in one move, in English and Arabic.",
+        outcome: "A site the team now sends to clients in place of a printed portfolio.",
+      },
+    },
   },
   {
     slug: "alaktabout",
@@ -170,6 +233,28 @@ export const projects: Project[] = [
     image: alaktabout,
     role: "Front-end development",
     details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
+    caseStudy: {
+      summary:
+        "The website of Al Aktabout, a documents clearing company, dressed in its black and *gold* identity from the header to a framed hero slider — in English and Arabic.",
+      highlights: [
+        {
+          title: "Black and gold",
+          text: "The logo's black and gold run through the menu, with the page you're on picked out in gold.",
+          focus: { x: 0.3, y: 0.08, zoom: 2.2 },
+        },
+        {
+          title: "A framed showcase",
+          text: "A thin gold frame and slide dots turn the hero slider into a showcase.",
+          focus: { x: 0.5, y: 0.55, zoom: 1.35 },
+        },
+      ],
+      story: {
+        mock: true,
+        brief: "Al Aktabout handles paperwork people find daunting; the site had to feel trustworthy and make each service easy to find.",
+        approach: "A premium black-and-gold look straight from the brand, clear service pages and a bilingual layout that reads naturally in both directions.",
+        outcome: "Clients now find the right service and get in touch without a phone call first.",
+      },
+    },
   },
   {
     slug: "al-ain",
@@ -180,6 +265,33 @@ export const projects: Project[] = [
     image: alAin,
     role: "Front-end development",
     details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
+    caseStudy: {
+      summary:
+        "The website of Al Ain Al Thahabiah, a building contracting company: a bilingual identity, a city *skyline* up front, and its services, projects and certificates one click away.",
+      highlights: [
+        {
+          title: "Two languages, one name",
+          text: "The company's English and Arabic names sit side by side in the logo that opens every page.",
+          focus: { x: 0.12, y: 0.05, zoom: 2.6 },
+        },
+        {
+          title: "A skyline to open",
+          text: "The hero opens on a city skyline, setting the scene for a building contractor.",
+          focus: { x: 0.5, y: 0.4, zoom: 1.25 },
+        },
+        {
+          title: "Gold, carried through",
+          text: "The logo's gold comes back as the background of the sections below.",
+          focus: { x: 0.6, y: 0.9, zoom: 2 },
+        },
+      ],
+      story: {
+        mock: true,
+        brief: "A contractor's reputation rests on finished buildings; the site needed to show scale and credentials at a glance.",
+        approach: "A skyline hero, the bilingual logo up front, and services, projects and certificates each a click from the menu.",
+        outcome: "The company now shares one link for its profile, its projects and its certificates.",
+      },
+    },
   },
   {
     slug: "elzero",
@@ -210,6 +322,13 @@ export const projects: Project[] = [
 /** Client work is featured in the monitor; template builds live in the archive. */
 export const featuredProjects = projects.filter((project) => project.kind === "Client");
 export const archiveProjects = projects.filter((project) => project.kind === "Template build");
+
+/** Projects with a case-study page, in the order of the cards. */
+export const caseStudies = projects.filter(
+  (project): project is Project & { caseStudy: CaseStudy } => project.caseStudy !== undefined,
+);
+
+export const caseStudyPath = (slug: string) => `/work/${slug}`;
 
 const projectName = (slug: string) => projects.find((project) => project.slug === slug)?.name ?? slug;
 

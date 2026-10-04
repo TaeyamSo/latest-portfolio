@@ -113,12 +113,13 @@ The page tells a story in order: **who** (hero, about) → **what** (services) �
 | Marquee | What Tayam does, in alternating Kanit caps and serif italic; drifts, speeds up with scroll velocity, reverses on scroll up |
 | About | First-person lead that lights up word by word, count-up facts from the data, duotone portrait (ink → flame → sunlight) that reveals the original on hover |
 | Services | "What I *do*": four capability rows, each backed by real projects; a black block sweeps in on hover. The original skill tiles live on as a compact toolkit shelf |
-| Work | Each client project is a full-screen dark card; from tablets up the cards pin and stack as you scroll, the previous one scaling back into the deck and dimming. The monitor turns paper-on-ink with "Visit website" as its stand; role, sector, year and stack sit underneath. Template builds follow in an archive list whose rows show a tilted preview that follows the cursor |
+| Work | Each client project is a full-screen dark card; from tablets up the cards pin and stack as you scroll, the previous one scaling back into the deck and dimming. The monitor turns paper-on-ink with "Visit website" as its stand; role, sector, year and stack sit underneath. "Read the case study" (or the title, or the screen) opens the project's page. Template builds follow in an archive list whose rows show a tilted preview that follows the cursor |
+| Case studies | `/work/[slug]` for each client project: the card grows into a dark page while its screenshot flies to the top. Overview (what the site is, plus role, sector, year, stack), "A closer look" (the screenshot pins and the camera glides between details of the live site; still close-ups on phones and with reduced motion), the story (brief, approach, outcome), next project, contact. A share image per project |
 | Process | "From idea to *launch*": four steps on a track that fills as you scroll, with a small sun riding the leading edge; soft skills as "Along the way" |
 | Journey | Freelance client work, the Meta certificate as a compact verifiable entry (badge, thumbnail, courses in a disclosure), the degree; sticky heading |
 | Testimonials | "Kind *words*": clients speak in the serif. Manual pager, no auto-rotation |
 | Contact | Sunset finale: the travelling sun sets right of the copy (centred on phones) into a WebGL sea with ripples, a glitter path and stars; big mailto link, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | One sun travelling the whole page, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG image, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+| Site-wide | One sun travelling the whole page, page transitions between the work and the case studies, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, time-of-day tint, grain, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
 
 ### Draft and mock content
 
@@ -133,17 +134,21 @@ The page tells a story in order: **who** (hero, about) → **what** (services) �
 
 ```
 src/
-  app/            routes, metadata files (OG image, icons, sitemap, robots, manifest), global CSS
+  app/            routes (home, work/[slug] case studies), metadata files (OG images, icons,
+                  sitemap, robots, manifest), global CSS
   content/        site.ts — every word, link and image on the site
   components/
-    chrome/       Header, SideNav, MobileMenu, Cursor
+    case/         CaseBackdrop (the morph target), CaseTour ("A closer look"), CaseMarker
+    chrome/       Header, SideNav, MobileMenu, SectionLink, Cursor
     sections/     Hero, Marquee, About, Services, Projects (work), Process, Journey, Testimonials, Contact
     sun/          geometry.ts → SunGlyph (SVG) + shaders.ts → the journey (journey.ts path,
                   journey-renderer.ts WebGL, SunJourney mount), OrbitText, SunsetStage (CSS sunset)
     ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
-                  AccentText, Duotone, LocalTime, MockBadge
-    providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings), DayCycle (tint)
-  lib/            accent markup, kerning, mock gating, hooks (active section, tone, media queries, scroll-to)
+                  AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
+    providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings), DayCycle (tint),
+                  HomeLanding (where the home page opens when you arrive from another page)
+  lib/            accent markup, kerning, mock gating, work-return, hooks (active section, tone,
+                  media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)
 ```
 
@@ -174,6 +179,26 @@ SVG immediately and the CSS/SVG sunset is a full fallback. The journey starts af
 forced colours; if the GPU context is lost it hands back to CSS. It renders at the display rate
 while you scroll or move the mouse and drops to ~30fps when only the slow spin is moving.
 
+**Case studies and page transitions.** The pages are prerendered from `site.ts`
+(`generateStaticParams`; any other slug is the 404). Moving between the work and a case study
+uses React's `<ViewTransition>` with the browser's View Transitions API, so it needs no
+animation library and simply doesn't animate where the API is missing:
+
+- **Opening** ("Read the case study"): the card and the case page's fixed dark backdrop share a
+  name (`case-<slug>`), so the card grows to fill the screen while its contents fade under it.
+  The screenshot shares a name too (`shot-<slug>`) and flies from the monitor to the top of
+  the page; the rest of the page rises in once it has opened.
+- **Closing** ("All work"): the reverse. The home page first jumps to the card you came from
+  (`HomeLanding`, before the first paint, so the page can fold back into it). The back button
+  lands on the same card without the animation: React applies back/forward navigations at once
+  so the browser can restore the page.
+- **Next project** slides the page along. The header, grain and cursor keep fixed names, so
+  they stay put above everything that moves. With reduced motion nothing animates.
+
+Links to home sections from other pages (`SectionLink`) are client-side navigations, and the
+home page scrolls to the section itself, so `/#contact` lands exactly where the in-page link
+would.
+
 **Performance.** The images in use went from 7.1 MB of PNG/JPG to 0.52 MB of WebP (and are
 served as AVIF/WebP at the right size by `next/image`). Fonts are self-hosted and subset. Every
 route is statically prerendered. The WebGL renderer is a 6 KB (gzipped) chunk loaded after the
@@ -182,10 +207,11 @@ gzipped (React, Next.js, Motion, Lenis).
 
 ## 5. Roadmap — where the visuals can go next
 
-Done in Phase 3: the WebGL sunset (stars, a rippling water reflection) and one sun for the page.
+Done: Phase 3, the WebGL sunset (stars, a rippling water reflection) and one sun for the page;
+Phase 4, case studies with page transitions.
 
-1. **Case studies (Phase 4)** — `/work/[slug]` pages (the data model already has slugs) with
-   shared-element transitions from the project cards, using React's `<ViewTransition>`.
+1. **Richer case studies** — more screens per project (inner pages, mobile, the Arabic version)
+   in the "closer look", and real numbers in the story once there are some.
 2. **Sunlight on the page** — let the sun's position light the frames and cards it passes (a soft
    rim of light on the side facing it), and god rays through the dusk.
 3. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
@@ -198,11 +224,15 @@ Done in Phase 3: the WebGL sunset (stars, a rippling water reflection) and one s
 These should be checked by Tayam (all in `src/content/site.ts`):
 
 - **Mock — replace to make it appear on the live site:** the 3 testimonials, the availability line
-  ("Available for new projects"), the city/time zone (placeholder: Dubai), and each client
-  project's year and stack (`details` in `projects`).
+  ("Available for new projects"), the city/time zone (placeholder: Dubai), each client
+  project's year and stack (`details` in `projects`), and each case study's story — the brief,
+  the approach and the outcome (`caseStudy.story`).
 - **Draft — read and adjust:** the hero tagline ("crafting websites that feel *alive*.", replacing
   "21 Year Old /"), the About lead and body, the four services and their one-liners, the four
-  process steps, the marquee words, and the role on each project ("Front-end development").
+  process steps, the marquee words, the role on each project ("Front-end development"), and each
+  case study's summary and "closer look" details. These were written only from what the
+  screenshots show (bilingual menus, the catalogue, the sliders) — check they still match the
+  live sites and say what you'd like said about your part in them.
 - "IT Student — Year 3" and the Journey entries (add dates if you'd like them shown).
 - The contact email (`taeyamfrontend@gmail.com`, taken from the git author config).
 - A real photo for About — it gets the duotone treatment automatically.

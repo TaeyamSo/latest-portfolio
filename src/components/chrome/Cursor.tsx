@@ -100,7 +100,7 @@ function Follower() {
     <div
       aria-hidden="true"
       className={cn(
-        "cursor pointer-events-none fixed inset-0 z-[95] transition-opacity duration-300",
+        "cursor pointer-events-none fixed inset-0 z-[95] transition-opacity duration-300 [view-transition-name:cursor]",
         look.visible ? "opacity-100" : "opacity-0",
         look.light ? "text-paper" : "text-ink",
       )}
