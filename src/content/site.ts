@@ -359,14 +359,14 @@ export const services = {
   ],
 };
 
-// DRAFT — how a project runs, start to finish. Each step is an hour of the
-// day on its card (dawn → sunset), the site's day under the sun.
+// DRAFT — how a project runs, start to finish. On the cards it's a climb: each
+// step is a milestone on the same mountain trail.
 export const steps = [
-  { title: "Discover", hour: "dawn", description: "We talk goals, audience and content, and agree on what success looks like." },
-  { title: "Design", hour: "morning", description: "A visual direction and key screens you can react to early, before any code." },
-  { title: "Build", hour: "noon", description: "Clean, responsive code with motion and detail, shared as a live preview as it grows." },
-  { title: "Launch", hour: "sunset", description: "Testing on real devices and speed checks, then going live — with support after." },
-] as const;
+  { title: "Discover", milestone: "Trailhead", description: "We talk goals, audience and content, and agree on what success looks like." },
+  { title: "Design", milestone: "Halfway", description: "A visual direction and key screens you can react to early, before any code." },
+  { title: "Build", milestone: "Base camp", description: "Clean, responsive code with motion and detail, shared as a live preview as it grows." },
+  { title: "Launch", milestone: "Summit", description: "Testing on real devices and speed checks, then going live — with support after." },
+];
 
 // DRAFT — the band under the hero.
 export const marquee = ["Websites", "E-commerce", "Landing pages", "Interfaces", "Motion", "Responsive", "Accessible", "Fast"];
