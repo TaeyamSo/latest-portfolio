@@ -8,12 +8,11 @@ const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uRot", "uPointer", "uFlare",
 
 /**
  * Draws the travelling sun on a fixed, full-viewport canvas with one fragment
- * shader (no 3D engine needed) and moves the DOM that belongs to it: the heat
- * rings follow the sun and the hero's orbit text fades as the sun leaves.
+ * shader (no 3D engine needed), and fades the hero's orbit text as it leaves.
  *
  * It finds its marks in the page: `[data-sun-stage]` (the hero sun's box),
- * `#home`, `#contact`, `[data-horizon]` (inside the sunset stage), `.rings`
- * and `[data-sun-orbit]`. Once its first frames are on screen it sets
+ * `#home`, `#contact`, `[data-horizon]` (inside the sunset stage) and
+ * `[data-sun-orbit]`. Once its first frames are on screen it sets
  * `html.sun-webgl`, which retires the SVG/CSS stand-ins (see globals.css).
  *
  * Renders at the display rate while something moves, ~30fps otherwise.
@@ -51,7 +50,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   const footer = document.getElementById("contact");
   const horizon = document.querySelector<HTMLElement>("[data-horizon]");
   const sea = horizon?.parentElement;
-  const rings = document.querySelector<HTMLElement>(".rings");
   const orbit = document.querySelector<HTMLElement>("[data-sun-orbit]");
 
   // Start the rays where the CSS sun has turned them, so the hand-over is seamless.
@@ -70,13 +68,9 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   let desktop = false;
   let svh = window.innerHeight;
   let heroEnd = 1;
-  let heroR = 1;
-  let ringsX = 0;
-  let ringsY = 0;
 
   const pointer = { x: 0, y: 0, inside: false };
   const lean = { x: 0, y: 0, hover: 0 }; // pointer relative to the sun, eased
-  const drift = { x: 0, y: 0 }; // rings parallax, eased
   let flare = 0;
   let intro = 0;
   let time = 8;
@@ -85,7 +79,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   let last = start;
   let activeUntil = 0;
   let lastScroll = Number.NaN;
-  let lastRings = "";
   let lastOrbit = "";
 
   const render = (now: number) => {
@@ -117,26 +110,15 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     });
 
     const ease = 1 - Math.exp(-dt * 5);
-    const slow = 1 - Math.exp(-dt * 3);
     if (pointer.inside) {
       lean.x += ((pointer.x - sun.x) / sun.r - lean.x) * ease;
       lean.y += ((pointer.y - sun.y) / sun.r - lean.y) * ease;
-      drift.x += (14 - (pointer.x / window.innerWidth) * 28 - drift.x) * slow;
-      drift.y += (14 - (pointer.y / vh) * 28 - drift.y) * slow;
     }
     lean.hover += ((pointer.inside ? 1 : 0) - lean.hover) * ease;
     flare *= Math.exp(-dt * 1.8);
     time += dt;
     if (frames >= 2) intro = Math.min(1, intro + dt / 1.2);
 
-    // The rings stay centred on the sun, shrinking less than it does.
-    if (rings) {
-      const scale = stage ? Math.pow(sun.r / heroR, 0.6) : 1;
-      const x = sun.x - ringsX + drift.x;
-      const y = sun.y - ringsY + drift.y;
-      const transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
-      if (transform !== lastRings) rings.style.transform = lastRings = transform;
-    }
     if (orbit) {
       const opacity = (1 - smooth(0, heroEnd * 0.45, scroll)).toFixed(3);
       if (opacity !== lastOrbit) orbit.style.opacity = lastOrbit = opacity;
@@ -166,10 +148,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
     svh = probe.offsetHeight || window.innerHeight;
     heroEnd = Math.max(1, (hero?.offsetHeight ?? svh) * 0.8);
-    heroR = Math.max(1, (stage?.getBoundingClientRect().width ?? 0) / (2 * SUN.extent));
-    const css = getComputedStyle(root);
-    ringsX = (parseFloat(css.getPropertyValue("--rings-x")) / 100) * root.clientWidth;
-    ringsY = (parseFloat(css.getPropertyValue("--rings-y")) / 100) * root.clientHeight;
     if (width === canvas.width && height === canvas.height) return;
     // Resizing clears the canvas, so paint again right away (no blank frame).
     canvas.width = width;
@@ -227,7 +205,6 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     canvas.removeEventListener("webglcontextlost", onContextLost);
     probe.remove();
     root.classList.remove("sun-webgl");
-    if (rings) rings.style.transform = "";
     if (orbit) orbit.style.opacity = "";
     if (gl && !gl.isContextLost()) {
       gl.deleteBuffer(buffer);

@@ -14,7 +14,6 @@ const kanit = (weight: number) =>
   readFile(join(process.cwd(), `node_modules/@fontsource/kanit/files/kanit-latin-${weight}-normal.woff`));
 
 const INK = "#0d0a08";
-const rings = [520, 420, 330, 250, 170];
 
 export default async function OpengraphImage() {
   const [extraBold, medium] = await Promise.all([kanit(800), kanit(500)]);
@@ -33,20 +32,6 @@ export default async function OpengraphImage() {
           color: INK,
         }}
       >
-        {rings.map((r, i) => (
-          <div
-            key={r}
-            style={{
-              position: "absolute",
-              left: 910 - r,
-              top: 315 - r,
-              width: r * 2,
-              height: r * 2,
-              borderRadius: r,
-              background: `rgba(255, 240, 222, ${0.05 + i * 0.06})`,
-            }}
-          />
-        ))}
         {/* ImageResponse renders with Satori, where next/image can't be used. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={sun} alt="" width={440} height={440} style={{ position: "absolute", left: 690, top: 95 }} />

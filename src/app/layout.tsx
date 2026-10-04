@@ -3,7 +3,7 @@ import { JetBrains_Mono, Kanit } from "next/font/google";
 import localFont from "next/font/local";
 
 import { Cursor } from "@/components/chrome/Cursor";
-import { PointerParallax } from "@/components/providers/PointerParallax";
+import { PointerSync } from "@/components/providers/PointerSync";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { profile } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
@@ -78,10 +78,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <PointerParallax />
         <SmoothScroll>{children}</SmoothScroll>
         <div className="grain [view-transition-name:grain]" aria-hidden="true" />
         <Cursor />
+        <PointerSync />
       </body>
     </html>
   );

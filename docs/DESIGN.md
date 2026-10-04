@@ -14,7 +14,7 @@ serving that build and inspecting it at laptop sizes (1440×900 and 1366×768).
 | --- | --- |
 | Palette | Flame → amber gradient (`#fd5d16 → #fd8916` at 49%), black type, white as the hover/active colour |
 | The sun | A faceted, two-layer sunburst rotating once every 52s, with "PORTFOLIO" overlapping it |
-| Heat rings | Concentric translucent rings fixed behind every section |
+| Heat rings | Concentric translucent rings fixed behind every section (kept until Phase 5, then retired for a cleaner sky) |
 | Typography | Heavy uppercase display headings (100–120px), Kanit |
 | The double dash | Two offset black pills under every heading — the site's signature |
 | Black frames | Portrait, certificate, tech tiles and the project "monitor" all sit in black boxes |
@@ -41,14 +41,16 @@ serving that build and inspecting it at laptop sizes (1440×900 and 1366×768).
 Keep every recognisable piece, then make it feel alive and give it a story:
 
 - **The sun is real-time.** A GPU shader draws the same faceted sun (same geometry,
-  same colours) — its rays breathe, rotate on the original 52s cycle, lean towards
-  the cursor, and flare when clicked. The disc has a subtle heat shimmer.
+  same colours, the same flat facets — no halo or shading, so it stays crisp on the
+  orange) — its rays breathe, rotate on the original 52s cycle, lean towards the
+  cursor, and flare when clicked. Only at sunset, against the dark sky, does it glow.
 - **The page is a day, and one sun lives through it.** It opens at high noon in the
   hero; as you scroll the same sun lifts into the top-right of the sky, sinks a little
   and warms through the afternoon, then sets in the footer: the dusk sky fills with
   stars, the horizon rises to meet the sun and the sea mirrors it in rippling light.
-  The heat rings stay centred on it the whole way. Header and navigation switch to
-  light ink automatically.
+  Header and navigation switch to light ink automatically.
+- **A clean sky.** The 2025 site's concentric heat rings are gone (Phase 5): the flat
+  flame gradient, the grain and the sun itself carry the hero.
 - **The double dash is the system.** Under headings, as nav indicators, list bullets,
   timeline markers, link underlines and the mobile menu button.
 - **Content is the hero.** Big type, black frames, real screenshots in a monitor with a
@@ -89,9 +91,13 @@ footer carries it into dusk and night. Every stop keeps ink text above 4.5:1.
 ### Cursor
 
 On mouse devices a dot + trailing ring replaces the cursor. The ring grows over controls and shows
-a label from `data-cursor` (Flare, Visit, Verify, Copy, Rise); it turns light over surfaces
-marked `data-cursor-tone="light"`. Touch, pen, forced colours and reduced motion keep the native
-cursor.
+a label from `data-cursor` (Flare, Read, Visit, Verify, Copy, Next, Back, Rise); it turns light
+over surfaces marked `data-cursor-tone="light"`. Touch, pen, forced colours and reduced motion keep
+the native cursor.
+
+Browsers only re-check what's under a resting mouse once scrolling stops, so `PointerSync` replays
+the pointer as the page scrolls under it: the cursor and pointer-driven effects (tilts, magnetic
+buttons, the archive preview) react while the page is still moving.
 
 ### Motion principles
 
@@ -145,7 +151,7 @@ src/
                   journey-renderer.ts WebGL, SunJourney mount), OrbitText, SunsetStage (CSS sunset)
     ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
-    providers/    SmoothScroll (Lenis + Motion), PointerParallax (rings), DayCycle (tint),
+    providers/    SmoothScroll (Lenis + Motion), PointerSync (hover while scrolling), DayCycle (tint),
                   HomeLanding (where the home page opens when you arrive from another page)
   lib/            accent markup, kerning, mock gating, work-return, hooks (active section, tone,
                   media queries, scroll-to)
@@ -171,7 +177,7 @@ sun's box, the footer, the horizon) into the sun's position, size and tone:
 While it runs, `html.sun-webgl` retires the stand-ins: the hero glyph cross-fades out (the rays
 start where the CSS spin has turned them, so nothing jumps), and the footer's gradient and the
 CSS sunset step aside because the shader paints the same gradient, then the stars, the sea and
-the reflection. The heat rings follow the sun (moved by the renderer, scaled a little less).
+the reflection.
 
 **Progressive enhancement.** The server renders a complete, readable page. The hero sun paints as
 SVG immediately and the CSS/SVG sunset is a full fallback. The journey starts after the intro

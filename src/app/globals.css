@@ -42,18 +42,16 @@
   --gutter: clamp(1.25rem, 4.5vw, 4.5rem);
   /* Width reserved for the fixed side navigation on large screens. */
   --rail: 0px;
-  /* Where the concentric rings (and the hero sun) are centred. */
-  --rings-x: 76%;
-  --rings-y: 23%;
-  --ring: 21vw;
+  /* Where the hero sun sits in the viewport. */
+  --sun-x: 76%;
+  --sun-y: 23%;
 }
 
 @media (min-width: 64rem) {
   :root {
     --rail: 6.5rem;
-    --rings-x: 75%;
-    --rings-y: 50%;
-    --ring: 12.5vw;
+    --sun-x: 75%;
+    --sun-y: 50%;
     --text-display: clamp(3.6rem, 9.6vw, 14rem);
   }
 }
@@ -162,57 +160,8 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Atmosphere: concentric heat rings + film grain (both fixed, behind/over UI)
+   Atmosphere: film grain over everything
 --------------------------------------------------------------------------- */
-.rings {
-  /* The box overhangs the viewport by 4% (room for parallax), so map the
-     viewport-relative centre into the box: (x + 4%) / 1.08. */
-  --rings-cx: calc((var(--rings-x) + 4%) / 1.08);
-  --rings-cy: calc((var(--rings-y) + 4%) / 1.08);
-  position: fixed;
-  inset: -4%;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--rings-cx) var(--rings-cy),
-    rgb(255 240 222 / 0.34) 0 calc(var(--ring) * 1),
-    rgb(255 240 222 / 0.25) calc(var(--ring) * 1 + 1px) calc(var(--ring) * 1.55),
-    rgb(255 240 222 / 0.17) calc(var(--ring) * 1.55 + 1px) calc(var(--ring) * 2.1),
-    rgb(255 240 222 / 0.1) calc(var(--ring) * 2.1 + 1px) calc(var(--ring) * 2.65),
-    rgb(255 240 222 / 0.05) calc(var(--ring) * 2.65 + 1px) calc(var(--ring) * 3.2),
-    transparent calc(var(--ring) * 3.2 + 1px)
-  );
-  transition: transform 1.2s var(--ease-expo);
-}
-
-/* One heat wave rolls out from the sun on first paint. On a pseudo-element so
-   it never fights PointerParallax's inline transform. */
-.rings::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform-origin: var(--rings-cx) var(--rings-cy);
-  background: radial-gradient(
-    circle at var(--rings-cx) var(--rings-cy),
-    transparent calc(var(--ring) * 0.85),
-    rgb(255 246 232 / 0.55) calc(var(--ring) * 1.05),
-    transparent calc(var(--ring) * 1.4)
-  );
-  animation: heat-pulse 2.6s var(--ease-expo) 0.5s both;
-}
-
-@keyframes heat-pulse {
-  from {
-    opacity: 1;
-    scale: 0.55;
-  }
-  to {
-    opacity: 0;
-    scale: 2.6;
-  }
-}
-
 .grain {
   position: fixed;
   inset: 0;
@@ -335,13 +284,8 @@
   .intro-sun,
   .intro-from-right,
   .scroll-cue,
-  .water-stripes,
-  .rings::after {
+  .water-stripes {
     animation: none !important;
-  }
-
-  .rings {
-    transition: none;
   }
 }
 
@@ -390,12 +334,6 @@ html.sun-webgl .hero-sun-glyph {
   transition:
     opacity 1s var(--ease-expo),
     visibility 0s linear 1s;
-}
-
-/* The rings follow the sun, moved every frame — scaled around their centre. */
-html.sun-webgl .rings {
-  transform-origin: var(--rings-cx) var(--rings-cy);
-  transition: none;
 }
 
 /* A soft shade under light copy the sun may pass behind. Invisible on the dark

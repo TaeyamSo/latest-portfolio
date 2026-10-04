@@ -107,29 +107,27 @@ export const journeyFragment = /* glsl */ `
   }
 
   // The faceted sun in sun space (disc radius 1, y down), palette mixed by tone.
-  vec4 sunBody(vec2 q, float px, float lean, vec2 leanDir, vec2 light, float tone) {
+  // Flat facets like the SVG sun — no shading — so the hand-over is seamless.
+  vec4 sunBody(vec2 q, float px, float lean, vec2 leanDir, float tone) {
     float d = length(q);
     float breathe = 0.022 + uFlare * 0.05;
     vec4 col = vec4(0.0);
 
     vec3 s = rayLayer(q, ${f(SUN.short.count)}, ${f(SUN.short.offset)}, ${f(SUN.short.base)}, ${f(SUN.short.halfWidth)},
                       ${f(SUN.short.tip)} + uFlare * 0.1, uRot.y, px, breathe, lean * 0.6, leanDir);
-    vec3 sCol = mix(${toned(NOON.short.light, SUNSET.short.light)}, ${toned(NOON.short.dark, SUNSET.short.dark)}, s.y)
-              * mix(0.84, 1.0, smoothstep(1.0, 1.16, s.z));
+    vec3 sCol = mix(${toned(NOON.short.light, SUNSET.short.light)}, ${toned(NOON.short.dark, SUNSET.short.dark)}, s.y);
     col = over(col, vec4(sCol, 1.0) * s.x);
 
     vec3 l = rayLayer(q, ${f(SUN.long.count)}, ${f(SUN.long.offset)}, ${f(SUN.long.base)}, ${f(SUN.long.halfWidth)},
                       ${f(SUN.long.tip)} + uFlare * 0.18, uRot.x, px, breathe, lean, leanDir);
-    vec3 lCol = mix(${toned(NOON.long.light, SUNSET.long.light)}, ${toned(NOON.long.dark, SUNSET.long.dark)}, l.y)
-              * mix(0.86, 1.0, smoothstep(1.0, 1.24, l.z));
+    vec3 lCol = mix(${toned(NOON.long.light, SUNSET.long.light)}, ${toned(NOON.long.dark, SUNSET.long.dark)}, l.y);
     col = over(col, vec4(lCol, 1.0) * l.x);
 
     float disc = 1.0 - smoothstep(1.0 - px, 1.0 + px, d);
     vec3 dCol = mix(${toned(NOON.disc.top, SUNSET.disc.top)}, ${toned(NOON.disc.bottom, SUNSET.disc.bottom)},
                     clamp(q.y * 0.5 + 0.5, 0.0, 1.0));
     dCol = mix(dCol, ${toned(NOON.disc.rim, SUNSET.disc.rim)}, smoothstep(0.78, 1.0, d) * 0.55);
-    dCol += (fbm(q * 2.3 + vec2(uTime * 0.06, -uTime * 0.09)) - 0.5) * 0.075; // heat shimmer
-    dCol += 0.075 * (1.0 - smoothstep(0.0, 0.95, length(q - light)));         // soft highlight
+    dCol += (fbm(q * 2.3 + vec2(uTime * 0.06, -uTime * 0.09)) - 0.5) * 0.04; // faint heat shimmer
     dCol += uFlare * 0.08;
     return over(col, vec4(dCol, 1.0) * disc);
   }
@@ -183,25 +181,26 @@ export const journeyFragment = /* glsl */ `
     float near = hover * fall(1.1, 5.5, reach);
     vec2 leanDir = uPointer.xy / max(reach, 1e-4);
     vec2 q = rel - pull * 0.02 * hover; // the whole sun leans a touch towards the cursor
-    vec2 light = vec2(-0.32, -0.38) + pull * 0.07 * hover;
     float low = fall(0.4, 3.0, (uFooter.z - uSun.y) / r); // 1 once the sun is down on the horizon
 
     vec4 col = vec4(0.0);
+    float dusk = 0.0; // how much of the footer's dark sky is behind this pixel
     if (sky > 0.0) {
       col = eveningSky(sky, uFooter.y);
+      dusk = col.a;
       float dark = smoothstep(0.3 * uFooter.y, 0.62 * uFooter.y, sky) * fall(-40.0, -6.0, depth) * smoothstep(1.8, 4.0, d);
       col.rgb += vec3(1.0, 0.94, 0.86) * stars(vec2(frag.x, sky)) * dark * uIntro;
       col = over(col, lightPool(frag.x, depth) * mix(0.55, 1.0, low));
     }
 
-    // Warm light around the sun (additive: alpha untouched), wider at sunset.
-    float glow = exp(-max(length(q) - 1.0, 0.0) * mix(2.3, 1.7, tone)) * fall(${f(GLOW - 0.8)}, ${f(GLOW)}, d);
-    col.rgb += mix(vec3(1.0, 0.87, 0.52), vec3(1.0, 0.58, 0.26), tone) * glow
-             * (0.3 + 0.28 * uFlare + 0.06 * near) * uIntro;
+    // A warm glow around the sun — only against the dusk sky. Over the orange
+    // page a halo reads as a shadow, so by day the sun stays crisp.
+    float glow = exp(-max(length(q) - 1.0, 0.0) * 1.7) * fall(${f(GLOW - 0.8)}, ${f(GLOW)}, d);
+    col.rgb += vec3(1.0, 0.58, 0.26) * glow * (0.3 + 0.28 * uFlare) * dusk * uIntro;
 
     // The sun itself, clipped by the horizon.
     if (d < ${f(REACH)}) {
-      vec4 sun = sunBody(q, 1.0 / (r * uDpr), 0.15 * near, leanDir, light, tone);
+      vec4 sun = sunBody(q, 1.0 / (r * uDpr), 0.15 * near, leanDir, tone);
       col = over(col, sun * clamp(0.5 - depth * uDpr, 0.0, 1.0));
     }
 
@@ -217,7 +216,7 @@ export const journeyFragment = /* glsl */ `
       float sway = (sin(w * 0.12 - uTime * 1.7) * 0.7 + sin(w * 0.047 + uTime * 0.8)) * (1.5 + w * 0.05);
       vec2 m = (vec2(frag.x + sway, uFooter.z - w * 0.72) - uSun.xy) / r; // mirrored, stretched
       if (length(m) < ${f(REACH)}) {
-        sea = over(sea, sunBody(m, 1.5 / (r * uDpr), 0.0, leanDir, light, tone) * 0.55 * fade * ripple);
+        sea = over(sea, sunBody(m, 1.5 / (r * uDpr), 0.0, leanDir, tone) * 0.55 * fade * ripple);
       }
 
       float column = exp(-pow((frag.x - uSun.x) / (r * (0.9 + 1.6 * k)), 2.0));
