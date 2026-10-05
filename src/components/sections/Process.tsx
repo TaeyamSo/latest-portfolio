@@ -1,60 +1,31 @@
-"use client";
-
-import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
-import { useRef, useState } from "react";
-
-import { SunGlyph } from "@/components/sun/SunGlyph";
-import { Reveal } from "@/components/ui/Reveal";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Statement } from "@/components/ui/Statement";
 import { Tilt } from "@/components/ui/Tilt";
-import { sectionNumber, softSkills, steps } from "@/content/site";
-import { useReducedMotionSafe } from "@/lib/use-media-query";
+import { chapters, steps } from "@/content/site";
+
+type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * How a project runs. Four framed cards (the About card's frame), each with a
- * small browser showing the same website at that stage: notes on a blank page,
- * a wireframe, half built with the code open, then live. On large screens a
- * track fills as you scroll and a small sun rides its leading edge; as it
- * reaches a card, the card's edge fills and its page builds itself.
+ * 16:00, late afternoon, on the road to the coast. How a project runs, as four
+ * framed cards (the About card's frame), each with a small browser showing the
+ * same website at that stage: notes on a blank page, a wireframe, half built
+ * with the code open, then live. When the chapter arrives the cards build one
+ * after another — each edge lights up and its page builds itself. On phones
+ * they slide sideways, a card at a time.
  */
 export function Process() {
-  const ref = useRef<HTMLOListElement>(null);
-  const still = useReducedMotionSafe();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.8", "end 0.45"] });
-  const sunX = useTransform(scrollYProgress, (v) => `${v * 100}%`);
-
   return (
-    <section id="process" aria-labelledby="process-title" className="shell relative py-[clamp(7rem,16vh,12rem)] outline-none">
-      <SectionHeading id="process-title" index={sectionNumber("process")} label="Process" title="From idea to *launch*" />
+    <section id="process" data-chapter aria-labelledby="process-title" className="chapter shell relative outline-none">
+      <Statement id="process-title">{chapters.process.statement}</Statement>
 
-      <div className="relative mt-16 lg:mt-24">
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 hidden h-[3px] rounded-full bg-ink/15 lg:block">
-          <motion.div
-            className="h-full origin-left rounded-full bg-ink"
-            style={{ scaleX: still ? 1 : scrollYProgress }}
-          />
-          <motion.div className="absolute inset-y-0 left-0 w-full" style={{ x: still ? "100%" : sunX }}>
-            <SunGlyph id="process-sun" spin className="absolute top-1/2 left-0 size-10 -translate-1/2" />
-          </motion.div>
-        </div>
-
-        <ol ref={ref} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6 lg:pt-16">
+      <div data-track-view="" className="-mx-(--gutter) mt-[clamp(1.25rem,4.5svh,3rem)] px-(--gutter)">
+        <ol data-track="" className="gap-4 lg:gap-5">
           {steps.map((step, i) => (
-            <Step key={step.title} index={i} count={steps.length} progress={scrollYProgress} still={still} {...step} />
+            <Step key={step.title} index={i} count={steps.length} {...step} />
           ))}
         </ol>
       </div>
-
-      <Reveal className="mt-16 flex flex-wrap items-center gap-2.5 lg:mt-20">
-        <p className="meta mr-3">Along the way</p>
-        {softSkills.map((skill) => (
-          <span key={skill} className="meta rounded-full border border-ink/40 px-3 py-1.5 text-[0.62rem] tracking-[0.1em]">
-            {skill}
-          </span>
-        ))}
-      </Reveal>
     </section>
   );
 }
@@ -66,35 +37,25 @@ type StepProps = {
   description: string;
   index: number;
   count: number;
-  progress: MotionValue<number>;
-  still: boolean;
 };
 
-function Step({ title, stage, address, description, index, count, progress, still }: StepProps) {
-  const start = index / count;
-  const edge = useTransform(progress, [start, (index + 1) / count], [0, 1]);
-
-  // The page builds itself once the track's sun reaches the card, and stays built.
-  // (Progress starts at 0 and is measured after mount, so landing further down
-  // the page fires this too.)
-  const [reached, setReached] = useState(false);
-  useMotionValueEvent(progress, "change", (v) => {
-    if (v >= start + 0.04) setReached(true);
-  });
-
+function Step({ title, stage, address, description, index, count }: StepProps) {
   return (
-    <li>
+    <li
+      data-step=""
+      data-build=""
+      style={{ "--b": 1 + index, "--card": index } as Vars}
+      className="w-[72vw] shrink-0 sm:w-[42vw] lg:w-auto lg:min-w-0 lg:flex-1 lg:shrink"
+    >
       <Tilt max={6} className="h-full">
-        <div data-cursor-tone="light" className="group relative flex h-full flex-col bg-ink p-4 text-paper sm:p-5">
-          <motion.span
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-[3px] origin-left bg-sunlight"
-            style={{ scaleX: still ? 1 : edge }}
-          />
-          <Browser index={index} address={address} shown={still || reached} />
-          <h3 className="mt-6 text-[clamp(1.6rem,2.1vw,2.3rem)] leading-none font-extrabold uppercase">{title}</h3>
-          <p className="mt-3 flex-1 text-[1rem] leading-relaxed text-paper/80">{description}</p>
-          <p className="meta mt-6 flex justify-between gap-4 text-paper/65">
+        <div className="group relative flex h-full flex-col bg-ink p-3 text-paper sm:p-4">
+          <span aria-hidden="true" className="step-edge absolute inset-x-0 top-0 h-[3px] bg-sunlight" />
+          <Browser index={index} address={address} />
+          <h3 className="mt-[clamp(0.75rem,2svh,1.25rem)] text-[clamp(1.3rem,1.8vw,2rem)] leading-none font-extrabold uppercase">
+            {title}
+          </h3>
+          <p className="mt-2 flex-1 text-[clamp(0.85rem,0.95vw,0.98rem)] leading-snug text-paper/80">{description}</p>
+          <p className="meta mt-[clamp(0.75rem,2svh,1.25rem)] flex justify-between gap-4 text-paper/65">
             <span>
               {pad(index + 1)} / {pad(count)}
             </span>
@@ -109,12 +70,12 @@ function Step({ title, stage, address, description, index, count, progress, stil
 const PAGES = [Brief, Wireframe, Code, Live];
 
 /** The card's picture: a paper browser (as on the project cards) with the site at this stage inside. */
-function Browser({ index, address, shown }: { index: number; address: string; shown: boolean }) {
+function Browser({ index, address }: { index: number; address: string }) {
   const Page = PAGES[index];
   const live = index === PAGES.length - 1;
   return (
-    <div aria-hidden="true" data-shown={shown || undefined} className="bg-paper">
-      <div className="flex items-center gap-2 px-2.5 py-2">
+    <div aria-hidden="true" className="bg-paper">
+      <div className="flex items-center gap-2 px-2.5 py-1.5">
         <span className="flex gap-1">
           <span className="size-1.5 rounded-full bg-flame" />
           <span className="size-1.5 rounded-full bg-amber" />
@@ -145,7 +106,6 @@ function Browser({ index, address, shown }: { index: number; address: string; sh
    appear one after another (`.step-pop` in globals.css).
 --------------------------------------------------------------------------- */
 
-type Vars = React.CSSProperties & Record<`--${string}`, string>;
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as Vars;
 const serif = { fontFamily: "var(--font-serif)", fontStyle: "italic" } as const;
 

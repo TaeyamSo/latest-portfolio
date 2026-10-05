@@ -52,11 +52,11 @@ Keep every recognisable piece, then make it feel alive and give it a story:
   to golden hour, and dark streaks cross the setting sun at the end.
 - **The page is a day, and one sun lives through it.** It opens at high noon in the
   hero; as you scroll the same sun lifts into the top-right of the sky, sinks a little
-  and warms through the afternoon, then sets in the footer: the dusk sky fills with
+  to its whitest at noon, comes down on the right through the afternoon, then sets in the footer: the dusk sky fills with
   stars, the horizon rises to meet the sun and the sea mirrors it in rippling light.
   Header and navigation switch to light ink automatically.
 - **A clean sky.** The 2025 site's concentric heat rings are gone: the flat flame gradient,
-  the grain, the sun and the landscape carry the hero.
+  the sun and the landscape carry the hero.
 - **The double dash is the system.** Under headings, as nav indicators, list bullets,
   timeline markers, link underlines and the mobile menu button.
 - **Content is the hero.** Big type, black frames, real screenshots in a monitor with a
@@ -71,16 +71,16 @@ Keep every recognisable piece, then make it feel alive and give it a story:
 | `ember` → `dusk` → `night` | `#b3300c` → `#3b1409` → `#120705` | The sunset footer |
 | `ink` / `paper` | `#0d0a08` / `#fffaf4` | Type, frames / hover, light ink |
 | `text-display` | `clamp(3.6rem, 15vw, 8rem)`, `9.6vw` on desktop | The name |
-| `text-title` | `clamp(3rem, 8.2vw, 8.75rem)` | Section titles |
+| `text-title` | `clamp(3rem, 8.2vw, 8.75rem)` | Large titles on the case-study pages |
 | `ease-expo` | `cubic-bezier(.16, 1, .3, 1)` | Every reveal |
 
 Type: **Kanit** (now actually self-hosted via `next/font`) is the voice, **Fraunces Italic** the
-accent, **JetBrains Mono** the small technical labels such as `(02) — About`.
+accent, **JetBrains Mono** the small technical labels.
 
-- **The accent rule:** one serif-italic word per composition, marked in copy with asterisks —
-  `"About *me*"`, `"Selected *work*"`, `"something *bright.*"`. `RevealWords` and `AccentText`
-  parse the markers (`src/lib/accent.ts`); accent masks carry extra room for the italic lean,
-  ascenders and descenders.
+- **Plain titles:** every chapter title is one plain sentence in Kanit (`ui/Statement`) — the
+  "BIG WORD *italic word*" formula and the "(03) — Services" numbering were common portfolio
+  tropes and are gone. The serif accent is kept for the hero ("portfolio", "*alive*.") and for
+  clients' quotes; `AccentText` parses the `*word*` markers there (`src/lib/accent.ts`).
 - **Fraunces is a pinned static instance** (italic, 400, opsz 144, SOFT 100, WONK 1 — 21 KB) in
   `src/assets/fonts/`, loaded with `next/font/local`. The variable font `next/font/google` would
   ship is 146 KB. Its SIL OFL licence sits next to the file.
@@ -90,20 +90,35 @@ accent, **JetBrains Mono** the small technical labels such as `(02) — About`.
 
 ### Time of day
 
-The page's colour follows the day: noon orange at the top deepens to golden hour by the projects
-(`DayCycle`, a scroll-linked opacity layer the browser animates on its scroll timeline), then the
-footer carries it into dusk and night. Every stop keeps ink text above 4.5:1.
+The page is one day, and every part of the story is an hour (`sun/day.ts`): sunrise in the hero,
+morning by the about, noon over the services, afternoon through the work and the process, golden
+hour by the journey, then sunset and night in the footer. The sky stays in one warm family — no
+pinks, purples or blues — and its brightness follows the sun's height: deepest at sunrise,
+brightest and most golden at noon, deeper again by evening. `SkyCycle` keeps two fixed layers,
+the hour you're in and the next fading in over it, anchored to the sections themselves (each
+hour lingers on its section and changes in between); while you scroll only that opacity changes.
+The sun, the sky and the side nav's story clock (06:30 → 19:30) all read the same timeline, so
+they can never disagree. Every sky keeps ink text above 5.8:1, and a development check warns if a
+sky would let the sun's rim sink below its own light (a dark ring) — the reason the sun turns
+whiter as it climbs and the golden-hour sky is a touch deeper than the sunrise one.
 
-### Cursor
+### Pointer
 
-On mouse devices a dot + trailing ring replaces the cursor. The ring grows over controls and shows
-a label from `data-cursor` (Flare, Read, Visit, Verify, Copy, Next, Back, Rise); it turns light
-over surfaces marked `data-cursor-tone="light"`. Touch, pen, forced colours and reduced motion keep
-the native cursor.
+The native cursor stays (the custom cursor and the film grain are gone: both were common
+portfolio tropes and both cost frames). The sun leans a touch towards the pointer.
 
 Browsers only re-check what's under a resting mouse once scrolling stops, so `PointerSync` replays
-the pointer as the page scrolls under it: the cursor and pointer-driven effects (tilts, magnetic
-buttons, the archive preview) react while the page is still moving.
+the pointer as the page scrolls under it: hover effects (tilts, magnetic buttons, the archive
+preview) react while the page is still moving.
+
+### Performance
+
+Nothing reads layout per frame: the sun's renderer, the sky, the clock and the landscape measure
+the page once (and again when it resizes) and then only work from the scroll position. Scroll
+only writes transforms and opacity; a landscape scene that is fully down isn't rendered, and only
+a moving scene gets its own layer. The shader draws near the disc only — the wide glow around the
+sun is a CSS layer it moves — and nothing sets page-wide CSS variables while scrolling (that would
+restyle the whole page).
 
 ### Motion principles
 
@@ -119,19 +134,35 @@ buttons, the archive preview) react while the page is still moving.
 The page tells a story in order: **who** (hero, about) → **what** (services) → **proof** (work) →
 **how** (process) → **background** (journey) → **trust** (testimonials) → **contact**.
 
-| Section | What it does |
+The home page reads as **chapters**, one screen and one hour each (`providers/Chapters.tsx`). A
+small scroll, a swipe or a key press glides to the next chapter: the content steps aside, the page
+glides — so the sky, the sun, the clock and the landscape change with it — and once it rests the
+new chapter's content builds in, piece by piece. Content that doesn't fit one screen walks
+sideways instead (the high street's shops; services and process cards on phones). Every chapter
+title is a plain sentence: no section numbers, no italic accent word. With reduced motion the
+chapters are simply shown and the page scrolls normally.
+
+| Chapter | What it does |
 | --- | --- |
-| Hero | Letter-by-letter mask reveal with restored kerning, the sun (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, a text ring that writes itself letter by letter around the sun, keeps orbiting and fades as the sun leaves, status kicker (availability + live local time) |
-| Marquee | What Tayam does, in alternating Kanit caps and serif italic; drifts, speeds up with scroll velocity, reverses on scroll up |
-| About | First-person lead that lights up word by word, count-up facts from the data, duotone portrait (ink → flame → sunlight) that reveals the original on hover |
-| Services | "What I *do*": the intro sits on ink label bands (one per line) that sweep in, so it reads over the sun; four capability rows, each backed by real projects; a black block sweeps in on hover. The original skill tiles live on as a compact toolkit shelf |
-| Work | Each client project is a full-screen dark card; from tablets up the cards pin and stack as you scroll, the previous one scaling back into the deck and dimming. The monitor turns paper-on-ink with "Visit website" as its stand; role, sector, year and stack sit underneath. "Read the case study" (or the title, or the screen) opens the project's page. Template builds follow in an archive list whose rows show a tilted preview that follows the cursor |
-| Case studies | `/work/[slug]` for each client project: the card grows into a dark page while its screenshot flies to the top. Overview (what the site is, plus role, sector, year, stack), "A closer look" (the screenshot pins and the camera glides between details of the live site; still close-ups on phones and with reduced motion), the story (brief, approach, outcome), next project, contact. A share image per project |
-| Process | "From idea to *launch*": four steps as framed cards (the About card's frame), each with a small paper browser showing the same website at that stage: notes on a blank page (about:blank), a wireframe with its colours and type (draft), half built with the code open (localhost:3000), the finished site with a "Live" dot and a visitor's cursor. A track fills as you scroll with a small sun riding the leading edge; when it reaches a card, the card's edge fills and its page builds itself (parts rise in one after another, code lines type out, the cursor glides in). Soft skills as "Along the way" |
-| Journey | Freelance client work, the Meta certificate as a compact verifiable entry (badge, thumbnail, courses in a disclosure), the degree; sticky heading |
-| Testimonials | "Kind *words*": clients speak in the serif. Manual pager, no auto-rotation |
-| Contact | Sunset finale: the travelling sun sets right of the copy (centred on phones) into a WebGL sea with ripples, a glitter path and stars; big mailto link, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | One sun travelling the whole page, page transitions between the work and the case studies, smooth scrolling, scroll-spy side nav, header that tucks away while reading, full-screen mobile menu, custom cursor, a hairline scrollbar in the colour of the section beside it, time-of-day tint, grain, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+| Hero · 06:30 | Letter-by-letter mask reveal with restored kerning, the sun rising out of the mountains (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, a text ring that writes itself letter by letter around the sun, status kicker (availability + live local time) |
+| About · 08:30 | "I'm Tayam. I turn ideas into fast, responsive websites for real businesses." Two short paragraphs, the duotone portrait (ink → flame → sunlight) that reveals the original on hover, and the numbers as wooden signposts planted in the morning foothills, rising out of the ground once the rest has built in |
+| Services · 12:00 | The promise is the title, on ink bands that sweep in ("I help businesses look as good online as they do in person."); four services side by side, each backed by real projects; the toolkit |
+| Work · 14:00 | **The high street**: every client project is a shopfront — its name on the sign, a striped awning, its live site in the shop window, a door out to the real site and a brass plaque (role, sector, year, stack). Scrolling walks down the street a shop at a time (the one you're at comes forward); the window or "Read the case study" opens the project's page, which grows out of the shopfront. The street ends at the workshop, where the template builds are pinned to a board |
+| Case studies | `/work/[slug]` for each client project: the shopfront grows into a dark page while its window's screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the live site), the story (brief, approach, outcome), next project, contact. "All work" returns to the same shop. A share image per project |
+| Process · 16:00 | "How a project runs, from the first call to launch." Four framed cards, each with a small paper browser showing the same website at that stage: notes on a blank page, a wireframe, half built with the code open, the live site. When the chapter arrives the cards build one after another — each edge lights up and its page builds itself |
+| Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side — and what was learned along the way, in one line |
+| Testimonials | A chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
+| Contact · 19:30 | "Let's build something bright." The last chapter rests at the very bottom of the page: the glide down carries the sky through dusk while the sun sets into the WebGL sea; email, copy-to-clipboard, GitHub, back to sunrise |
+| Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, a hairline scrollbar in the colour of the sky, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+
+**Life in the sky** (`scenery/Life.tsx`) plays one moment per glide: leaving sunrise, a flock
+lifts off the mountains and flies up over the morning; between morning and noon a small plane
+crosses the sky towing a banner with what Tayam does (the old marquee's message, told by the
+story); arriving at golden hour, a V of birds flies home towards the low sun. The page's clouds
+take the hour's colour (cream at noon, warmer around it, golden by golden hour) and bob gently as
+they drift. After sunset the lighthouse on the far coast lights up and the town's lights come on
+one by one — the four brighter ones are the client sites. All of it is time-based transforms on
+fixed layers; nothing plays with reduced motion. No moon: the night belongs to a future moon theme.
 
 ### Draft and mock content
 
@@ -153,18 +184,19 @@ src/
     case/         CaseBackdrop (the morph target), CaseTour ("A closer look"), CaseMarker
     scenery/      ridges.ts (seeded mountain silhouettes), HeroLandscape (ridges + hero clouds),
                   HeroScroll (the hero's scroll progress, SinkLayer), Cloud (poster cloud art),
-                  CloudLayer (clouds through the page)
-    chrome/       Header, SideNav, MobileMenu, SectionLink, Cursor
-    sections/     Hero, Marquee, About, Services, Projects (work), Process, Journey, Testimonials, Contact
+                  CloudLayer (clouds through the page), Landscape + LandscapeMotion (the scenery
+                  along the bottom of the screen, mountains to the sea), Life (birds, the plane)
+    chrome/       Header, SideNav, MobileMenu, SectionLink, StoryClock
+    sections/     Hero, About, Services, HighStreet (work), Process, Journey, Testimonials, Contact
     sun/          disc.ts → SunDisc (SVG/CSS) + shaders.ts → the journey (journey.ts path,
                   journey-renderer.ts WebGL, SunJourney mount), SunsetStage (CSS sunset), OrbitText;
                   geometry.ts → SunGlyph, the faceted brand mark
-    ui/           Reveal, SectionHeading, ScrubText, Tilt, Magnetic, CountUp, Dashes, RollText,
+    ui/           Statement (chapter titles), InkLabel, Reveal, Tilt, Magnetic, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
-    providers/    SmoothScroll (Lenis + Motion), PointerSync (hover while scrolling), DayCycle (tint),
-                  ScrollbarTone (scrollbar colours), HomeLanding (where the home page opens when you
-                  arrive from another page)
-  lib/            accent markup, kerning, mock gating, work-return, hooks (active section, tone,
+    providers/    Chapters (the home page, a screen at a time), SmoothScroll (Lenis + Motion),
+                  PointerSync (hover while scrolling), SkyCycle (the sky), ScrollbarTone (scrollbar
+                  colours), HomeLanding (where the home page opens when you arrive from another page)
+  lib/            chapters (go to a chapter), accent markup, kerning, mock gating, work-return, hooks (active section, tone,
                   media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)
 ```
@@ -191,7 +223,17 @@ side facing the sun, the body, a shade below — no filters. `CloudLayer` is a f
 between the sun's canvas and the page, so clouds pass in front of the sun but behind the copy;
 each rises at its depth's pace, is placed so it has left by 90% of the page (never over the
 sunset's sea), cross-fades to golden hour with the page, and the layer fades out as the footer
-arrives. The sunset has its own clouds, clipped at the horizon. Every movement is a transform
+arrives. The sunset has its own clouds, clipped at the horizon.
+
+The day also travels somewhere. After the hero's mountains, a fixed strip along the bottom of the
+screen (`Landscape`, between the clouds and the page) shows where the story has got to: foothills
+with round trees and morning haze by the about, a small town's rooftops and a clock tower at
+twelve under the services, the city skyline behind the work, the road out to the coast under the
+process, then cliffs, a small lighthouse and the sea catching the sun by the journey. As each
+section's top comes up the screen its scene rises and the last one sinks (`LandscapeMotion`,
+transforms only; a cross-fade with reduced motion). The scenes are mid-tones one step darker than
+the sky, so copy scrolling over them stays readable; the work cards simply cover the strip. In the
+footer the far coast and the lighthouse wait on the horizon, left of the setting sun. Every movement is a transform
 or opacity tied to scroll; reduced motion keeps the scenery still (and drops the page clouds),
 forced colours hide it.
 
@@ -199,9 +241,10 @@ forced colours hide it.
 engine. Each frame `journey.ts` turns the scroll position and a few measured marks (the hero
 sun's box, the footer, the horizon) into the sun's position, size and tone:
 
-1. **Hero → sky** (the first 80% of the hero): it starts exactly on the hero sun and eases into
-   the top right, shrinking.
-2. **Afternoon** (the middle of the page): it sinks a little and its palette warms towards sunset.
+1. **Hero → morning**: it starts exactly on the hero sun and climbs into the top right, shrinking.
+2. **The day** (`day.ts`): it stands highest, small and nearly white, over the services at noon,
+   then comes down on the right through the afternoon, bigger and deeper gold by golden hour —
+   always clear of the copy on the left. A wide, faint glow keeps the brightest sky around it.
 3. **Sunset** (the footer): it drifts down to where the horizon will be at the bottom of the page
    while the horizon rises to meet it. It only moves over and grows once the contact copy has
    passed, so on large screens it never sits behind the heading (three short lines leave the
@@ -230,8 +273,8 @@ animation library and simply doesn't animate where the API is missing:
   (`HomeLanding`, before the first paint, so the page can fold back into it). The back button
   lands on the same card without the animation: React applies back/forward navigations at once
   so the browser can restore the page.
-- **Next project** slides the page along. The header, grain and cursor keep fixed names, so
-  they stay put above everything that moves. With reduced motion nothing animates.
+- **Next project** slides the page along. The header keeps a fixed name, so it stays put
+  above everything that moves. With reduced motion nothing animates.
 
 Links to home sections from other pages (`SectionLink`) are client-side navigations, and the
 home page scrolls to the section itself, so `/#contact` lands exactly where the in-page link

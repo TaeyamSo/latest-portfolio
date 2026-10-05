@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Kanit } from "next/font/google";
 import localFont from "next/font/local";
 
-import { Cursor } from "@/components/chrome/Cursor";
 import { PointerSync } from "@/components/providers/PointerSync";
 import { ScrollbarTone } from "@/components/providers/ScrollbarTone";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
@@ -80,8 +79,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <SmoothScroll>{children}</SmoothScroll>
-        <div className="grain [view-transition-name:grain]" aria-hidden="true" />
-        <Cursor />
         <PointerSync />
         <ScrollbarTone />
       </body>

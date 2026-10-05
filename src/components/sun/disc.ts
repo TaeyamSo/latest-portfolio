@@ -21,8 +21,23 @@ export const DISC: Record<DiscTone, readonly string[]> = {
   sunset: ["#ffe2a0", "#ffc46e", "#ffa04a", "#ff8236", "#f4672a", "#ea5222"],
 };
 
+/**
+ * The sun at its highest (tone −1): nearly white with a pale gold rim. The
+ * travelling sun leans this way as it climbs, so its rim stays brighter than
+ * the lighter midday sky.
+ */
+export const ZENITH: readonly string[] = ["#ffffff", "#fffdf0", "#fff4cc", "#ffe6a0", "#ffd985", "#ffd27a"];
+
 /** By day the sun stays bright; it only turns red once the dark sky is behind it. */
 export const DAY_TONE_MAX = 0.2;
+
+/**
+ * A wide, faint glow around the travelling sun (alpha by distance in disc
+ * radii), so the brightest part of the sky is always where the sun is. It
+ * falls steadily and stays lighter than the sky, like the bloom.
+ */
+export const GLOW = { at: 0.08, reach: 3, end: 11 } as const;
+export const glowAlpha = (d: number) => (d >= GLOW.end ? 0 : GLOW.at * Math.exp(-(Math.max(d, 1) - 1) / GLOW.reach));
 
 type Mood = { color: string; end: number; alpha: (d: number) => number };
 
@@ -71,6 +86,20 @@ export function bloomCss(mood: keyof typeof BLOOM) {
   ].join(", ")})`;
 }
 
+/**
+ * The wide glow as a CSS gradient for a box GLOW.end disc radii across from the
+ * centre. It sits under the WebGL sun as its own layer, so the shader only has
+ * to draw near the disc.
+ */
+export function glowCss() {
+  const [r, g, b] = rgb(BLOOM.day.color);
+  const stops = Array.from({ length: 10 }, (_, i) => {
+    const d = 1 + (i / 9) * (GLOW.end - 1);
+    return `rgb(${r} ${g} ${b} / ${glowAlpha(d).toFixed(3)}) ${((d / GLOW.end) * 100).toFixed(2)}%`;
+  });
+  return `radial-gradient(circle closest-side, rgb(${r} ${g} ${b} / ${GLOW.at}) 0%, ${stops.join(", ")})`;
+}
+
 // --- Development check: no dark ring over any sky the sun meets. -------------
 
 const linear = (c: number) => {
@@ -80,18 +109,28 @@ const linear = (c: number) => {
 const luminance = ([r, g, b]: number[]) => 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
 const over = (top: number[], alpha: number, base: number[]) => top.map((c, i) => c * alpha + base[i] * (1 - alpha));
 
+/** The disc's rim at a tone: −1 zenith, 0 noon, 1 sunset. */
+const rimAt = (tone: number) => {
+  const to = rgb((tone < 0 ? ZENITH : DISC.sunset).at(-1)!);
+  return rgb(DISC.noon.at(-1)!).map((c, i) => c + (to[i] - c) * Math.abs(tone));
+};
+
+/**
+ * True if, over this sky, the light just outside the rim (bloom, plus the
+ * glow by day) would be brighter than the rim or wouldn't fall off steadily —
+ * which reads as a dark ring. Development checks only.
+ */
+export function wouldRing(sky: string, tone: number, mood: keyof typeof BLOOM = "day") {
+  const lit = bloomStops(mood).map((s) =>
+    luminance(over(rgb(BLOOM[mood].color), Math.min(1, s.alpha + (mood === "day" ? glowAlpha(s.d) : 0)), rgb(sky))),
+  );
+  const falling = lit.every((l, i) => i === 0 || l <= lit[i - 1] + 1e-6);
+  return lit[0] > luminance(rimAt(tone)) || !falling;
+}
+
+// By day the sky comes from the day's timeline (checked in day.ts); here, the footer's dusk.
 if (process.env.NODE_ENV !== "production") {
-  const checks: [DiscTone, keyof typeof BLOOM, string[]][] = [
-    ["noon", "day", ["#fd8916", "#fd5d16", "#f24a12", "#f7701a"]],
-    ["sunset", "dusk", ["#b3300c", "#3b1409", "#120705"]],
-  ];
-  for (const [tone, mood, skies] of checks) {
-    const rim = luminance(rgb(DISC[tone][DISC[tone].length - 1]));
-    const stops = bloomStops(mood);
-    for (const sky of skies) {
-      const lit = stops.map((s) => luminance(over(rgb(BLOOM[mood].color), s.alpha, rgb(sky))));
-      const falling = lit.every((l, i) => i === 0 || l <= lit[i - 1] + 1e-6);
-      if (lit[0] > rim || !falling) console.warn(`[sun] ${tone} bloom would read as a dark ring over ${sky}`);
-    }
+  for (const sky of ["#b3300c", "#3b1409", "#120705"]) {
+    if (wouldRing(sky, 1, "dusk")) console.warn(`[sun] the sunset bloom would read as a dark ring over ${sky}`);
   }
 }

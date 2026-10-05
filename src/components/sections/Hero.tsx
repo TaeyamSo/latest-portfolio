@@ -75,6 +75,7 @@ export function Hero() {
   return (
     <section
       id="home"
+      data-chapter=""
       aria-label="Introduction"
       className="shell relative isolate flex min-h-svh flex-col justify-end pb-[17svh] outline-none lg:justify-center lg:pb-0"
     >
@@ -136,7 +137,7 @@ export function Hero() {
           <span className="relative block h-1 w-14 overflow-hidden rounded-full bg-ink/20">
             <span className="scroll-cue absolute inset-y-0 left-0 w-1/2 rounded-full bg-ink" />
           </span>
-          Scroll to explore
+          Scroll to start the day
         </div>
       </HeroScroll>
     </section>

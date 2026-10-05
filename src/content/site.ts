@@ -8,7 +8,8 @@
  * - `mock: true` — placeholder content (testimonials, status, city). It renders
  *   only in development (see src/lib/mock.ts), so it can never ship by accident.
  *
- * `*word*` sets that word in the serif accent.
+ * `*word*` sets that word in the serif accent — on the hero only; every chapter
+ * title is a plain sentence.
  */
 import type { StaticImageData } from "next/image";
 import {
@@ -58,13 +59,9 @@ export const sections = [
 
 export type SectionId = (typeof sections)[number]["id"];
 
-/** "02" for the second section, and so on — keeps every label in sync with the nav. */
-export const sectionNumber = (id: SectionId) =>
-  String(sections.findIndex((section) => section.id === id) + 1).padStart(2, "0");
-
 export const about = {
-  // DRAFT
-  lead: "I'm Tayam, a front-end developer who turns ideas into fast, responsive websites for real businesses.",
+  // DRAFT — the chapter's title is a plain sentence.
+  statement: "I'm Tayam. I turn ideas into fast, responsive websites for real businesses.",
   body: [
     "From an online furniture store to a building contractor, I've shipped sites for clients who needed their brand to look as good online as it does in person.",
     "I care about the details that make a site feel alive — clean code, smooth motion, pages that work on every screen — and I'm always learning what's next.",
@@ -131,7 +128,7 @@ export const study = {
 export type Highlight = { title: string; text: string; focus: { x: number; y: number; zoom: number } };
 
 export type CaseStudy = {
-  /** DRAFT — what the site is, written from what's on it. One `*accent*` word. */
+  /** DRAFT — what the site is, written from what's on it. */
   summary: string;
   /** DRAFT — details you can see on the live site; the case page zooms into each one. */
   highlights: Highlight[];
@@ -166,7 +163,7 @@ export const projects: Project[] = [
     details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
-        "An online store for Baddar Furniture: office furniture and sofas by category, every piece with its model code, its price in dirhams and an *order* button — in English and Arabic.",
+        "An online store for Baddar Furniture: office furniture and sofas by category, every piece with its model code, its price in dirhams and an order button — in English and Arabic.",
       highlights: [
         {
           title: "Bilingual from the first click",
@@ -203,7 +200,7 @@ export const projects: Project[] = [
     details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
-        "The website of Hazo Interiors, an interior design and furnishing company: a full-screen slider of *interiors* up front, with projects, services, clients and certificates a click away — in English and Arabic.",
+        "The website of Hazo Interiors, an interior design and furnishing company: a full-screen slider of interiors up front, with projects, services, clients and certificates a click away — in English and Arabic.",
       highlights: [
         {
           title: "One bar for everything",
@@ -235,7 +232,7 @@ export const projects: Project[] = [
     details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
-        "The website of Al Aktabout, a documents clearing company, dressed in its black and *gold* identity from the header to a framed hero slider — in English and Arabic.",
+        "The website of Al Aktabout, a documents clearing company, dressed in its black and gold identity from the header to a framed hero slider — in English and Arabic.",
       highlights: [
         {
           title: "Black and gold",
@@ -267,7 +264,7 @@ export const projects: Project[] = [
     details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
-        "The website of Al Ain Al Thahabiah, a building contracting company: a bilingual identity, a city *skyline* up front, and its services, projects and certificates one click away.",
+        "The website of Al Ain Al Thahabiah, a building contracting company: a bilingual identity, a city skyline up front, and its services, projects and certificates one click away.",
       highlights: [
         {
           title: "Two languages, one name",
@@ -332,7 +329,7 @@ export const caseStudyPath = (slug: string) => `/work/${slug}`;
 
 const projectName = (slug: string) => projects.find((project) => project.slug === slug)?.name ?? slug;
 
-// DRAFT — "what I do", each backed by work that exists.
+// DRAFT — "what I do", each backed by work that exists. The intro is the chapter's title.
 export const services = {
   intro: "I help businesses look as good online as they do in person.",
   items: [
@@ -357,6 +354,19 @@ export const services = {
       proof: ["This portfolio"],
     },
   ],
+};
+
+// DRAFT — the titles of the remaining chapters: plain sentences.
+export const chapters = {
+  work: {
+    statement: "The businesses I've built for.",
+    hint: "Scroll to walk down the street",
+    workshop: { title: "The workshop", text: "Template builds — sites I made to practise and to learn." },
+  },
+  process: { statement: "How a project runs, from the first call to launch." },
+  journey: { statement: "Where I've worked, and what I've learned." },
+  testimonials: { statement: "What clients say." },
+  contact: { statement: "Let's build something", highlight: "bright." },
 };
 
 // DRAFT — how a project runs, start to finish. Each card shows the same site in

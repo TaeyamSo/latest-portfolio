@@ -1,16 +1,18 @@
 import { Header } from "@/components/chrome/Header";
 import { SideNav } from "@/components/chrome/SideNav";
-import { DayCycle } from "@/components/providers/DayCycle";
+import { Chapters } from "@/components/providers/Chapters";
 import { HomeLanding } from "@/components/providers/HomeLanding";
+import { SkyCycle } from "@/components/providers/SkyCycle";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
 import { Hero } from "@/components/sections/Hero";
 import { Journey } from "@/components/sections/Journey";
-import { Marquee } from "@/components/sections/Marquee";
 import { Process } from "@/components/sections/Process";
-import { Projects } from "@/components/sections/Projects";
+import { HighStreet } from "@/components/sections/HighStreet";
 import { Services } from "@/components/sections/Services";
 import { CloudLayer } from "@/components/scenery/CloudLayer";
+import { Landscape } from "@/components/scenery/Landscape";
+import { Life } from "@/components/scenery/Life";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { SunJourney } from "@/components/sun/SunJourney";
 import { profile, skills, testimonials } from "@/content/site";
@@ -41,18 +43,20 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
       />
+      <Chapters />
       <HomeLanding />
-      <DayCycle />
+      <SkyCycle />
       <SunJourney />
       <CloudLayer />
+      <Life />
+      <Landscape />
       <Header />
       <SideNav />
       <main id="main" className="relative z-10 overflow-x-clip outline-none">
         <Hero />
-        <Marquee />
         <About />
         <Services />
-        <Projects />
+        <HighStreet />
         <Process />
         <Journey />
         {quotes.length > 0 && <Testimonials items={quotes} />}

@@ -4,16 +4,17 @@
  * sun — just alive. Colours go straight to the (premultiplied) framebuffer as
  * sRGB, the way CSS paints, so the shader's sky continues the page seamlessly.
  */
-import { BLOOM, DISC, DISC_STOPS, bloomStops } from "./disc";
+import { BLOOM, DISC, DISC_STOPS, ZENITH, bloomStops } from "./disc";
 import { EVENING } from "./geometry";
 
 const f = (n: number) => n.toFixed(4);
 const rgb = (hex: string) => hex.replace("#", "").match(/.{2}/g)!.map((c) => parseInt(c, 16) / 255);
 const vec3 = (hex: string) => `vec3(${rgb(hex).map(f).join(", ")})`;
 
-/** Piecewise-linear colour ramp over the disc stops, noon → sunset by `tone`. */
+/** Piecewise-linear colour ramp over the disc stops: zenith ← noon → sunset by `tone` (−1…1). */
 const discRamp = () => {
-  const stop = (i: number) => `mix(${vec3(DISC.noon[i])}, ${vec3(DISC.sunset[i])}, tone)`;
+  const stop = (i: number) =>
+    `mix(${vec3(DISC.noon[i])}, tone < 0.0 ? ${vec3(ZENITH[i])} : ${vec3(DISC.sunset[i])}, abs(tone))`;
   const steps = DISC_STOPS.slice(1).map(
     (at, i) => `c = mix(c, ${stop(i + 1)}, clamp((x - ${f(DISC_STOPS[i])}) / ${f(at - DISC_STOPS[i])}, 0.0, 1.0));`,
   );
@@ -117,7 +118,7 @@ export const journeyFragment = /* glsl */ `
   vec4 discBody(vec2 q, float px, float tone, float detail) {
     float d = length(q);
     vec2 dir = q / max(d, 1e-4);
-    float wobble = (noise(dir * 2.2 + uTime * vec2(0.21, -0.17)) - 0.5) * 2.0 * mix(0.006, 0.014, tone);
+    float wobble = (noise(dir * 2.2 + uTime * vec2(0.21, -0.17)) - 0.5) * 2.0 * mix(0.006, 0.014, max(tone, 0.0));
     float dd = d / (1.0 + wobble * uIntro + 0.03 * uFlare);
     vec3 c = discColor(min(dd, 1.0), tone);
     if (detail > 0.0 && d < 1.05) {
@@ -165,14 +166,16 @@ export const journeyFragment = /* glsl */ `
     vec2 q = (frag - uSun.xy) / r - pull * 0.02 * hover; // the sun leans a touch towards the cursor
     float d = length(q);
     float sky = frag.y - uFooter.x; // how far into the footer
+    float tone = uSun.w;
 
-    // Most of the page: nothing but the sun and its day bloom.
+    // Most of the page: nothing but the sun and its day bloom. (The wide glow
+    // around it is a CSS layer underneath — see SunJourney — so most pixels
+    // stop here.)
     if (sky < 0.0 && d > ${f(BLOOM.day.end)} * (1.0 + 0.35 * uFlare)) {
       gl_FragColor = vec4(0.0);
       return;
     }
 
-    float tone = uSun.w;
     float depth = frag.y - uFooter.z; // below the horizon when positive
     float low = fall(0.4, 3.0, (uFooter.z - uSun.y) / r); // 1 once the sun is down on the horizon
 

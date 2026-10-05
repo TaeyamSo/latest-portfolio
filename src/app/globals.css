@@ -159,70 +159,148 @@
   }
 }
 
-/* Copy on ink bands, one per wrapped line (InkLabel). The bands sweep in from
-   the left, then the words appear on them — like the service rows on hover. */
+/* ---------------------------------------------------------------------------
+   Chapters (providers/Chapters.tsx). Each part of the home page is one screen:
+   room for the header above, the landscape strip below, the content between.
+   When a chapter arrives (`data-arrived`) its content builds in, piece by
+   piece (`data-build`, ordered by --b); leaving, it steps aside quickly.
+   Without chapters (reduced motion, no JS) everything is simply shown.
+--------------------------------------------------------------------------- */
+@utility chapter {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: clamp(5.5rem, 12svh, 8rem);
+  padding-bottom: clamp(12svh, 16.7vw, 26svh);
+}
+
+html.chapters [data-chapter] [data-build] {
+  opacity: 0;
+  translate: 0 1.25rem;
+  transition:
+    opacity 0.22s ease-in,
+    translate 0.22s ease-in;
+}
+
+html.chapters [data-chapter] [data-build="rise"] {
+  translate: 0 120%;
+}
+
+html.chapters [data-chapter][data-arrived] [data-build] {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.6s ease-out,
+    translate 0.9s var(--ease-expo);
+  transition-delay: calc(0.12s + var(--b, 0) * 0.11s);
+}
+
+/* A sideways track: the controller slides it a step at a time when it doesn't
+   fit. Without chapters it simply scrolls sideways. */
+[data-track] {
+  display: flex;
+  transition: transform 0.75s var(--ease-expo);
+}
+
+[data-track-view] {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+[data-track-view]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-track] > [data-step] {
+  scroll-snap-align: start;
+}
+
+html.chapters [data-track-view] {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* The high street: the shop the street rests on comes forward, the others
+   step back a little. */
+.shop > * {
+  transform-origin: bottom center;
+  transition:
+    scale 0.7s var(--ease-expo),
+    filter 0.7s ease;
+}
+
+html.chapters .shop:not([data-active]) > * {
+  scale: 0.93;
+  filter: brightness(0.8) saturate(0.85);
+}
+
+/* Copy on ink bands, one per wrapped line (InkLabel). When its chapter arrives
+   the bands sweep in from the left, then the words appear on them. */
 .ink-label {
   /* Kanit's line box is tall; the band covers the glyphs, leaving a gap between lines. */
   --band: 80%;
   padding: 0.1em 0.42em;
-  background: linear-gradient(var(--color-ink), var(--color-ink)) no-repeat 0 55% / 0% var(--band);
-  color: transparent;
+  background: linear-gradient(var(--color-ink), var(--color-ink)) no-repeat 0 55% / 100% var(--band);
+  color: var(--color-paper);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   transition:
-    background-size 1.1s var(--ease-expo),
-    color 0.6s 0.35s;
-
-  &[data-shown] {
-    background-size: 100% var(--band);
-    color: var(--color-paper);
-  }
+    background-size 1.1s var(--ease-expo) 0.15s,
+    color 0.6s 0.5s;
 }
 
-/* The process cards' browsers: once the track's sun reaches a card, its page
-   builds itself — parts rise in one after another (--d), code lines type
-   out, the cursor glides in. */
+html.chapters [data-chapter]:not([data-arrived]) .ink-label {
+  background-size: 0% var(--band);
+  color: transparent;
+  transition: none;
+}
+
+/* The process cards' browsers: when the chapter arrives each page builds
+   itself, card after card (--card) — parts rise in one after another (--d),
+   code lines type out, the cursor glides in. */
 .step-pop,
 .step-grow,
-.step-cursor {
+.step-cursor,
+.step-edge {
   transition:
     opacity 0.5s ease-out,
     transform 0.8s var(--ease-expo);
-  transition-delay: var(--d, 0ms);
-}
-
-.step-pop {
-  opacity: 0;
-  transform: translateY(14px);
+  transition-delay: calc(0.35s + var(--card, 0) * 0.45s + var(--d, 0ms));
 }
 
 .step-grow {
-  transform: scaleX(0);
   transform-box: fill-box;
   transform-origin: left;
 }
 
 .step-cursor {
-  opacity: 0;
-  transform: translate(60px, 50px);
   transition-duration: 0.4s, 1.1s;
 }
 
-[data-shown] :is(.step-pop, .step-grow, .step-cursor) {
-  opacity: 1;
-  transform: none;
+.step-edge {
+  transform-origin: left;
+  transition-duration: 0.5s, 1s;
 }
 
-/* ---------------------------------------------------------------------------
-   Atmosphere: film grain over everything
---------------------------------------------------------------------------- */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0.2;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.35 0 0 0 -.52'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+html.chapters [data-chapter]:not([data-arrived]) :is(.step-pop, .step-grow, .step-cursor, .step-edge) {
+  transition: none;
+}
+
+html.chapters [data-chapter]:not([data-arrived]) .step-pop {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+html.chapters [data-chapter]:not([data-arrived]) :is(.step-grow, .step-edge) {
+  transform: scaleX(0);
+}
+
+html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
+  opacity: 0;
+  transform: translate(60px, 50px);
 }
 
 /* ---------------------------------------------------------------------------
@@ -289,6 +367,45 @@
    transform on their wrapper stays free. */
 .cloud-drift {
   animation: cloud-drift var(--drift-time, 90s) ease-in-out var(--drift-delay, 0s) infinite alternate;
+}
+
+/* …and float, bobbing gently up and down inside the drift. */
+.cloud-float {
+  animation: cloud-float var(--float-time, 8s) ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+
+/* Life in the sky (scenery/Life.tsx): wings beat only while a flock is in the
+   air; the plane's banner ripples in the wind. */
+.bird-wings {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.flying .bird-wings {
+  animation: wing-beat var(--beat, 0.36s) ease-in-out infinite alternate;
+}
+
+.banner {
+  transform-origin: left center;
+  animation: banner-wave 1.3s ease-in-out infinite alternate;
+}
+
+/* The far town's lights come on one by one once the sun has set (the footer
+   chapter has arrived), the lighthouse first; its beam sweeps slowly. */
+.town-light {
+  opacity: 0;
+  transition: opacity 0.9s ease-out;
+  transition-delay: calc(0.8s + var(--i, 0) * 0.2s);
+}
+
+:is([data-arrived], html:not(.chapters) [data-chapter]) .town-light {
+  opacity: var(--glow, 1);
+}
+
+.lighthouse-beam {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: beam-sweep 7s ease-in-out infinite alternate;
 }
 
 @keyframes spin {
@@ -363,6 +480,42 @@
   }
 }
 
+@keyframes cloud-float {
+  from {
+    transform: translate3d(0, calc(var(--float, 0.5vw) * -1), 0);
+  }
+  to {
+    transform: translate3d(0, var(--float, 0.5vw), 0);
+  }
+}
+
+@keyframes wing-beat {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(-0.45);
+  }
+}
+
+@keyframes banner-wave {
+  from {
+    transform: skewY(-1.2deg);
+  }
+  to {
+    transform: skewY(1.2deg);
+  }
+}
+
+@keyframes beam-sweep {
+  from {
+    transform: rotate(-9deg);
+  }
+  to {
+    transform: rotate(7deg);
+  }
+}
+
 .scroll-cue {
   animation: scroll-cue 2.4s var(--ease-quart) infinite;
 }
@@ -399,6 +552,10 @@
   .intro-ridge,
   .intro-cloud,
   .cloud-drift,
+  .cloud-float,
+  .bird-wings,
+  .banner,
+  .lighthouse-beam,
   .scroll-cue,
   .water-stripes {
     animation: none !important;
@@ -407,7 +564,8 @@
   .ink-label,
   .step-pop,
   .step-grow,
-  .step-cursor {
+  .step-cursor,
+  .step-edge {
     transition: none;
   }
 }
@@ -457,30 +615,6 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Custom cursor (see components/chrome/Cursor.tsx). Unlayered so it beats
-   utilities like cursor-pointer; only active once a mouse has moved.
---------------------------------------------------------------------------- */
-html.has-cursor,
-html.has-cursor * {
-  cursor: none;
-}
-
-html.has-cursor :is(input, textarea, select, [contenteditable="true"]) {
-  cursor: auto;
-}
-
-@media (forced-colors: active) {
-  html.has-cursor,
-  html.has-cursor * {
-    cursor: auto;
-  }
-
-  .cursor {
-    display: none;
-  }
-}
-
-/* ---------------------------------------------------------------------------
    The sun's journey (components/sun/SunJourney.tsx). While the WebGL sun runs
    it draws the hero sun, the footer sky and the sea itself, so their CSS and
    SVG stand-ins step aside; removing the class brings them straight back.
@@ -517,8 +651,8 @@ html.sun-webgl .sun-legible {
 /* ---------------------------------------------------------------------------
    Page transitions (React <ViewTransition>; see app/work/[slug]/page.tsx).
    Opening a case study grows its card into the page and flies the screenshot
-   to the top of it; leaving folds the page back into the card. The header,
-   grain and cursor stay put above it all.
+   to the top of it; leaving folds the page back into the card. The header
+   stays put above it all.
 --------------------------------------------------------------------------- */
 ::view-transition {
   pointer-events: none; /* clicks during a transition reach the page */
@@ -529,28 +663,14 @@ html.sun-webgl .sun-legible {
   animation-duration: 0.45s;
 }
 
-::view-transition-group(site-header),
-::view-transition-group(grain),
-::view-transition-group(cursor) {
-  animation: none;
-}
 ::view-transition-group(site-header) {
   z-index: 50;
+  animation: none;
 }
-::view-transition-group(grain) {
-  z-index: 51;
-}
-::view-transition-group(cursor) {
-  z-index: 52;
-}
-::view-transition-old(site-header),
-::view-transition-old(grain),
-::view-transition-old(cursor) {
+::view-transition-old(site-header) {
   display: none;
 }
-::view-transition-new(site-header),
-::view-transition-new(grain),
-::view-transition-new(cursor) {
+::view-transition-new(site-header) {
   animation: none;
 }
 

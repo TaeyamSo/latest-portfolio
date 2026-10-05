@@ -121,7 +121,9 @@ export function HeroClouds() {
               className="cloud-drift"
               style={{ "--drift": cloud.drift, "--drift-time": cloud.driftTime, "--drift-delay": cloud.driftDelay } as Vars}
             >
-              <Cloud id={cloud.id} shape={cloud.shape} palette={cloud.palette} light="top-right" className={cn("w-full", cloud.aspect)} />
+              <div className="cloud-float" style={{ "--float": "0.4vw", "--float-time": "8s", "--float-delay": cloud.driftDelay } as Vars}>
+                <Cloud id={cloud.id} shape={cloud.shape} palette={cloud.palette} light="top-right" className={cn("w-full", cloud.aspect)} />
+              </div>
             </div>
           </div>
         </SinkLayer>

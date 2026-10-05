@@ -65,7 +65,6 @@ export function MobileMenu({ open, onClose, onHome }: Props) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
-          data-cursor-tone="light"
           className="pointer-events-auto fixed inset-0 z-[70] flex flex-col bg-ink px-(--gutter) pt-5 pb-8 text-paper lg:hidden"
           initial={{ clipPath: "circle(0% at calc(100% - 2.75rem) 2.6rem)" }}
           animate={{ clipPath: "circle(150% at calc(100% - 2.75rem) 2.6rem)" }}

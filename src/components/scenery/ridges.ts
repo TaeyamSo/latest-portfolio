@@ -25,7 +25,8 @@ export type Ridge = { d: string; top: number };
 
 export const RIDGE_BOTTOM = 1.08;
 
-function mulberry32(seed: number) {
+/** A small seeded random generator, so generated scenery is identical on every render. */
+export function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;

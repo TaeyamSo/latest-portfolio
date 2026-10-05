@@ -1,0 +1,56 @@
+"use client";
+
+import { useMotionValueEvent, useScroll } from "motion/react";
+import { useEffect, useRef } from "react";
+
+import { DAY, dayAt, measureStops, type DayStop } from "@/components/sun/day";
+
+/** The same shape as the page's own background (body in globals.css). */
+const gradient = ({ sky: [left, right] }: DayStop) => `linear-gradient(90deg, ${left}, ${right} 49%)`;
+
+/**
+ * The sky through the day (sun/day.ts): sunrise orange in the hero, lighter
+ * through the morning, brightest and most golden at noon, deepening again to
+ * golden hour — then the footer's own sunset and night take over. Two fixed
+ * layers: the hour you're in, and the next one fading in over it. While you
+ * scroll only that opacity changes; a layer's gradient is swapped only when an
+ * hour is passed.
+ */
+export function SkyCycle() {
+  const base = useRef<HTMLDivElement>(null);
+  const next = useRef<HTMLDivElement>(null);
+  const stops = useRef<number[]>([]);
+  const shown = useRef(-1);
+  const { scrollY } = useScroll();
+
+  const update = (y: number) => {
+    if (!stops.current.length || !base.current || !next.current) return;
+    const day = dayAt(y, stops.current);
+    if (day.index !== shown.current) {
+      shown.current = day.index;
+      base.current.style.background = gradient(DAY[day.index]);
+      next.current.style.background = gradient(DAY[day.next]);
+    }
+    next.current.style.opacity = day.t.toFixed(3);
+  };
+
+  useMotionValueEvent(scrollY, "change", update);
+
+  useEffect(() => {
+    const measure = () => {
+      stops.current = measureStops();
+      update(window.scrollY);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.body);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+      <div ref={base} className="absolute inset-0" style={{ background: gradient(DAY[0]) }} />
+      <div ref={next} className="absolute inset-0 opacity-0 will-change-[opacity]" style={{ background: gradient(DAY[1]) }} />
+    </div>
+  );
+}

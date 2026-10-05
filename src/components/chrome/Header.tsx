@@ -27,9 +27,11 @@ export function Header({ onHome = true }: { onHome?: boolean }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Get out of the way while reading (scrolling down), come back on the way up.
+  // The home page's chapters are one screen each, so there it stays.
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (y) => {
-    setTucked(y > 160 && y > (scrollY.getPrevious() ?? 0));
+    const chapters = document.documentElement.classList.contains("chapters");
+    setTucked(!chapters && y > 160 && y > (scrollY.getPrevious() ?? 0));
   });
 
   const close = useCallback(() => {

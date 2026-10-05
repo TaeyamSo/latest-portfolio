@@ -5,14 +5,15 @@ import { useState } from "react";
 
 import { EASE_EXPO } from "@/components/ui/Reveal";
 import { MockBadge } from "@/components/ui/MockBadge";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import type { Testimonial } from "@/content/site";
+import { Statement } from "@/components/ui/Statement";
+import { chapters, type Testimonial } from "@/content/site";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * Clients speak in the serif, Tayam in Kanit. One large quote at a time with a
- * manual pager (no auto-rotation, so nothing moves on its own).
+ * A chapter of its own once there are real quotes (between the journey and the
+ * sunset). Clients speak in the serif, Tayam in Kanit. One quote at a time
+ * with a manual pager (no auto-rotation, so nothing moves on its own).
  */
 export function Testimonials({ items }: { items: Testimonial[] }) {
   const [index, setIndex] = useState(0);
@@ -20,9 +21,9 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
   const go = (step: number) => setIndex((current) => (current + step + items.length) % items.length);
 
   return (
-    <section aria-labelledby="testimonials-title" className="shell relative py-[clamp(7rem,16vh,12rem)]">
+    <section id="testimonials" data-chapter="" aria-labelledby="testimonials-title" className="chapter shell relative outline-none">
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <SectionHeading id="testimonials-title" label="Testimonials" title="Kind *words*" />
+        <Statement id="testimonials-title">{chapters.testimonials.statement}</Statement>
         {item.mock && <MockBadge className="mb-3" />}
       </div>
 
@@ -30,7 +31,9 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
         role="group"
         aria-roledescription="carousel"
         aria-label="Client testimonials"
-        className="relative mt-14 grid gap-10 lg:mt-20 lg:grid-cols-12"
+        data-build=""
+        style={{ "--b": 1 } as React.CSSProperties}
+        className="relative mt-[clamp(1.5rem,5svh,3.5rem)] grid gap-8 lg:grid-cols-12"
       >
         <span
           aria-hidden="true"
@@ -39,7 +42,7 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
           “
         </span>
 
-        <div aria-live="polite" className="relative min-h-[16rem] lg:col-span-10 lg:col-start-2 lg:min-h-[19rem]">
+        <div aria-live="polite" className="relative min-h-[12rem] lg:col-span-10 lg:col-start-2 lg:min-h-[14rem]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.figure
               key={index}
@@ -51,7 +54,7 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
               exit={{ opacity: 0, y: -16, filter: "blur(6px)" }}
               transition={{ duration: 0.7, ease: EASE_EXPO }}
             >
-              <blockquote className="serif-accent max-w-[26ch] text-[clamp(1.9rem,3.6vw,3.6rem)] leading-[1.12]">
+              <blockquote className="serif-accent max-w-[26ch] text-[clamp(1.5rem,2.7vw,2.7rem)] leading-[1.15]">
                 {item.quote}
               </blockquote>
               <figcaption className="mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1">

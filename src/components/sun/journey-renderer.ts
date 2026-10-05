@@ -1,4 +1,5 @@
-import { DAY_TONE_MAX } from "./disc";
+import { measureStops } from "./day";
+import { DAY_TONE_MAX, GLOW } from "./disc";
 import { SUN } from "./geometry";
 import { FLARE_EVENT, smooth, sunPath, type Spot } from "./journey";
 import { journeyFragment, journeyVertex } from "./shaders";
@@ -11,15 +12,17 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
  * shader (no 3D engine needed), and fades the hero's orbit text as it leaves.
  *
  * It finds its marks in the page: `[data-sun-stage]` (the hero sun's box),
- * `#home`, `#contact`, `[data-horizon]` (inside the sunset stage) and
- * `[data-sun-orbit]`. Once its first frames are on screen it sets
- * `html.sun-webgl`, which retires the SVG/CSS stand-ins (see globals.css).
+ * `#home`, the sections the day's stops are anchored to (day.ts), `#contact`,
+ * `[data-horizon]` (inside the sunset stage) and `[data-sun-orbit]`, and
+ * measures them once (again on resize), never per frame. Once its first frames
+ * are on screen it sets `html.sun-webgl`, which retires the SVG/CSS stand-ins
+ * (see globals.css). It also moves the sun's wide glow, a CSS layer underneath.
  *
  * Renders at the display rate while something moves, ~30fps when only the
  * shimmer is moving.
  * Returns a cleanup that hands everything back to CSS.
  */
-export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
+export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null, onLost: () => void) {
   const gl = canvas.getContext("webgl", {
     alpha: true,
     premultipliedAlpha: true,
@@ -65,6 +68,31 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   let desktop = false;
   let svh = window.innerHeight;
   let heroEnd = 1;
+  let cssWidth = canvas.clientWidth;
+
+  // Where things are on the page (document px), measured once and on resize.
+  const marks = {
+    stage: null as Spot | null,
+    footerTop: 1e5,
+    horizonTop: 2e5,
+    seaBottom: 2e5,
+    maxScroll: 1,
+    stops: [0] as number[],
+  };
+  const measure = () => {
+    const sy = window.scrollY;
+    const box = stage?.getBoundingClientRect();
+    marks.stage = box?.width
+      ? { x: box.left + box.width / 2, y: box.top + sy + box.height / 2, r: box.width / (2 * SUN.extent) }
+      : null;
+    marks.footerTop = (footer?.getBoundingClientRect().top ?? 1e5) + sy;
+    marks.horizonTop = (horizon?.getBoundingClientRect().top ?? 2e5) + sy;
+    marks.seaBottom = (sea?.getBoundingClientRect().bottom ?? marks.horizonTop - sy) + sy;
+    marks.maxScroll = Math.max(1, root.scrollHeight - window.innerHeight);
+    marks.stops = measureStops();
+  };
+  let lastGlow = "";
+  let glowSize = 1;
 
   const pointer = { x: 0, y: 0, inside: false };
   const lean = { x: 0, y: 0, hover: 0 }; // pointer relative to the sun, eased
@@ -82,25 +110,22 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     const dt = Math.min(Math.max(now - last, 0) / 1000, 1 / 15);
     last = now;
 
-    // Measure first, then write — no layout thrashing.
+    // Everything from the cached marks and the scroll position: no layout reads.
     const scroll = window.scrollY;
     const vh = window.innerHeight;
-    const maxScroll = Math.max(1, root.scrollHeight - vh);
-    const box = stage?.getBoundingClientRect();
-    const footerTop = footer?.getBoundingClientRect().top ?? 1e5;
-    const horizonTop = horizon?.getBoundingClientRect().top ?? 2e5;
-    const seaDepth = (sea?.getBoundingClientRect().bottom ?? horizonTop) - horizonTop;
-    const footerStart = Math.max(heroEnd + 1, footerTop + scroll - vh);
-    const heroSpot: Spot | null = box?.width
-      ? { x: box.left + box.width / 2, y: box.top + box.height / 2, r: box.width / (2 * SUN.extent) }
-      : null;
+    const { maxScroll, stops } = marks;
+    const footerTop = marks.footerTop - scroll;
+    const horizonTop = marks.horizonTop - scroll;
+    const seaDepth = marks.seaBottom - marks.horizonTop;
+    const footerStart = Math.max(stops[stops.length - 1] + 1, marks.footerTop - vh);
+    const heroSpot: Spot | null = marks.stage ? { ...marks.stage, y: marks.stage.y - scroll } : null;
     const sun = sunPath({
-      width: canvas.clientWidth,
+      width: cssWidth,
       height: svh,
       scroll,
       desktop,
       hero: heroSpot,
-      heroEnd,
+      stops,
       footerStart,
       footerEnd: Math.max(footerStart + 1, maxScroll),
       horizon: horizonTop - (maxScroll - scroll), // where it ends up once the page is at the bottom
@@ -122,7 +147,8 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     }
 
     // The disc only deepens to red once the dark footer sky is behind it; over
-    // the orange page it stays bright, so its rim never sinks below its bloom.
+    // the page it stays bright (whitest at noon), so its rim never sinks below
+    // its bloom.
     const skyBehind = clamp01((sun.y - footerTop) / (0.12 * svh));
     const tone = Math.min(sun.tone, DAY_TONE_MAX) + (sun.tone - Math.min(sun.tone, DAY_TONE_MAX)) * skyBehind;
     gl.uniform2f(u.uRes, canvas.width, canvas.height);
@@ -134,6 +160,18 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     gl.uniform1f(u.uIntro, intro);
     gl.uniform4f(u.uFooter, footerTop, svh, horizonTop, seaDepth);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    // The wide glow follows the sun (by day; the footer's dark sky covers it).
+    if (glow) {
+      const size = glowSize;
+      const next = `translate3d(${(sun.x - size / 2).toFixed(1)}px, ${(sun.y - size / 2).toFixed(1)}px, 0) scale(${((sun.r * 2 * GLOW.end) / size).toFixed(4)})|${(intro * (1 - smooth(0.2, 0.6, tone))).toFixed(3)}`;
+      if (next !== lastGlow) {
+        lastGlow = next;
+        const [transform, opacity] = next.split("|");
+        glow.style.transform = transform;
+        glow.style.opacity = opacity;
+      }
+    }
 
     // Two frames in, the canvas is on screen: retire the SVG and CSS stand-ins.
     if (++frames === 2) root.classList.add("sun-webgl");
@@ -147,6 +185,9 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
     const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
     svh = probe.offsetHeight || window.innerHeight;
     heroEnd = Math.max(1, (hero?.offsetHeight ?? svh) * 0.8);
+    cssWidth = canvas.clientWidth;
+    glowSize = glow?.offsetWidth || 1;
+    measure();
     if (width === canvas.width && height === canvas.height) return;
     // Resizing clears the canvas, so paint again right away (no blank frame).
     canvas.width = width;
@@ -189,6 +230,8 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   const observer = new ResizeObserver(resize);
   resize();
   observer.observe(canvas);
+  observer.observe(document.body); // the page's layout changed: measure again
+  stage?.addEventListener("animationend", measure); // the hero sun's rise has settled
   window.addEventListener("pointermove", onMove, { passive: true });
   root.addEventListener("pointerleave", onLeave);
   window.addEventListener(FLARE_EVENT, onFlare);
@@ -198,6 +241,8 @@ export function startJourney(canvas: HTMLCanvasElement, onLost: () => void) {
   function stop() {
     cancelAnimationFrame(raf);
     observer.disconnect();
+    stage?.removeEventListener("animationend", measure);
+    if (glow) glow.style.opacity = "0";
     window.removeEventListener("pointermove", onMove);
     root.removeEventListener("pointerleave", onLeave);
     window.removeEventListener(FLARE_EVENT, onFlare);

@@ -1,18 +1,19 @@
 "use client";
 
-import { useLenis } from "lenis/react";
 import { useLayoutEffect } from "react";
 
+import { featuredProjects } from "@/content/site";
+import { goToChapter } from "@/lib/chapters";
 import { useScrollTo } from "@/lib/use-scroll-to";
 import { workCardId, workReturn } from "@/lib/work-return";
 
 /**
- * Where the home page opens when you arrive from another page: at the section
- * in the URL (`/#contact`), or back on the card of the case study you were
- * reading — before the first paint, so a returning card can morph into place.
+ * Where the home page opens when you arrive from another page: at the chapter
+ * in the URL (`/#contact`), or back on the high street at the shop of the case
+ * study you were reading — before the first paint, so its shopfront can morph
+ * back into place. Mounted after Chapters, so the chapters are ready.
  */
 export function HomeLanding() {
-  const lenis = useLenis();
   const scrollTo = useScrollTo();
 
   useLayoutEffect(() => {
@@ -23,20 +24,19 @@ export function HomeLanding() {
       scrollTo(window.location.hash, { immediate: true });
       return;
     }
+    if (!slug) return;
 
-    const card = slug ? document.getElementById(workCardId(slug)) : null;
-    const deck = card?.parentElement;
-    if (!card || !deck) return;
-    // Cards are sticky, so measure where this one rests: the deck's top plus the cards before it.
-    let top = deck.getBoundingClientRect().top + window.scrollY;
-    for (const sibling of Array.from(deck.children)) {
-      if (sibling === card) break;
-      top += (sibling as HTMLElement).offsetHeight;
-    }
-    if (getComputedStyle(card).position !== "sticky") top -= 88; // clear the header on phones
-    if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
-    else window.scrollTo({ top, behavior: "instant" });
-    // Only on arrival: later re-renders (e.g. Lenis becoming ready) must not move the page.
+    const step = Math.max(0, featuredProjects.findIndex((project) => project.slug === slug));
+    if (goToChapter("work", { step, immediate: true })) return;
+
+    // Without chapters (reduced motion): scroll to the street and along it to the shop.
+    const street = document.getElementById("work");
+    const shop = document.getElementById(workCardId(slug));
+    if (!street) return;
+    window.scrollTo({ top: street.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
+    const view = shop?.closest<HTMLElement>("[data-track-view]");
+    if (shop && view) view.scrollLeft = shop.offsetLeft - (view.firstElementChild as HTMLElement).offsetLeft;
+    // Only on arrival: later re-renders must not move the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

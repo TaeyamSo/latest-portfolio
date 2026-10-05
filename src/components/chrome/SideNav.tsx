@@ -6,11 +6,14 @@ import { useActiveSection } from "@/lib/use-active-section";
 import { useDarkAt } from "@/lib/use-dark-at";
 import { useScrollTo } from "@/lib/use-scroll-to";
 
+import { StoryClock } from "./StoryClock";
+
 const ids = sections.map((s) => s.id) as SectionId[];
 
 /**
  * The original side navigation: a column of dashes, the active one longer.
- * Now it tracks the scroll position and reveals labels on hover/focus.
+ * Now it tracks the scroll position and reveals labels on hover/focus, and
+ * keeps the story's clock: the time of day the page has reached.
  */
 export function SideNav() {
   const active = useActiveSection(ids);
@@ -61,6 +64,7 @@ export function SideNav() {
         {String(activeIndex + 1).padStart(2, "0")}
         <span className="opacity-50"> / {String(ids.length).padStart(2, "0")}</span>
       </p>
+      <StoryClock className="mt-3" />
     </nav>
   );
 }

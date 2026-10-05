@@ -91,7 +91,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
         exit={{ "case-next": "case-slide-out", default: "case-content-out" }}
         default="none"
       >
-        <div data-tone="dark" data-cursor-tone="light" className="relative z-10 text-paper">
+        <div data-tone="dark" className="relative z-10 text-paper">
           <main id="main" className="outline-none">
             <section aria-labelledby="case-title" className="shell pt-28 lg:pt-36">
               <div className="meta flex flex-wrap items-center justify-between gap-4 text-paper/60">
@@ -114,8 +114,6 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
                   href={project.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  data-cursor="Visit"
-                  data-cursor-tone="dark"
                   className="group group/roll inline-flex items-center gap-2 rounded-full border border-paper/35 px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300 hover:border-paper hover:bg-paper hover:text-ink"
                 >
                   <RollText>Visit the live site</RollText>
@@ -243,7 +241,6 @@ function BackToWork({ label = "All work" }: { label?: string }) {
       href="/"
       scroll={false}
       transitionTypes={["case-close"]}
-      data-cursor="Back"
       className="group inline-flex items-center gap-2 text-paper transition-colors hover:text-sunlight"
     >
       <span aria-hidden="true" className="transition-transform duration-300 group-hover:-translate-x-1">
@@ -260,7 +257,6 @@ function NextProject({ project }: { project: Project }) {
       <Link
         href={caseStudyPath(project.slug)}
         transitionTypes={["case-next"]}
-        data-cursor="Next"
         className="group shell flex flex-col gap-10 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28"
       >
         <div>

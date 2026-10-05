@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/lib/use-media-query";
 
+import { glowCss } from "./disc";
 import { canUseWebGL, whenIdle } from "./webgl";
 
 /** The hero intro is pure CSS and lands at ~2s; the WebGL sun takes over after it. */
@@ -19,6 +20,7 @@ const INTRO_MS = 2000;
  */
 export function SunJourney() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"waiting" | "on" | "failed">("waiting");
   const reduced = useMediaQuery("(prefers-reduced-motion: reduce)", true);
   const forced = useMediaQuery("(forced-colors: active)", true);
@@ -43,7 +45,7 @@ export function SunJourney() {
     let cancelled = false;
     import("./journey-renderer")
       .then(({ startJourney }) => {
-        if (!cancelled) stop = startJourney(canvas, () => setStatus("failed"));
+        if (!cancelled) stop = startJourney(canvas, glow.current, () => setStatus("failed"));
       })
       .catch(() => setStatus("failed"));
     return () => {
@@ -54,10 +56,20 @@ export function SunJourney() {
 
   if (!allowed || status !== "on") return null;
   return (
-    <canvas
-      ref={ref}
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-0 z-[2] h-lvh w-full"
-    />
+    <>
+      {/* The wide, faint light around the sun, moved by the renderer: a layer of
+          its own, so the shader only draws near the disc. */}
+      <div
+        ref={glow}
+        aria-hidden="true"
+        className="pointer-events-none fixed top-0 left-0 z-[1] size-[1000px] opacity-0 will-change-transform"
+        style={{ background: glowCss() }}
+      />
+      <canvas
+        ref={ref}
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-[2] h-lvh w-full"
+      />
+    </>
   );
 }
