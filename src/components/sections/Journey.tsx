@@ -3,7 +3,7 @@ import Image from "next/image";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
 import { Tilt } from "@/components/ui/Tilt";
-import { chapters, featuredProjects, softSkills, study } from "@/content/site";
+import { chapters, featuredProjects, study } from "@/content/site";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
@@ -13,7 +13,7 @@ const unbroken = (text: string) => text.replace(/-/g, "‑");
 /**
  * 17:45, golden hour, on the coast. Experience first, then credentials, side by
  * side: the freelance work, the Meta certificate as a compact verifiable entry,
- * the degree — and what was learned along the way, in one line.
+ * and the degree.
  */
 export function Journey() {
   const { degree, certificate } = study;
@@ -72,15 +72,6 @@ export function Journey() {
           <p className="mt-2 text-[clamp(0.92rem,1vw,1.05rem)] text-ink/85">{degree.school}</p>
         </li>
       </ol>
-
-      <p
-        data-build=""
-        style={{ "--b": 4 } as Vars}
-        className="mt-[clamp(1.25rem,4svh,2.5rem)] max-w-[72ch] text-[clamp(0.88rem,0.95vw,1rem)] leading-relaxed text-ink/85"
-      >
-        <span className="meta mr-3 text-ink">Along the way</span>
-        {softSkills.join(" · ")}
-      </p>
     </section>
   );
 }

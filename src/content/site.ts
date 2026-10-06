@@ -84,17 +84,6 @@ export const skills: Skill[] = [
   { name: "React", icon: siReact, accent: "#61dafb" },
 ];
 
-export const softSkills = [
-  "Time Management",
-  "Problem Solving",
-  "Communication",
-  "Teamwork",
-  "Quick Learner",
-  "Adaptability",
-  "Leadership Skills",
-  "Strategic Thinking",
-];
-
 export const study = {
   degree: {
     title: "IT Student — Year 3", // DRAFT — confirm the current year.
@@ -363,7 +352,7 @@ export const chapters = {
     hint: "Scroll to walk down the street",
     workshop: { title: "The workshop", text: "Template builds — sites I made to practise and to learn." },
   },
-  process: { statement: "How a project runs, from the first call to launch." },
+  process: { statement: "From first call to launch." },
   journey: { statement: "Where I've worked, and what I've learned." },
   testimonials: { statement: "What clients say." },
   contact: { statement: "Let's build something", highlight: "bright." },

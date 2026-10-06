@@ -3,11 +3,14 @@ import { Statement } from "@/components/ui/Statement";
 import { Tilt } from "@/components/ui/Tilt";
 import { about, facts, profile } from "@/content/site";
 
+import { AboutBalloon } from "./AboutBalloon";
+
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
 /**
  * 08:30, morning, in the foothills. Who Tayam is, in one sentence and two
- * short paragraphs, beside the portrait. The numbers aren't a stats row: they
+ * short paragraphs, beside the portrait — with a hot-air balloon floating up
+ * beside it, which you can grab (AboutBalloon). The numbers aren't a stats row: they
  * are signposts planted in the hills below, rising out of the ground once the
  * rest has built in.
  */
@@ -28,7 +31,8 @@ export function About() {
           </div>
         </div>
 
-        <div data-build="" style={{ "--b": 2 } as Vars} className="hidden sm:block lg:col-span-5 lg:justify-self-end">
+        <div data-build="" style={{ "--b": 2 } as Vars} className="relative hidden sm:block lg:col-span-5 lg:justify-self-end">
+          <AboutBalloon />
           <Tilt max={6} className="w-[min(100%,21rem,36svh)]">
             <figure className="group bg-ink p-3.5 sm:p-4">
               <div className="overflow-hidden">
@@ -53,7 +57,11 @@ export function About() {
   );
 }
 
-/** Wooden signposts in the morning foothills: the numbers, planted in the landscape. */
+/**
+ * Wooden signposts in the morning foothills: the numbers, planted in the
+ * landscape. Now and then one shakes on its post, and they shake when you
+ * point at them.
+ */
 function Signposts() {
   const tilt = [-3, 2, -1.5];
   return (
@@ -62,7 +70,7 @@ function Signposts() {
       className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[clamp(12svh,16.7vw,26svh)] items-end justify-center gap-[clamp(1.5rem,7vw,7rem)] overflow-hidden px-(--gutter) sm:justify-end sm:pr-[12vw]"
     >
       {facts.map((fact, i) => (
-        <li key={fact.label} data-build="rise" style={{ "--b": 3 + i } as Vars} className="flex flex-col items-center">
+        <li key={fact.label} data-build="rise" style={{ "--b": 3 + i, "--i": i } as Vars} className="signpost pointer-events-auto flex flex-col items-center">
           <span
             className="flex flex-col items-center rounded-[3px] bg-[#8a3a12] px-[clamp(0.6rem,1.2vw,1rem)] py-[clamp(0.3rem,0.7svh,0.55rem)] text-paper shadow-[inset_0_-3px_0_rgb(0_0_0/0.18)]"
             style={{ rotate: `${tilt[i % tilt.length]}deg` }}

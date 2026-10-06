@@ -7,19 +7,26 @@ type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * 16:00, late afternoon, on the road to the coast. How a project runs, as four
- * framed cards (the About card's frame), each with a small browser showing the
- * same website at that stage: notes on a blank page, a wireframe, half built
- * with the code open, then live. When the chapter arrives the cards build one
- * after another — each edge lights up and its page builds itself. On phones
- * they slide sideways, a card at a time.
+ * 16:00, late afternoon, over the highway to the coast. How a project runs, as
+ * four framed cards (the About card's frame), each with a small browser showing
+ * the same website at that stage: notes on a blank page, a wireframe, half
+ * built with the code open, then live. While the chapter is there the pages
+ * keep building themselves, card after card, again and again. The cards sit a
+ * little higher than the chapter's middle, so the highway below shows clearly.
+ * On phones they slide sideways, a card at a time.
  */
 export function Process() {
   return (
-    <section id="process" data-chapter aria-labelledby="process-title" className="chapter shell relative outline-none">
+    <section
+      id="process"
+      data-chapter
+      aria-labelledby="process-title"
+      className="chapter shell relative outline-none"
+      style={{ paddingBottom: "calc(clamp(12svh, 16.7vw, 26svh) + 6svh)" }}
+    >
       <Statement id="process-title">{chapters.process.statement}</Statement>
 
-      <div data-track-view="" className="-mx-(--gutter) mt-[clamp(1.25rem,4.5svh,3rem)] px-(--gutter)">
+      <div data-track-view="" className="-mx-(--gutter) mt-[clamp(1.5rem,5svh,3.5rem)] px-(--gutter)">
         <ol data-track="" className="gap-4 lg:gap-5">
           {steps.map((step, i) => (
             <Step key={step.title} index={i} count={steps.length} {...step} />
@@ -48,14 +55,14 @@ function Step({ title, stage, address, description, index, count }: StepProps) {
       className="w-[72vw] shrink-0 sm:w-[42vw] lg:w-auto lg:min-w-0 lg:flex-1 lg:shrink"
     >
       <Tilt max={6} className="h-full">
-        <div className="group relative flex h-full flex-col bg-ink p-3 text-paper sm:p-4">
+        <div className="group relative flex h-full flex-col bg-ink p-3 text-paper">
           <span aria-hidden="true" className="step-edge absolute inset-x-0 top-0 h-[3px] bg-sunlight" />
           <Browser index={index} address={address} />
-          <h3 className="mt-[clamp(0.75rem,2svh,1.25rem)] text-[clamp(1.3rem,1.8vw,2rem)] leading-none font-extrabold uppercase">
+          <h3 className="mt-[clamp(0.6rem,1.6svh,0.9rem)] text-[clamp(1.15rem,1.5vw,1.6rem)] leading-none font-extrabold uppercase">
             {title}
           </h3>
-          <p className="mt-2 flex-1 text-[clamp(0.85rem,0.95vw,0.98rem)] leading-snug text-paper/80">{description}</p>
-          <p className="meta mt-[clamp(0.75rem,2svh,1.25rem)] flex justify-between gap-4 text-paper/65">
+          <p className="mt-1.5 flex-1 text-[clamp(0.82rem,0.92vw,0.95rem)] leading-snug text-paper/80">{description}</p>
+          <p className="meta mt-[clamp(0.6rem,1.6svh,0.9rem)] flex justify-between gap-4 text-paper/65">
             <span>
               {pad(index + 1)} / {pad(count)}
             </span>
@@ -91,8 +98,8 @@ function Browser({ index, address }: { index: number; address: string }) {
           </span>
         )}
       </div>
-      <div className="relative aspect-[8/5] overflow-hidden border-t border-ink/10">
-        <svg viewBox="0 0 400 250" className="absolute inset-0 size-full">
+      <div className="relative aspect-[16/9] overflow-hidden border-t border-ink/10">
+        <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMin slice" className="absolute inset-0 size-full">
           <Page id={`process-${index}`} />
         </svg>
       </div>

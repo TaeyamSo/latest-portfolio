@@ -149,9 +149,9 @@ chapters are simply shown and the page scrolls normally.
 | Services · 12:00 | The promise is the title, on ink bands that sweep in ("I help businesses look as good online as they do in person."); four services side by side, each backed by real projects; the toolkit. Below, **the town at noon** comes to life: the shops open (awnings unroll), the bell rings and the pigeons lift off the tower; people stroll by and a cyclist rides past, smoke rises, the clock turns |
 | Work · 14:00 | **The high street**: every client project is a shopfront — its name on the sign, a striped awning, its live site in the shop window, a door out to the real site and a brass plaque (role, sector, year, stack). Scrolling walks down the street a shop at a time (the one you're at comes forward); the window or "Read the case study" opens the project's page, which grows out of the shopfront. The street ends at the workshop, where the template builds are pinned to a board |
 | Case studies | `/work/[slug]` for each client project: the shopfront grows into a dark page while its window's screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the live site), the story (brief, approach, outcome), next project, contact. "All work" returns to the same shop. A share image per project |
-| Process · 16:00 | "How a project runs, from the first call to launch." Four framed cards, each with a small paper browser showing the same website at that stage: notes on a blank page, a wireframe, half built with the code open, the live site. When the chapter arrives the cards build one after another — each edge lights up and its page builds itself |
-| Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side — and what was learned along the way, in one line |
-| Testimonials | A chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
+| Process · 16:00 | "From first call to launch." Four framed cards, each with a small paper browser showing the same website at that stage: notes on a blank page, a wireframe, half built with the code open, the live site. When the chapter arrives the cards build one after another — each edge lights up and its page builds itself |
+| Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
+| Testimonials | Hidden for now (not rendered in page.tsx); a chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
 | Contact · 19:30 | "Let's build something bright." The last chapter rests at the very bottom of the page: the glide down carries the sky through dusk while the sun sets into the WebGL sea; email, copy-to-clipboard, GitHub, back to sunrise |
 | Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, a hairline scrollbar in the colour of the sky, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
 
@@ -163,6 +163,27 @@ take the hour's colour (cream at noon, warmer around it, golden by golden hour) 
 they drift. After sunset the lighthouse on the far coast lights up and the town's lights come on
 one by one — the four brighter ones are the client sites. All of it is time-based transforms on
 fixed layers; nothing plays with reduced motion. No moon: the night belongs to a future moon theme.
+
+**The highway** (`scenery/Highway.tsx`), under the process, is built like the town: a side-on road
+out of the city (its last towers fading on the left) towards the sea and the lighthouse on the
+right, with poles and wires, a guardrail and a "Coast →" sign. When the process arrives
+(`data-open`, from `HighwayCues`) the centre line paints in; traffic runs both ways (a car takes a surfboard to the coast), birds hop on the
+wire and now and then fly off, a tumbleweed rolls by, the truck kicks up dust; pointing at a car
+makes it honk.
+
+**The coast** (`scenery/Coast.tsx`), under the journey, is where the highway was going: the road
+ends at a lookout on the cliff where the surfboard car is parked, the lighthouse (unlit — the
+footer lights it at sunset) stands by its keeper's cottage, above the sea. When the journey arrives
+(`data-open`, from `CoastCues`) the sun's path opens on the water, a sailboat glides in and the
+gulls come; the sun's path shimmers, the gulls circle; point at a gull and it flies off with a squawk (and comes
+back), point at the sailboat and it rocks.
+
+**The foothills** (`scenery/Foothills.tsx`), under the about: a farm on the near slope (its chimney
+smokes) with a windmill beside it, and a stream winding down the valley. When the about arrives
+(`data-open`, from `FoothillsCues`) the windmill starts turning and the chimney smokes; point at the
+windmill and it spins faster. In front, About's signposts shake now and then (and when you point at
+them), and a hot-air balloon floats up the side of the portrait and back — grab it and it comes with
+you a little, then springs back (`AboutBalloon`).
 
 **The town at noon** (`scenery/Town.tsx`) is the one scene with life of its own, built on the
 hero's lesson — things build in front of you, react to the mouse, and something moves by itself.
@@ -238,9 +259,9 @@ arrives. The sunset has its own clouds, clipped at the horizon.
 
 The day also travels somewhere. After the hero's mountains, a fixed strip along the bottom of the
 screen (`Landscape`, between the clouds and the page) shows where the story has got to: foothills
-with round trees and morning haze by the about, a small town with its clock tower, shops and
-people under the services, the city skyline behind the work, the road out to the coast under the
-process, then cliffs, a small lighthouse and the sea catching the sun by the journey. As each
+with a farm and a windmill by the about, a small town with its clock tower, shops and
+people under the services, the city skyline behind the work, the highway to the coast under the
+process, then the coast — cliffs, a lighthouse, the sea catching the sun — by the journey. As each
 section's top comes up the screen its scene rises and the last one sinks (`LandscapeMotion`,
 transforms only; a cross-fade with reduced motion). The scenes are mid-tones one step darker than
 the sky, so copy scrolling over them stays readable; the work cards simply cover the strip. In the

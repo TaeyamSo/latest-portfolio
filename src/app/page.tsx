@@ -13,10 +13,8 @@ import { Services } from "@/components/sections/Services";
 import { CloudLayer } from "@/components/scenery/CloudLayer";
 import { Landscape } from "@/components/scenery/Landscape";
 import { Life } from "@/components/scenery/Life";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { SunJourney } from "@/components/sun/SunJourney";
-import { profile, skills, testimonials } from "@/content/site";
-import { visibleItems } from "@/lib/mock";
+import { profile, skills } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
 
 const personJsonLd = {
@@ -32,11 +30,10 @@ const personJsonLd = {
 
 /**
  * The story: who (hero, about) → what (services) → proof (work) → how
- * (process) → background (journey) → trust (testimonials) → contact.
+ * (process) → background (journey) → contact. Testimonials (trust) are hidden
+ * until there are real quotes; the section is in sections/Testimonials.tsx.
  */
 export default function Home() {
-  const quotes = visibleItems(testimonials);
-
   return (
     <>
       <script
@@ -59,7 +56,6 @@ export default function Home() {
         <HighStreet />
         <Process />
         <Journey />
-        {quotes.length > 0 && <Testimonials items={quotes} />}
       </main>
       <Contact />
     </>

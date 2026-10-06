@@ -258,35 +258,34 @@ html.chapters [data-chapter]:not([data-arrived]) .ink-label {
   transition: none;
 }
 
-/* The process cards' browsers: when the chapter arrives each page builds
-   itself, card after card (--card) — parts rise in one after another (--d),
-   code lines type out, the cursor glides in. */
-.step-pop,
-.step-grow,
-.step-cursor,
-.step-edge {
-  transition:
-    opacity 0.5s ease-out,
-    transform 0.8s var(--ease-expo);
-  transition-delay: calc(0.35s + var(--card, 0) * 0.45s + var(--d, 0ms));
-}
-
+/* The process cards' browsers: while the chapter is there each page keeps
+   building itself, card after card (--card) — parts rise in one after another
+   (--d), code lines type out, the cursor glides in — holds, fades, and builds
+   again. */
 .step-grow {
   transform-box: fill-box;
   transform-origin: left;
 }
 
-.step-cursor {
-  transition-duration: 0.4s, 1.1s;
-}
-
 .step-edge {
   transform-origin: left;
-  transition-duration: 0.5s, 1s;
 }
 
-html.chapters [data-chapter]:not([data-arrived]) :is(.step-pop, .step-grow, .step-cursor, .step-edge) {
-  transition: none;
+.step-pop {
+  --loop: step-pop-loop;
+}
+
+.step-grow,
+.step-edge {
+  --loop: step-grow-loop;
+}
+
+.step-cursor {
+  --loop: step-cursor-loop;
+}
+
+html.chapters [data-chapter][data-arrived] :is(.step-pop, .step-grow, .step-cursor, .step-edge) {
+  animation: var(--loop) 8s var(--ease-expo) calc(0.35s + var(--card, 0) * 0.45s + var(--d, 0ms)) infinite both;
 }
 
 html.chapters [data-chapter]:not([data-arrived]) .step-pop {
@@ -301,6 +300,375 @@ html.chapters [data-chapter]:not([data-arrived]) :is(.step-grow, .step-edge) {
 html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
   opacity: 0;
   transform: translate(60px, 50px);
+}
+
+/* ---------------------------------------------------------------------------
+   The highway (scenery/Highway.tsx), under the process. Traffic both ways on
+   the town's walk (town-walk, town-bob, town-wheel), birds on the wire, a
+   tumbleweed, dust behind the truck. When the process arrives (`data-open`,
+   from HighwayCues) the centre line paints in.
+--------------------------------------------------------------------------- */
+.hw-dashes {
+  transform-origin: 0 50%;
+  transition: transform 0.9s var(--ease-expo) 0.15s;
+}
+
+html.chapters .highway:not([data-open]) .hw-dashes {
+  transform: scaleX(0);
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+}
+
+.hw-lights {
+  position: absolute;
+  width: 18%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 216 74 / 0.95), rgb(255 216 74 / 0));
+  opacity: 0;
+}
+
+.hw-dust {
+  position: absolute;
+  right: -4%;
+  bottom: 4%;
+  width: 7%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgb(255 228 186 / 0.8);
+  opacity: 0;
+  animation: hw-dust 1.4s ease-out calc(var(--i) * -0.46s) infinite;
+}
+
+/* Birds: sitting, a hop now and then; once in a while one flies off, up and
+   away, and comes back to the wire a little later. */
+.hw-bird {
+  animation: hw-bird 15s ease-in-out calc(var(--i) * -3.9s) infinite;
+}
+
+.hw-bird-sit {
+  animation: hw-bird-sit 15s steps(1) calc(var(--i) * -3.9s) infinite;
+}
+
+.hw-bird-fly {
+  opacity: 0;
+  animation:
+    hw-bird-fly 15s steps(1) calc(var(--i) * -3.9s) infinite,
+    wing-beat 0.16s ease-in-out infinite alternate;
+}
+
+.hw-tumble {
+  animation: hw-tumble 26s linear -7s infinite;
+}
+
+.hw-tumble-roll {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes hw-dust {
+  from {
+    opacity: 0.85;
+    transform: translate3d(0, 0, 0) scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(260%, -120%, 0) scale(1.8);
+  }
+}
+
+@keyframes hw-bird {
+  0%,
+  14%,
+  20%,
+  52% {
+    transform: translate3d(0, 0, 0);
+  }
+  17% {
+    transform: translate3d(0, -60%, 0);
+  }
+  64% {
+    transform: translate3d(900%, -1300%, 0);
+  }
+  66% {
+    transform: translate3d(-900%, -1300%, 0);
+  }
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hw-bird-sit {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  53% {
+    opacity: 0;
+  }
+}
+
+@keyframes hw-bird-fly {
+  0%,
+  80% {
+    opacity: 0;
+  }
+  53% {
+    opacity: 1;
+  }
+}
+
+@keyframes hw-tumble {
+  from {
+    transform: translate3d(-4%, 0, 0);
+  }
+  38%,
+  to {
+    transform: translate3d(104%, 0, 0);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The coast (scenery/Coast.tsx), under the journey. The sun's path shimmers
+   on the water, a sailboat drifts along the horizon and gulls circle. When the journey arrives (`data-open`, from
+   CoastCues) the sun's path opens up, the sailboat glides in and the gulls
+   come.
+--------------------------------------------------------------------------- */
+.coast-glitter {
+  transform-origin: 86% 50%;
+  transition:
+    opacity 0.8s ease-out 0.2s,
+    transform 1.4s var(--ease-expo) 0.2s;
+}
+
+.coast-shimmer {
+  opacity: var(--o);
+  animation: coast-shimmer 2.6s ease-in-out calc(var(--i) * -0.4s) infinite alternate;
+}
+
+.coast-sail-in {
+  transition:
+    transform 2.6s var(--ease-expo) 0.5s,
+    opacity 1s ease-out 0.5s;
+}
+
+.coast-sail-drift {
+  animation: coast-sail 90s ease-in-out -30s infinite alternate;
+}
+
+.coast-sail-rock {
+  transform-origin: 50% 90%;
+  animation: coast-rock 3s ease-in-out infinite alternate;
+}
+
+.coast-gulls {
+  transition: opacity 1.2s ease-out 1s;
+}
+
+.coast-gull-path {
+  animation: coast-glide-x 11s ease-in-out calc(var(--i) * -3.7s) infinite alternate;
+}
+
+.coast-gull-loop {
+  animation: coast-glide-y 5.5s ease-in-out calc(var(--i) * -2s) infinite alternate;
+}
+
+.coast-gull-wings {
+  transform-origin: 50% 60%;
+  animation: coast-flap 4.5s ease-in-out calc(var(--i) * -1.5s) infinite;
+}
+
+.coast-gull.is-flapping .coast-gull-wings {
+  animation: wing-beat 0.15s ease-in-out infinite alternate;
+}
+
+html.chapters .coast:not([data-open]) .coast-glitter {
+  opacity: 0;
+  transform: scaleX(0.2);
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+}
+
+html.chapters .coast:not([data-open]) .coast-sail-in {
+  opacity: 0;
+  transform: translate3d(25%, 0, 0);
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+}
+
+html.chapters .coast:not([data-open]) .coast-gulls {
+  opacity: 0;
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+}
+
+@keyframes coast-shimmer {
+  to {
+    opacity: calc(var(--o) * 0.35);
+  }
+}
+
+@keyframes coast-sail {
+  from {
+    transform: translate3d(56%, 0, 0);
+  }
+  to {
+    transform: translate3d(94%, 0, 0);
+  }
+}
+
+@keyframes coast-rock {
+  from {
+    transform: rotate(-2.5deg);
+  }
+  to {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes coast-glide-x {
+  from {
+    transform: translate3d(-700%, 0, 0);
+  }
+  to {
+    transform: translate3d(700%, 0, 0);
+  }
+}
+
+@keyframes coast-glide-y {
+  from {
+    transform: translate3d(0, -220%, 0);
+  }
+  to {
+    transform: translate3d(0, 220%, 0);
+  }
+}
+
+@keyframes coast-flap {
+  0%,
+  40%,
+  62%,
+  100% {
+    transform: scaleY(1);
+  }
+  44%,
+  52% {
+    transform: scaleY(-0.45);
+  }
+  48%,
+  56% {
+    transform: scaleY(1);
+  }
+}
+
+/* About's signposts (sections/About.tsx): now and then one shakes on its
+   post, in turn; pointed at, they shake. */
+.signpost {
+  transform-origin: 50% 100%;
+  animation: signpost-idle 9s ease-out calc(var(--i, 0) * -3s) infinite;
+}
+
+.signpost:hover {
+  animation: signpost-shake 0.7s ease-out;
+}
+
+@keyframes signpost-idle {
+  0%,
+  86%,
+  100% {
+    transform: none;
+  }
+  89% {
+    transform: rotate(-6deg);
+  }
+  92.5% {
+    transform: rotate(4.5deg);
+  }
+  95.5% {
+    transform: rotate(-2.5deg);
+  }
+  98% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes signpost-shake {
+  20% {
+    transform: rotate(-6deg);
+  }
+  45% {
+    transform: rotate(4.5deg);
+  }
+  65% {
+    transform: rotate(-2.5deg);
+  }
+  85% {
+    transform: rotate(1deg);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The foothills (scenery/Foothills.tsx), under the about. When the about
+   arrives (`data-open`, from FoothillsCues) the windmill starts turning and
+   the chimney smokes. The about's balloon (About.tsx) rises into the sky
+   beside the portrait as the chapter arrives, then floats.
+--------------------------------------------------------------------------- */
+.fh-mill {
+  animation: spin 14s linear infinite;
+}
+
+/* The balloon floats up the side of the portrait and sinks back; the track
+   is the portrait's height, so it goes from its bottom edge to its top. */
+.about-balloon {
+  container-type: size;
+  transition:
+    opacity 1.6s ease-out 0.5s,
+    transform 3s var(--ease-expo) 0.5s;
+}
+
+.about-balloon-rise {
+  animation: about-balloon-rise 16s ease-in-out infinite alternate;
+}
+
+.fh-balloon-sway {
+  transform-origin: 50% 10%;
+  animation: fh-sway 4.5s ease-in-out infinite alternate;
+}
+
+/* Before the about arrives: the sails stand still, the chimney is cold and
+   the balloon is still down low. */
+html.chapters #about:not([data-arrived]) .about-balloon {
+  opacity: 0;
+  transform: translate3d(0, 25%, 0);
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+}
+
+html.chapters #about:not([data-arrived]) :is(.about-balloon-rise, .signpost) {
+  animation-play-state: paused;
+}
+
+html.chapters .foothills:not([data-open]) :is(.fh-mill, .fh-smoke) {
+  animation-play-state: paused;
+}
+
+@keyframes about-balloon-rise {
+  from {
+    transform: translate3d(0, calc(100cqh - 100%), 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fh-sway {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -534,6 +902,57 @@ html.chapters .town:not([data-open]) .town-awning {
   }
 }
 
+@keyframes step-pop-loop {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  8%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  94%,
+  to {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+@keyframes step-grow-loop {
+  from {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  10%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  94%,
+  to {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+@keyframes step-cursor-loop {
+  from {
+    opacity: 0;
+    transform: translate(60px, 50px);
+  }
+  14%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  94%,
+  to {
+    opacity: 0;
+    transform: none;
+  }
+}
+
 @keyframes letter-in {
   from {
     transform: translate3d(-0.25em, 108%, 0) rotate(6deg);
@@ -738,8 +1157,34 @@ html.chapters .town:not([data-open]) .town-awning {
   .town-sweep,
   .town-smoke,
   .town-hand,
-  .town-bell {
+  .town-bell,
+  .hw-dust,
+  .hw-bird,
+  .hw-bird-sit,
+  .hw-bird-fly,
+  .hw-tumble,
+  .hw-tumble-roll,
+  .coast-shimmer,
+  .coast-sail-drift,
+  .coast-sail-rock,
+  .coast-gull-path,
+  .coast-gull-loop,
+  .coast-gull-wings,
+  .signpost,
+  .fh-mill,
+  .about-balloon-rise,
+  .fh-balloon-sway {
     animation: none !important;
+  }
+
+  /* The sailboat rests mid-horizon. */
+  .coast-sail-drift {
+    transform: translate3d(76%, 0, 0);
+  }
+
+  .hw-bird-fly,
+  .hw-dust {
+    opacity: 0;
   }
 
   /* The town holds still: everyone where they stand, the smoke hanging. */
