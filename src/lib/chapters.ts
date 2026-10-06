@@ -23,6 +23,14 @@ type Navigator = { goTo: (id: string, options?: ChapterOptions) => boolean };
 export const CHAPTER_LEAVE = "chapter:leave";
 export type ChapterLeave = { from: string; to: string };
 
+/**
+ * Fired on `window` when a chapter is reached and its content builds in —
+ * after a glide or an instant jump, once per visit (not for steps along a
+ * sideways track). The noon cloud (scenery/CloudLayer.tsx) starts on these.
+ */
+export const CHAPTER_ARRIVE = "chapter:arrive";
+export type ChapterArrive = { id: string };
+
 export const chapterNav: { current: Navigator | null } = { current: null };
 
 /** Go to a chapter by its section id. False when chapters aren't running. */

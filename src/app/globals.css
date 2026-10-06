@@ -408,6 +408,126 @@ html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
   animation: beam-sweep 7s ease-in-out infinite alternate;
 }
 
+/* ---------------------------------------------------------------------------
+   The town at noon (scenery/Town.tsx), under the services. It lives on its
+   own: people stroll by and a cyclist rides past (slowly — they're far away),
+   smoke rises from two chimneys, the clock's hands turn. When the services
+   arrive (`data-open`, from TownCues) the shops open — awnings unroll — the
+   bell rings and the pigeons lift off the tower. Only transform and opacity move, and
+   nothing is rendered while the scene is down (content-visibility: hidden).
+--------------------------------------------------------------------------- */
+.town-box {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: max(100%, var(--strip) * 6);
+  aspect-ratio: 6;
+  translate: -50% 0;
+}
+
+.town-walk {
+  animation: town-walk var(--walk) linear var(--delay) infinite;
+}
+
+.town-walk[data-dir="left"] {
+  animation-direction: reverse;
+}
+
+.town-bob {
+  animation: town-bob var(--step, 0.5s) ease-in-out infinite alternate;
+}
+
+.town-legs {
+  transform-origin: 50% 0;
+  animation: town-legs var(--step, 0.5s) ease-in-out infinite alternate;
+}
+
+.town-wheel {
+  animation: spin 0.75s linear infinite;
+}
+
+.town-sweep {
+  transform-origin: 15% 7%;
+  animation: town-sweep 1.1s ease-in-out infinite alternate;
+}
+
+.town-smoke {
+  opacity: 0;
+  animation: town-smoke 4.8s ease-out calc(var(--i) * -1.6s) infinite;
+}
+
+.town-hand {
+  animation: spin var(--turn) linear infinite;
+}
+
+.town-bell {
+  transform-origin: 50% 0;
+}
+
+/* The shops open: awnings unroll one after another. */
+.town-awning {
+  transform-origin: 50% 0;
+  transition: transform 0.45s ease-in;
+}
+
+html.chapters .town:not([data-open]) .town-awning {
+  transform: scaleY(0);
+}
+
+.town[data-open] .town-awning {
+  transform: none;
+  transition: transform 0.9s var(--ease-expo) calc(0.25s + var(--i) * 0.14s);
+}
+
+/* Noon: the bell swings three times… */
+.town[data-open] .town-bell {
+  animation: bell-swing 0.9s ease-in-out 0.4s 3;
+}
+
+/* …and the pigeons take off: up first, then away (two transitions with
+   different curves make the arc), fading into the sky. They're back on the
+   tower once the town has sunk out of sight. */
+.town-pigeon-x,
+.town-pigeon-y,
+.town-pigeon {
+  transition:
+    translate 0s 1.6s,
+    opacity 0s 1.6s;
+}
+
+.town-pigeon-fly {
+  opacity: 0;
+}
+
+.town[data-open] .town-pigeon-x {
+  translate: var(--fx) 0;
+  transition: translate 3s cubic-bezier(0.55, 0, 0.85, 0.5) calc(0.75s + var(--i) * 0.15s);
+}
+
+.town[data-open] .town-pigeon-y {
+  translate: 0 var(--fy);
+  transition: translate 3s cubic-bezier(0.15, 0.6, 0.35, 1) calc(0.75s + var(--i) * 0.15s);
+}
+
+.town[data-open] .town-pigeon {
+  opacity: 0;
+  transition: opacity 0.9s ease-in calc(2.7s + var(--i) * 0.15s);
+}
+
+.town[data-open] .town-pigeon-sit {
+  opacity: 0;
+  transition: opacity 0s calc(0.75s + var(--i) * 0.15s);
+}
+
+.town[data-open] .town-pigeon-fly {
+  opacity: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0s calc(0.75s + var(--i) * 0.15s);
+  animation: wing-beat 0.14s ease-in-out infinite alternate;
+}
+
+
 @keyframes spin {
   to {
     rotate: 360deg;
@@ -516,6 +636,59 @@ html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
   }
 }
 
+@keyframes town-walk {
+  from {
+    transform: translate3d(-4%, 0, 0);
+  }
+  to {
+    transform: translate3d(102%, 0, 0);
+  }
+}
+
+@keyframes town-bob {
+  to {
+    transform: translate3d(0, -4%, 0);
+  }
+}
+
+@keyframes town-legs {
+  to {
+    transform: scaleX(0.15);
+  }
+}
+
+@keyframes town-sweep {
+  from {
+    transform: rotate(-16deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes town-smoke {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.5);
+  }
+  15% {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(90%, -380%, 0) scale(1.9);
+  }
+}
+
+@keyframes bell-swing {
+  25% {
+    transform: rotate(20deg);
+  }
+  75% {
+    transform: rotate(-20deg);
+  }
+}
+
 .scroll-cue {
   animation: scroll-cue 2.4s var(--ease-quart) infinite;
 }
@@ -557,8 +730,26 @@ html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
   .banner,
   .lighthouse-beam,
   .scroll-cue,
-  .water-stripes {
+  .water-stripes,
+  .town-walk,
+  .town-bob,
+  .town-legs,
+  .town-wheel,
+  .town-sweep,
+  .town-smoke,
+  .town-hand,
+  .town-bell {
     animation: none !important;
+  }
+
+  /* The town holds still: everyone where they stand, the smoke hanging. */
+  .town-walk {
+    transform: translate3d(var(--at), 0, 0);
+  }
+
+  .town-smoke {
+    opacity: 0.55;
+    transform: translate3d(calc(var(--i) * 30%), calc(var(--i) * -110%), 0) scale(calc(0.7 + var(--i) * 0.3));
   }
 
   .ink-label,
@@ -580,7 +771,7 @@ html.chapters [data-chapter]:not([data-arrived]) .step-cursor {
 /* ---------------------------------------------------------------------------
    Scrollbar: a thin line in the colours of the section beside it. The track
    matches the page there; ScrollbarTone keeps both colours in step as you
-   scroll. (Chrome/Safari use the ::-webkit-scrollbar pseudos; setting the
+   scroll (in a little stylesheet of its own, so the page isn't restyled). (Chrome/Safari use the ::-webkit-scrollbar pseudos; setting the
    standard properties as well would switch those off, so Firefox gets them
    on its own.)
 --------------------------------------------------------------------------- */

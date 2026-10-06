@@ -1,22 +1,18 @@
-import { InkLabel } from "@/components/ui/InkLabel";
+import { Statement } from "@/components/ui/Statement";
 import { services, skills } from "@/content/site";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
 /**
- * 12:00, noon, over the town. The title is the promise itself, on ink bands;
- * below it, what Tayam builds — four services side by side, each backed by
- * real work (on phones they slide sideways, one at a time) — and the toolkit.
+ * 12:00, noon, over the town. The title is the promise itself, a plain statement;
+ * below it, what Tayam builds — four services side by side, each backed
+ * by real work (on phones they slide sideways, one at a time) — and the
+ * toolkit.
  */
 export function Services() {
   return (
     <section id="services" data-chapter aria-labelledby="services-title" className="chapter shell relative outline-none">
-      <InkLabel
-        as="h2"
-        id="services-title"
-        text={services.intro}
-        className="max-w-[22ch] text-[clamp(1.55rem,2.6vw,2.6rem)] font-medium"
-      />
+      <Statement id="services-title">{services.intro}</Statement>
 
       <div data-track-view="" className="-mx-(--gutter) mt-[clamp(1.5rem,5svh,3.5rem)] px-(--gutter)">
         <ol data-track="" className="gap-4 lg:gap-8">

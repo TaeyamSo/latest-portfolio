@@ -6,7 +6,7 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (t: number) => t * t * (3 - 2 * t);
 
 /**
- * Moves the landscape's scenes (Landscape.tsx): a scene is up while its
+ * Moves the landscape's scenes (Landscape.tsx and Town.tsx): a scene is up while its
  * section fills the lower part of the screen. It rises as the section's top
  * comes up from the bottom of the screen to just past the middle, and sinks
  * as the next section does the same — the two cross over. With reduced motion
@@ -14,11 +14,12 @@ const ease = (t: number) => t * t * (3 - 2 * t);
  *
  * Cheap on purpose: section positions are measured once (and on resize), a
  * scroll only writes transforms, a scene that is fully down isn't rendered at
- * all, and only a moving scene is promoted to its own layer.
+ * all (the town is skipped with content-visibility, keeping its layout ready),
+ * and only a moving scene is promoted to its own layer.
  */
 export function LandscapeMotion() {
   useEffect(() => {
-    const scenes = Array.from(document.querySelectorAll<SVGSVGElement>("svg[data-scene]")).map((el) => ({
+    const scenes = Array.from(document.querySelectorAll<HTMLElement | SVGSVGElement>("[data-scene]")).map((el) => ({
       el,
       section: document.getElementById(el.dataset.scene ?? ""),
       top: Infinity,
@@ -51,7 +52,10 @@ export function LandscapeMotion() {
         if (v === scene.shown) continue;
         scene.shown = v;
         const { style } = scene.el;
-        style.display = v > 0 ? "" : "none";
+        // The town keeps its layout while it's down (content-visibility skips it
+        // all the same), so bringing it back up costs ~2ms, not ~20.
+        if (scene.el instanceof HTMLElement) style.contentVisibility = v > 0 ? "" : "hidden";
+        else style.display = v > 0 ? "" : "none";
         style.willChange = v > 0 && v < 1 ? "transform, opacity" : "";
         if (still.matches) {
           style.transform = "none";

@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 
 /**
- * Browsers only re-check what's under a resting mouse once scrolling stops, so
- * the custom cursor and hover effects (tilts, magnetic buttons, the archive
- * preview) lagged behind while the page glided under it. This keeps them in
- * step: as the page scrolls, it checks what's now under the pointer and sends
- * the same over/out events a real mouse move would, plus a move, so effects
- * that follow the pointer's position update too. (CSS :hover is the browser's
- * own and still catches up when the scroll ends.)
+ * Browsers only re-check what's under a resting mouse once the mouse moves, so
+ * hover effects (tilts, magnetic buttons) could be left
+ * stale after the page glided under it. When the scrolling rests, this checks
+ * what's now under the pointer and sends the same over/out events a real
+ * mouse move would, plus a move, so effects that follow the pointer's
+ * position update too. Not on every frame of the glide: hit-testing then is
+ * what made glides stutter. (CSS :hover is the browser's own.)
  */
 export function PointerSync() {
   useEffect(() => {
@@ -20,6 +20,7 @@ export function PointerSync() {
     let inside = false;
     let under: Element | null = null;
     let frame = 0;
+    let idle = 0;
 
     const replay = (type: string, target: Element, related: Element | null) =>
       target.dispatchEvent(
@@ -66,7 +67,11 @@ export function PointerSync() {
       inside = false;
     };
     const onScroll = () => {
-      if (inside) frame ||= requestAnimationFrame(sync);
+      if (!inside) return;
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => {
+        frame ||= requestAnimationFrame(sync);
+      }, 120);
     };
 
     const root = document.documentElement;
@@ -77,6 +82,7 @@ export function PointerSync() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(idle);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerover", onOver);
       root.removeEventListener("pointerleave", onLeave);

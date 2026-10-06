@@ -52,8 +52,8 @@ const at = ([x, y]: Point, scale: number, dx = 0, dy = 0) =>
 /**
  * Life in the sky, played as the day moves on (one moment per glide, when the
  * chapter controller announces it): at sunrise a flock lifts off the
- * mountains; between morning and noon a small plane crosses the sky towing a
- * banner with what Tayam does; at golden hour a V of birds flies home towards
+ * mountains; between noon and the afternoon a small plane crosses the sky
+ * towing a banner with what Tayam does; at golden hour a V of birds flies home towards
  * the sun. Time-based, transform-only animations on a fixed layer just above
  * the clouds; nothing runs between the moments, and nothing at all without
  * chapters (reduced motion).
@@ -117,7 +117,7 @@ export function Life() {
     const onLeave = (event: Event) => {
       const { from, to } = (event as CustomEvent<ChapterLeave>).detail;
       if (from === "home" && to === "about") lift();
-      else if (from === "about" && to === "services") banner();
+      else if (from === "services" && to === "work") banner();
       else if (from === "process" && to === "journey") homeward();
     };
     window.addEventListener(CHAPTER_LEAVE, onLeave);

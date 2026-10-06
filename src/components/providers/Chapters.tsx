@@ -3,7 +3,7 @@
 import { useLenis } from "lenis/react";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
-import { CHAPTER_LEAVE, chapterNav, type ChapterLeave, type ChapterOptions } from "@/lib/chapters";
+import { CHAPTER_ARRIVE, CHAPTER_LEAVE, chapterNav, type ChapterArrive, type ChapterLeave, type ChapterOptions } from "@/lib/chapters";
 
 /** One place the page can rest: a chapter, its scroll position and (for a sideways track) which step. */
 type Stop = { chapter: HTMLElement; y: number; track?: HTMLElement; shift?: number; step?: number };
@@ -137,7 +137,10 @@ export function Chapters() {
 
     const arrive = (chapter: HTMLElement) => {
       for (const other of chapters()) if (other !== chapter) other.removeAttribute("data-arrived");
+      if (chapter.hasAttribute("data-arrived")) return; // another step along the same chapter
       chapter.setAttribute("data-arrived", "");
+      const detail: ChapterArrive = { id: chapter.id };
+      window.dispatchEvent(new CustomEvent(CHAPTER_ARRIVE, { detail }));
     };
 
     const focusTitle = (chapter: HTMLElement) => {

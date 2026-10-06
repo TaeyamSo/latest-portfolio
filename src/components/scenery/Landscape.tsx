@@ -1,5 +1,6 @@
 import { LandscapeMotion } from "./LandscapeMotion";
 import { mulberry32, ridgePath, type RidgeSpec } from "./ridges";
+import { Town } from "./Town";
 
 /*
  * The landscape the day travels through, from the mountains to the sea. Each
@@ -57,51 +58,6 @@ function Foothills() {
           </g>
         );
       })}
-    </>
-  );
-}
-
-/** Noon, under the services: a small town's rooftops, shop awnings, a clock tower at twelve. */
-function Town() {
-  const random = mulberry32(71);
-  const base = 216;
-  const tower = { x: 1060, w: 44 };
-  const houses: React.ReactNode[] = [];
-  for (let x = -10, i = 0; x < W + 10; i++) {
-    const w = 46 + random() * 40;
-    if (x + w > tower.x - 6 && x < tower.x + tower.w + 6) {
-      x = tower.x + tower.w + 8;
-      continue;
-    }
-    const h = 26 + random() * 26;
-    const roof = 16 + random() * 14;
-    const door = random() > 0.45;
-    const awning = random() > 0.72;
-    houses.push(
-      <g key={i}>
-        <rect x={x} y={base - h} width={w} height={h + 40} fill="#e6782a" />
-        <path d={`M${x - 5},${base - h} L${x + w / 2},${base - h - roof} L${x + w + 5},${base - h} Z`} fill="#c95d22" />
-        <rect x={x + w * 0.18} y={base - h + 8} width="8" height="8" fill="#b0501c" />
-        {door && <rect x={x + w * 0.55} y={base - 18} width={w * 0.2} height="18" fill="#b0501c" />}
-        {awning &&
-          Array.from({ length: 5 }, (_, s) => (
-            <rect key={s} x={x + w * 0.12 + s * 7} y={base - 26} width="7" height="7" fill={s % 2 ? "#fffaf4" : "#fd5d16"} />
-          ))}
-      </g>,
-    );
-    x += w + 4 + random() * 10;
-  }
-  return (
-    <>
-      {houses}
-      <g>
-        <rect x={tower.x} y={base - 120} width={tower.w} height="160" fill="#e07228" />
-        <path d={`M${tower.x - 6},${base - 120} L${tower.x + tower.w / 2},${base - 152} L${tower.x + tower.w + 6},${base - 120} Z`} fill="#c95d22" />
-        <circle cx={tower.x + tower.w / 2} cy={base - 96} r="13" fill="#fffaf4" />
-        {/* Both hands up: noon. */}
-        <path d={`M${tower.x + tower.w / 2},${base - 96} v-10 M${tower.x + tower.w / 2 + 1.5},${base - 96} v-7`} stroke="#0d0a08" strokeWidth="2.2" strokeLinecap="round" />
-      </g>
-      <rect y={base} width={W} height={H - base} fill="#d96a26" />
     </>
   );
 }
@@ -181,7 +137,7 @@ function Coast() {
 /** Which section each scene belongs to (and so when it rises and sinks). */
 const SCENES = [
   { section: "about", Scene: Foothills },
-  { section: "services", Scene: Town },
+  { section: "services", Scene: null }, // the town draws its own box, with life over it (Town.tsx)
   { section: "work", Scene: City },
   { section: "process", Scene: Road },
   { section: "journey", Scene: Coast },
@@ -192,26 +148,31 @@ const SCENES = [
  * page: as each section arrives its scene rises and the last one sinks away —
  * the hero's mountains, then foothills, a town, the city, the road and the
  * coast, until the footer's sea takes over. The copy scrolls over it; the work
- * cards cover it. Drawn on the server; LandscapeMotion only moves it.
+ * cards cover it. Drawn on the server; LandscapeMotion only moves it. Only the
+ * sides are clipped, so the town's smoke and pigeons can rise into the sky.
  */
 export function Landscape() {
   return (
     <div
       aria-hidden="true"
-      className="scenery pointer-events-none fixed inset-x-0 bottom-0 z-[4] h-[clamp(12svh,16.7vw,26svh)] overflow-hidden"
+      className="scenery pointer-events-none fixed inset-x-0 bottom-0 z-[4] h-(--strip) overflow-x-clip [--strip:clamp(12svh,16.7vw,26svh)]"
     >
-      {SCENES.map(({ section, Scene }) => (
-        <svg
-          key={section}
-          data-scene={section}
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="xMidYMax slice"
-          className="absolute inset-0 size-full"
-          style={{ transform: "translate3d(0, 105%, 0)", display: "none" }}
-        >
-          <Scene />
-        </svg>
-      ))}
+      {SCENES.map(({ section, Scene }) =>
+        Scene ? (
+          <svg
+            key={section}
+            data-scene={section}
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="xMidYMax slice"
+            className="absolute inset-0 size-full"
+            style={{ transform: "translate3d(0, 105%, 0)", display: "none" }}
+          >
+            <Scene />
+          </svg>
+        ) : (
+          <Town key={section} />
+        ),
+      )}
       <LandscapeMotion />
     </div>
   );

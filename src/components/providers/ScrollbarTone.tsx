@@ -13,7 +13,10 @@ const DARK = "#0d0a08";
  * at the right edge on the home page (the day's timeline, sun/day.ts), or
  * dark wherever a `[data-tone="dark"]` surface reaches the right edge
  * at mid-screen — the project cards, the evening footer, the case studies.
- * Only writes when the colour actually changes; re-checks on every page.
+ * The colours go into a small stylesheet of their own, aimed at the page's
+ * own scrollbar: setting them as variables on <html> restyled every element
+ * on the page (~50ms a time) and made glides stutter. Only writes when the
+ * colour actually changes, once the scrolling rests; re-checks on every page.
  */
 export function ScrollbarTone() {
   const pathname = usePathname();
@@ -21,7 +24,11 @@ export function ScrollbarTone() {
   useEffect(() => {
     const root = document.documentElement;
     let frame = 0;
+    let idle = 0;
     let last = "";
+    const sheet = document.createElement("style");
+    sheet.dataset.scrollbarTone = "";
+    document.head.append(sheet);
     // The day's stops, on pages that have them (measured once, and on resize).
     let stops: number[] | null = null;
     const measure = () => {
@@ -47,11 +54,16 @@ export function ScrollbarTone() {
       const key = `${track}|${thumb}`;
       if (key === last) return;
       last = key;
-      root.style.setProperty("--scrollbar-track", track);
-      root.style.setProperty("--scrollbar-thumb", thumb);
+      sheet.textContent =
+        `html::-webkit-scrollbar-track,html::-webkit-scrollbar-corner{background:${track}}` +
+        `html::-webkit-scrollbar-thumb{background:${thumb}}` +
+        `@supports not selector(::-webkit-scrollbar){html{scrollbar-color:${thumb} ${track}}}`;
     };
     const schedule = () => {
-      frame ||= requestAnimationFrame(update);
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => {
+        frame ||= requestAnimationFrame(update);
+      }, 140);
     };
 
     measure(); // after the new page has painted
@@ -60,7 +72,9 @@ export function ScrollbarTone() {
     window.addEventListener("scroll", schedule, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(idle);
       observer.disconnect();
+      sheet.remove();
       window.removeEventListener("scroll", schedule);
     };
   }, [pathname]);
