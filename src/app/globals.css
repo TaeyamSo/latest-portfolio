@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Short landscape screens: phones on their side. */
+@custom-variant short (@media (orientation: landscape) and (max-height: 32rem));
+
 /* ---------------------------------------------------------------------------
    Design tokens — the 2025 palette (flame → amber, black type, white accents)
    extended with a warm dusk range for the sunset finale.
@@ -45,6 +48,8 @@
   /* Where the hero sun sits in the viewport. */
   --sun-x: 76%;
   --sun-y: 23%;
+  /* The landscape strip's height (scenery/Landscape.tsx); chapters keep clear of it. */
+  --strip: clamp(12svh, 16.7vw, 26svh);
 }
 
 @media (min-width: 64rem) {
@@ -53,6 +58,15 @@
     --sun-x: 75%;
     --sun-y: 50%;
     --text-display: clamp(3.6rem, 9.6vw, 14rem);
+  }
+}
+
+/* Short landscape screens (phones on their side): a lower strip and a name
+   that fits under the header. */
+@media (orientation: landscape) and (max-height: 32rem) {
+  :root {
+    --strip: clamp(12svh, 16.7vw, 19svh);
+    --text-display: clamp(2.6rem, 15svh, 8rem);
   }
 }
 
@@ -172,7 +186,7 @@
   flex-direction: column;
   justify-content: center;
   padding-top: clamp(5.5rem, 12svh, 8rem);
-  padding-bottom: clamp(12svh, 16.7vw, 26svh);
+  padding-bottom: var(--strip);
 }
 
 html.chapters [data-chapter] [data-build] {

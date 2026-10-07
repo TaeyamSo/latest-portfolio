@@ -2,32 +2,38 @@ import Image from "next/image";
 import Link from "next/link";
 import { ViewTransition } from "react";
 
-import { MockBadge } from "@/components/ui/MockBadge";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
 import { archiveProjects, caseStudyPath, chapters, featuredProjects, type Project } from "@/content/site";
-import { visible } from "@/lib/mock";
+import { cn } from "@/lib/cn";
 import { workCardId } from "@/lib/work-return";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
-/** Each shop's paint: the wall, the trim (sign letters, frames) and the awning's two stripes. */
-const PAINT = [
-  { wall: "#0d0a08", trim: "#ffb629", awning: ["#fd5d16", "#fffaf4"] },
-  { wall: "#3b1409", trim: "#ffd84a", awning: ["#ffb629", "#0d0a08"] },
-  { wall: "#1f1611", trim: "#fd8916", awning: ["#fffaf4", "#b3300c"] },
-  { wall: "#4a1d0c", trim: "#ffd84a", awning: ["#fd8916", "#fffaf4"] },
+/**
+ * Each shop has its own front, so the street reads as a street: a classic shop
+ * under a striped awning, an arched front, a gabled one with a pointed roof,
+ * and a modern box with an outlined sign. `wall` is the facade, `trim` the
+ * sign letters and frames, `awning` the classic shop's two stripes.
+ */
+const FRONTS = [
+  { kind: "awning", wall: "#0d0a08", trim: "#ffb629", awning: ["#fd5d16", "#fffaf4"] },
+  { kind: "arch", wall: "#3b1409", trim: "#ffd84a", awning: ["#ffb629", "#0d0a08"] },
+  { kind: "gable", wall: "#1f1611", trim: "#fd8916", awning: ["#fffaf4", "#b3300c"] },
+  { kind: "modern", wall: "#4a1d0c", trim: "#ffd84a", awning: ["#fd8916", "#fffaf4"] },
 ] as const;
+
+type Front = (typeof FRONTS)[number];
 
 const SHOP = "w-[80vw] shrink-0 md:w-[min(34rem,40vw,62svh)]";
 
 /**
  * 14:00, afternoon, in town: the high street. Every client project is a
- * shopfront — its name on the sign, its live site in the window, a door out to
- * the real thing and a brass plaque with the facts. Scrolling walks along the
- * street a shop at a time (the shop you're at comes forward); the window opens
- * the case study, which grows out of the shopfront. The street ends at the
- * workshop, where the template builds are pinned to a board.
+ * shopfront, each in its own style — its name on the sign, its live site in
+ * the window. Scrolling walks along the street a shop at a time (the shop
+ * you're at comes forward); the window opens the case study, which grows out
+ * of the shopfront. The street ends at the workshop, where the template
+ * builds are pinned to a board.
  */
 export function HighStreet() {
   const { statement, hint } = chapters.work;
@@ -46,7 +52,7 @@ export function HighStreet() {
       <div data-track-view="" className="-mx-(--gutter) mt-auto px-(--gutter) pt-6">
         <ol data-track="" aria-label="Client projects" className="items-end gap-[clamp(1rem,3vw,3rem)]">
           {featuredProjects.map((project, i) => (
-            <Shop key={project.slug} project={project} paint={PAINT[i % PAINT.length]} order={i} />
+            <Shop key={project.slug} project={project} front={FRONTS[i % FRONTS.length]} order={i} />
           ))}
           <Workshop order={featuredProjects.length} />
         </ol>
@@ -57,11 +63,19 @@ export function HighStreet() {
   );
 }
 
-function Shop({ project, paint, order }: { project: Project; paint: (typeof PAINT)[number]; order: number }) {
+function Shop({ project, front, order }: { project: Project; front: Front; order: number }) {
   const href = project.caseStudy ? caseStudyPath(project.slug) : null;
-  const details = project.details && visible(project.details) ? project.details : null;
-  const [a, b] = paint.awning;
   const titleId = `shop-${project.slug}`;
+  const wall = { background: front.wall };
+
+  const name = href ? (
+    <Link href={href} transitionTypes={["case-open"]} className="hover:text-paper">
+      {project.name}
+    </Link>
+  ) : (
+    project.name
+  );
+  const sign = "text-[clamp(0.95rem,1.45vw,1.4rem)] leading-tight font-extrabold tracking-[0.04em] text-(--trim) uppercase";
 
   const window_ = (
     <ViewTransition name={`shot-${project.slug}`} share="case-shot" default="none">
@@ -70,7 +84,7 @@ function Shop({ project, paint, order }: { project: Project; paint: (typeof PAIN
           src={project.image}
           alt={`${project.name} — home page screenshot`}
           fill
-          sizes="(min-width: 768px) 26rem, 64vw"
+          sizes="(min-width: 768px) 30rem, 72vw"
           placeholder="blur"
           className="object-cover object-top transition-transform duration-[1200ms] ease-expo group-hover:scale-[1.04]"
         />
@@ -85,101 +99,107 @@ function Shop({ project, paint, order }: { project: Project; paint: (typeof PAIN
       id={workCardId(project.slug)}
       data-step=""
       data-build=""
-      style={{ "--b": 2 + order, "--trim": paint.trim } as Vars}
+      style={{ "--b": 2 + order, "--trim": front.trim } as Vars}
       className={`shop group ${SHOP}`}
     >
       {/* Opening the case study grows the shopfront into the page (and back). */}
       <ViewTransition name={`case-${project.slug}`} share="case-close" default="none">
         <article aria-labelledby={titleId} className="relative text-paper">
-          <h3
-            id={titleId}
-            className="relative mx-[5%] border-2 border-(--trim) px-3 py-[clamp(0.35rem,1svh,0.6rem)] text-center text-[clamp(0.95rem,1.5vw,1.45rem)] leading-tight font-extrabold tracking-[0.04em] text-(--trim) uppercase"
-            style={{ background: paint.wall }}
-          >
-            {href ? (
-              <Link href={href} transitionTypes={["case-open"]} className="hover:text-paper">
-                {project.name}
-              </Link>
-            ) : (
-              project.name
-            )}
-          </h3>
-
-          {/* The awning: stripes, and a scalloped edge hanging below them. */}
-          <div aria-hidden="true">
-            <div className="h-[clamp(1.1rem,3svh,1.9rem)]" style={{ background: `repeating-linear-gradient(90deg, ${a} 0 1.4rem, ${b} 1.4rem 2.8rem)` }} />
-            <div
-              className="h-[0.7rem]"
-              style={{
-                background: `radial-gradient(circle at 50% 0, ${a} 0.7rem, transparent 0.72rem) 0 0 / 2.8rem 0.7rem repeat-x, radial-gradient(circle at 50% 0, ${b} 0.7rem, transparent 0.72rem) 1.4rem 0 / 2.8rem 0.7rem repeat-x`,
-              }}
-            />
-          </div>
-
-          <div className="-mt-[0.7rem] grid grid-cols-[1fr_auto] items-end gap-[4%] px-[5%] pt-[clamp(1rem,3svh,1.6rem)] pb-[4%]" style={{ background: paint.wall }}>
-            <div>
-              <div className="border-[3px] border-(--trim)">
-                {href ? (
-                  // The window opens the case study for pointer users; keyboard users get the link below.
-                  <Link href={href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="block">
-                    {window_}
-                  </Link>
-                ) : (
-                  window_
-                )}
+          {front.kind === "awning" && (
+            <>
+              <h3 id={titleId} className={cn(sign, "relative mx-[5%] border-2 border-(--trim) px-3 py-[clamp(0.35rem,1svh,0.6rem)] text-center")} style={wall}>
+                {name}
+              </h3>
+              {/* The awning: stripes, and a scalloped edge hanging below them. */}
+              <div aria-hidden="true">
+                <div
+                  className="h-[clamp(1.1rem,3svh,1.9rem)]"
+                  style={{ background: `repeating-linear-gradient(90deg, ${front.awning[0]} 0 1.4rem, ${front.awning[1]} 1.4rem 2.8rem)` }}
+                />
+                <div
+                  className="h-[0.7rem]"
+                  style={{
+                    background: `radial-gradient(circle at 50% 0, ${front.awning[0]} 0.7rem, transparent 0.72rem) 0 0 / 2.8rem 0.7rem repeat-x, radial-gradient(circle at 50% 0, ${front.awning[1]} 0.7rem, transparent 0.72rem) 1.4rem 0 / 2.8rem 0.7rem repeat-x`,
+                  }}
+                />
               </div>
-              {href && (
-                <Link
-                  href={href}
-                  transitionTypes={["case-open"]}
-                  className="group/roll mt-[clamp(0.5rem,1.6svh,0.9rem)] inline-flex items-center gap-2 rounded-full bg-(--trim) px-4 py-1.5 text-[0.82rem] font-medium text-ink transition-colors hover:bg-paper"
-                >
-                  <RollText>Read the case study</RollText>
-                  <span aria-hidden="true">→</span>
-                  <span className="sr-only">: {project.name}</span>
+            </>
+          )}
+
+          {front.kind === "arch" && (
+            // An arched front: the name set in the curve of the top.
+            <div
+              className="border-x-[3px] border-t-[3px] border-(--trim) px-[12%] pt-[clamp(1.8rem,5.5svh,3rem)] pb-[clamp(0.4rem,1.2svh,0.7rem)] text-center"
+              style={{ ...wall, borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }}
+            >
+              <h3 id={titleId} className={sign}>
+                {name}
+              </h3>
+            </div>
+          )}
+
+          {front.kind === "gable" && (
+            <>
+              {/* A pointed roof, its gable in the trim colour with a round window. */}
+              <div aria-hidden="true" className="relative mx-[3%] h-[clamp(2.4rem,8svh,4.2rem)]" style={{ background: front.trim, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}>
+                <span className="absolute bottom-[18%] left-1/2 size-[clamp(0.5rem,1.4svh,0.8rem)] -translate-x-1/2 rounded-full" style={wall} />
+              </div>
+              <div className="border-b-4 border-(--trim) px-[6%] py-[clamp(0.4rem,1.2svh,0.7rem)] text-center" style={wall}>
+                <h3 id={titleId} className={sign}>
+                  {name}
+                </h3>
+              </div>
+            </>
+          )}
+
+          {front.kind === "modern" && (
+            <>
+              {/* A flat modern front: an outlined sign, then a slim canopy. */}
+              <div className="px-[5%] pt-[clamp(0.7rem,2svh,1.1rem)] pb-[clamp(0.5rem,1.4svh,0.8rem)]" style={wall}>
+                <h3 id={titleId} className={cn(sign, "inline-block rounded-md border-2 border-(--trim) px-3 py-1 tracking-[0.18em]")}>
+                  {name}
+                </h3>
+              </div>
+              <div aria-hidden="true" className="h-[clamp(0.45rem,1.2svh,0.7rem)]" style={{ background: front.awning[0] }} />
+            </>
+          )}
+
+          {/* The shop window: the live site, opening the case study. */}
+          <div
+            className={cn("px-[5%] pb-[5%]", front.kind === "awning" ? "-mt-[0.7rem] pt-[clamp(1rem,3svh,1.6rem)]" : "pt-[clamp(0.8rem,2.4svh,1.3rem)]")}
+            style={wall}
+          >
+            <div
+              className={cn(
+                "overflow-hidden border-[3px] border-(--trim)",
+                front.kind === "arch" && "rounded-t-[clamp(1rem,3vw,2rem)]",
+                front.kind === "modern" && "rounded-sm",
+              )}
+            >
+              {href ? (
+                // The window opens the case study for pointer users; keyboard users get the link below.
+                <Link href={href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="block">
+                  {window_}
                 </Link>
+              ) : (
+                window_
               )}
             </div>
-
-            {/* The door: out to the real site. */}
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="relative flex aspect-[1/2.1] w-[clamp(3rem,5.5vw,4.6rem)] flex-col items-center justify-center gap-1 border-2 border-(--trim)/70 bg-black/25 text-(--trim) transition-colors hover:bg-(--trim) hover:text-ink"
-            >
-              <span className="meta text-[0.6rem] tracking-[0.14em]">Visit</span>
-              <span aria-hidden="true">↗</span>
-              <span aria-hidden="true" className="absolute top-1/2 right-[18%] size-1.5 rounded-full bg-current" />
-              <span className="sr-only">{project.name} (opens in a new tab)</span>
-            </a>
+            {href && (
+              <Link
+                href={href}
+                transitionTypes={["case-open"]}
+                className="group/roll mt-[clamp(0.5rem,1.6svh,0.9rem)] inline-flex items-center gap-2 rounded-full bg-(--trim) px-4 py-1.5 text-[0.82rem] font-medium text-ink transition-colors hover:bg-paper"
+              >
+                <RollText>Read the case study</RollText>
+                <span aria-hidden="true">→</span>
+                <span className="sr-only">: {project.name}</span>
+              </Link>
+            )}
           </div>
-
-          {/* The brass plaque. */}
-          <dl
-            className="meta grid grid-cols-2 gap-x-4 gap-y-1 border-t border-(--trim)/30 px-[5%] py-[clamp(0.5rem,1.5svh,0.8rem)] text-[0.62rem] text-paper/70"
-            style={{ background: paint.wall }}
-          >
-            {project.role && <Detail term="Role" value={project.role} />}
-            <Detail term="Sector" value={project.category} />
-            {details && <Detail term="Year" value={details.year} mock={details.mock} />}
-            {details && <Detail term="Stack" value={details.stack} mock={details.mock} />}
-          </dl>
         </article>
       </ViewTransition>
     </li>
-  );
-}
-
-function Detail({ term, value, mock }: { term: string; value: string; mock?: boolean }) {
-  return (
-    <div className="min-w-0">
-      <dt className="flex items-center gap-1.5">
-        {term}
-        {mock && <MockBadge className="text-paper/70" />}
-      </dt>
-      <dd className="truncate tracking-[0.06em] text-paper normal-case">{value}</dd>
-    </div>
   );
 }
 

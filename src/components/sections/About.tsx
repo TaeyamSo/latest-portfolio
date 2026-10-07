@@ -67,7 +67,7 @@ function Signposts() {
   return (
     <ul
       aria-label="In numbers"
-      className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[clamp(12svh,16.7vw,26svh)] items-end justify-center gap-[clamp(1.5rem,7vw,7rem)] overflow-hidden px-(--gutter) sm:justify-end sm:pr-[12vw]"
+      className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[max(var(--strip),5.5rem)] items-end justify-center gap-3 sm:gap-[clamp(1.5rem,7vw,7rem)] overflow-hidden px-(--gutter) sm:justify-end sm:pr-[12vw]"
     >
       {facts.map((fact, i) => (
         <li key={fact.label} data-build="rise" style={{ "--b": 3 + i, "--i": i } as Vars} className="signpost pointer-events-auto flex flex-col items-center">
@@ -76,9 +76,9 @@ function Signposts() {
             style={{ rotate: `${tilt[i % tilt.length]}deg` }}
           >
             <span className="text-[clamp(1.1rem,1.8vw,1.7rem)] leading-none font-extrabold tabular-nums">{fact.value}</span>
-            <span className="meta mt-1 text-[0.58rem] tracking-[0.12em] whitespace-nowrap text-paper/85">{fact.label}</span>
+            <span className="meta mt-1 max-w-[5.5rem] text-center text-[0.58rem] leading-tight tracking-[0.12em] text-paper/85 sm:max-w-none sm:whitespace-nowrap">{fact.label}</span>
           </span>
-          <span aria-hidden="true" className="h-[clamp(2.5rem,7svh,5rem)] w-[clamp(5px,0.5vw,8px)] bg-[#5a2410]" />
+          <span aria-hidden="true" className="h-[clamp(1.5rem,4svh,2.5rem)] w-[clamp(5px,0.5vw,8px)] bg-[#5a2410] sm:h-[clamp(2.5rem,7svh,5rem)]" />
         </li>
       ))}
     </ul>

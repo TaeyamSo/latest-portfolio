@@ -12,7 +12,8 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * the same website at that stage: notes on a blank page, a wireframe, half
  * built with the code open, then live. While the chapter is there the pages
  * keep building themselves, card after card, again and again. The cards sit a
- * little higher than the chapter's middle, so the highway below shows clearly.
+ * little higher than the chapter's middle, so the highway below shows clearly
+ * (less so on short screens, where the row is also kept narrower to fit).
  * On phones they slide sideways, a card at a time.
  */
 export function Process() {
@@ -21,13 +22,13 @@ export function Process() {
       id="process"
       data-chapter
       aria-labelledby="process-title"
-      className="chapter shell relative outline-none"
-      style={{ paddingBottom: "calc(clamp(12svh, 16.7vw, 26svh) + 6svh)" }}
+      className="chapter shell relative outline-none [--lift:6svh] [@media(max-height:45rem)]:[--lift:1svh]"
+      style={{ paddingBottom: "calc(var(--strip) + var(--lift))" }}
     >
       <Statement id="process-title">{chapters.process.statement}</Statement>
 
       <div data-track-view="" className="-mx-(--gutter) mt-[clamp(1.5rem,5svh,3.5rem)] px-(--gutter)">
-        <ol data-track="" className="gap-4 lg:gap-5">
+        <ol data-track="" className="gap-4 lg:max-w-[max(56rem,155svh)] lg:gap-5">
           {steps.map((step, i) => (
             <Step key={step.title} index={i} count={steps.length} {...step} />
           ))}

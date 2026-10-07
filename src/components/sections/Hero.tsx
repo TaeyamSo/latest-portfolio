@@ -21,7 +21,7 @@ function Status() {
 
   return (
     <p
-      className="intro-slide meta mb-7 flex flex-wrap items-center gap-x-5 gap-y-2 lg:mb-9"
+      className="intro-slide meta mb-7 flex flex-wrap items-center gap-x-5 gap-y-2 short:mb-3 lg:mb-9"
       style={{ "--delay": "900ms" } as Vars}
     >
       {showAvailability && (
@@ -116,9 +116,9 @@ export function Hero() {
               <NameLine text={profile.lastName} offset={profile.firstName.length} />
             </span>
           </h1>
-          <Dashes className="mt-7 lg:mt-9" dashClassName="intro-dash" />
+          <Dashes className="mt-7 short:mt-4 lg:mt-9" dashClassName="intro-dash" />
           <p
-            className="intro-slide mt-7 text-[clamp(1.15rem,1.55vw,1.8rem)] leading-snug font-medium lg:mt-9"
+            className="intro-slide mt-7 text-[clamp(1.15rem,1.55vw,1.8rem)] leading-snug font-medium short:mt-4 lg:mt-9"
             style={{ "--delay": "700ms" } as Vars}
           >
             {profile.tagline.map((line) => (

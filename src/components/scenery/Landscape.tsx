@@ -78,7 +78,7 @@ export function Landscape() {
   return (
     <div
       aria-hidden="true"
-      className="scenery pointer-events-none fixed inset-x-0 bottom-0 z-[4] h-(--strip) overflow-x-clip [--strip:clamp(12svh,16.7vw,26svh)]"
+      className="scenery pointer-events-none fixed inset-x-0 bottom-0 z-[4] h-(--strip) overflow-x-clip"
     >
       {SCENES.map(({ section, Scene, Own }) =>
         Own ? (
