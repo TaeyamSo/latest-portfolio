@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/lib/use-media-query";
 
-import { glowCss } from "./disc";
+import { glowCss, MOON_GLOW } from "./disc";
 import { canUseWebGL, whenIdle } from "./webgl";
 
 /** The hero intro is pure CSS and lands at ~2s; the WebGL sun takes over after it. */
@@ -21,6 +21,7 @@ const INTRO_MS = 2000;
 export function SunJourney() {
   const ref = useRef<HTMLCanvasElement>(null);
   const glow = useRef<HTMLDivElement>(null);
+  const moonGlow = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"waiting" | "on" | "failed">("waiting");
   const reduced = useMediaQuery("(prefers-reduced-motion: reduce)", true);
   const forced = useMediaQuery("(forced-colors: active)", true);
@@ -45,7 +46,7 @@ export function SunJourney() {
     let cancelled = false;
     import("./journey-renderer")
       .then(({ startJourney }) => {
-        if (!cancelled) stop = startJourney(canvas, glow.current, () => setStatus("failed"));
+        if (!cancelled) stop = startJourney(canvas, glow.current, moonGlow.current, () => setStatus("failed"));
       })
       .catch(() => setStatus("failed"));
     return () => {
@@ -64,6 +65,13 @@ export function SunJourney() {
         aria-hidden="true"
         className="pointer-events-none fixed top-0 left-0 z-[1] size-[1000px] opacity-0 will-change-transform"
         style={{ background: glowCss() }}
+      />
+      {/* The same light in the night theme: moonlight. */}
+      <div
+        ref={moonGlow}
+        aria-hidden="true"
+        className="pointer-events-none fixed top-0 left-0 z-[1] size-[1000px] opacity-0 will-change-transform"
+        style={{ background: glowCss(MOON_GLOW) }}
       />
       <canvas
         ref={ref}

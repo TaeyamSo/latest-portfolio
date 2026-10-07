@@ -125,7 +125,7 @@ export function SunsetStage() {
         <path d="M0,40 L0,29 L40,26 L90,30 L150,27 L210,31 L262,29 L300,34 L330,38 L342,40 Z" fill="#070302" />
         <path d="M226.5,30 L228,15 L233,15 L234.5,30 Z M227,9 h7 v6 h-7 Z M226,9 L230.5,5 L235,9 Z" fill="#070302" />
         {/* The last light catching the crest. */}
-        <path d="M0,29 L40,26 L90,30 L150,27 L210,31 L262,29 L300,34 L330,38 L342,40" fill="none" stroke="#b3300c" strokeOpacity="0.55" strokeWidth="1" />
+        <path d="M0,29 L40,26 L90,30 L150,27 L210,31 L262,29 L300,34 L330,38 L342,40" fill="none" stroke="var(--footer-rim, #b3300c)" strokeOpacity="0.55" strokeWidth="1" />
         {/* After sunset the lighthouse lights up and the town's lights come on one by one
             (the four brighter ones for the client sites, see globals.css .town-light). */}
         <path className="lighthouse-beam town-light" style={{ "--glow": 0.18 } as Vars} d="M229,12 L120,3 L120,21 Z" fill="#ffd27a" />

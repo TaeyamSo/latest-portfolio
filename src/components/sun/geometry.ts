@@ -48,6 +48,19 @@ export const EVENING = {
   gold: "#ffb629",
 } as const;
 
+/**
+ * The same footer at night (the night theme): indigo over the sea instead of
+ * ember, then navy, then the deepest night; the moon's path on the water is
+ * silver instead of gold. The footer's CSS tokens swap to these (globals.css).
+ */
+export const MOONLIT = {
+  ember: "#2a2f6e",
+  dusk: "#121838",
+  night: "#05060f",
+  sea: "#03050d",
+  gold: "#dfe6ff",
+} as const;
+
 type Layer = (typeof SUN)["long"] | (typeof SUN)["short"];
 type Point = [number, number];
 

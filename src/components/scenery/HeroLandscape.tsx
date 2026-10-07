@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 
 import { Cloud, type CloudPalette, type CloudShape } from "./Cloud";
 import { SinkLayer } from "./HeroScroll";
@@ -12,12 +13,25 @@ const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
  * Colours of the three ridges. Far and mid follow the sky's flame → amber
  * gradient (so ink text stays readable on them: ≥ 5.5:1 and ≥ 4.8:1), with a
  * lighter valley mist low down so each crest stands out against the haze
- * behind it. The near ridge darkens into the ink marquee band below.
+ * behind it. The near ridge darkens into the ink marquee band below. At night
+ * (the second colour) they're moonlit blue silhouettes in a pale moon mist.
  */
+const PAINT = palette("ridge", {
+  far0: ["#ec5418", "#28326c"],
+  far1: ["#f07c1c", "#323e7e"],
+  farMist: ["#ffc48a", "#8a98d6"],
+  mid0: ["#da5018", "#1b2356"],
+  mid1: ["#de621c", "#232d66"],
+  midMist: ["#ff9a5a", "#6475bd"],
+  near0: ["#a32a0c", "#111735"],
+  near1: ["#2a0d06", "#060816"],
+});
+const P = PAINT.C;
+
 const LAYERS = {
-  far: { sink: 85, rise: "4svh", fill: ["#ec5418", "#f07c1c"], mist: ["#ffc48a", 0.4] },
-  mid: { sink: 70, rise: "7svh", fill: ["#da5018", "#de621c"], mist: ["#ff9a5a", 0.3] },
-  near: { sink: 50, rise: "10svh", fill: ["#a32a0c", "#2a0d06"], mist: null },
+  far: { sink: 85, rise: "4svh", fill: [P.far0, P.far1], mist: [P.farMist, 0.4] },
+  mid: { sink: 70, rise: "7svh", fill: [P.mid0, P.mid1], mist: [P.midMist, 0.3] },
+  near: { sink: 50, rise: "10svh", fill: [P.near0, P.near1], mist: null },
 } as const;
 
 type Depth = keyof typeof LAYERS;
@@ -31,6 +45,7 @@ function RidgeLayer({ id, depth, spec, className }: { id: string; depth: Depth; 
   return (
     <SinkLayer sink={sink} className={cn("absolute inset-x-0", className)} style={{ top: pct(top), height: pct(RIDGE_BOTTOM - top) }}>
       <div className="intro-ridge size-full" style={{ "--rise": rise } as Vars}>
+        <Palette of={PAINT} />
         <svg viewBox={`0 ${y0.toFixed(1)} 1000 ${(y1 - y0).toFixed(1)}`} preserveAspectRatio="none" className="block size-full">
           <defs>
             <linearGradient

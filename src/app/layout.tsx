@@ -7,6 +7,7 @@ import { ScrollbarTone } from "@/components/providers/ScrollbarTone";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { profile } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
+import { THEME_SCRIPT } from "@/lib/theme-script";
 
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -70,7 +71,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${kanit.variable} ${mono.variable} ${fraunces.variable}`}>
+    // The theme (day or night) is put on <html> before the first paint by the
+    // inline script, so a saved night never flashes the day first.
+    <html lang="en" className={`${kanit.variable} ${mono.variable} ${fraunces.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <a
           href="#main"

@@ -104,7 +104,7 @@ function Shop({ project, front, order }: { project: Project; front: Front; order
     >
       {/* Opening the case study grows the shopfront into the page (and back). */}
       <ViewTransition name={`case-${project.slug}`} share="case-close" default="none">
-        <article aria-labelledby={titleId} className="relative text-paper">
+        <article aria-labelledby={titleId} data-day-ink="" className="relative text-paper">
           {front.kind === "awning" && (
             <>
               <h3 id={titleId} className={cn(sign, "relative mx-[5%] border-2 border-(--trim) px-3 py-[clamp(0.35rem,1svh,0.6rem)] text-center")} style={wall}>
@@ -209,7 +209,7 @@ function Workshop({ order }: { order: number }) {
   const tilt = [-2.5, 1.5, -1];
   return (
     <li data-step="" data-build="" style={{ "--b": 2 + order } as Vars} className={`shop ${SHOP}`}>
-      <section aria-labelledby="workshop-title" className="border-[6px] border-[#3b1409] bg-[#7a4320] p-[5%] text-paper shadow-[inset_0_0_0_2px_rgb(0_0_0/0.15)]">
+      <section aria-labelledby="workshop-title" data-day-ink="" className="border-[6px] border-[#3b1409] bg-[#7a4320] p-[5%] text-paper shadow-[inset_0_0_0_2px_rgb(0_0_0/0.15)]">
         <h3 id="workshop-title" className="text-[clamp(1rem,1.5vw,1.4rem)] font-extrabold tracking-[0.04em] uppercase">
           {title}
         </h3>

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 
 type Circle = readonly [cx: number, cy: number, r: number];
 type Capsule = readonly [x: number, y: number, w: number, h: number];
@@ -13,11 +14,28 @@ const SHAPES = {
 
 export type CloudShape = keyof typeof SHAPES;
 
-/** Every colour is lighter than the sky behind it, so a cloud never reads as a shadow. */
+/**
+ * Every colour is lighter than the sky behind it, so a cloud never reads as a
+ * shadow. At night (the second colour) the same clouds are moonlit: a silver
+ * edge on a body a little lighter than the night sky.
+ */
+const PAINT = palette("cloud", {
+  dayLit: ["#fff1d0", "#aab6e2"],
+  dayBody: ["#ffc994", "#36437c"],
+  dayShade: ["#ffa868", "#2a3463"],
+  goldenLit: ["#ffdca0", "#b8bfe8"],
+  goldenBody: ["#ffaa74", "#3b4683"],
+  goldenShade: ["#fb8c5c", "#2d3769"],
+  duskLit: ["#ffa860", "#7d8cc8"],
+  duskBody: ["#74301a", "#1c2452"],
+  duskShade: ["#4e1c0e", "#141a3c"],
+});
+const P = PAINT.C;
+
 export const CLOUD_PALETTES = {
-  day: { lit: "#fff1d0", body: "#ffc994", shade: "#ffa868" },
-  golden: { lit: "#ffdca0", body: "#ffaa74", shade: "#fb8c5c" },
-  dusk: { lit: "#ffa860", body: "#74301a", shade: "#4e1c0e" },
+  day: { lit: P.dayLit, body: P.dayBody, shade: P.dayShade },
+  golden: { lit: P.goldenLit, body: P.goldenBody, shade: P.goldenShade },
+  dusk: { lit: P.duskLit, body: P.duskBody, shade: P.duskShade },
 } as const;
 
 export type CloudPalette = keyof typeof CLOUD_PALETTES;
@@ -43,10 +61,10 @@ function Parts({ shape }: { shape: CloudShape }) {
   const [x, y, w, h] = base;
   return (
     <>
-      {circles.map(([cx, cy, r]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />
-      ))}
-      <rect x={x} y={y} width={w} height={h} rx={h / 2} />
+        {circles.map(([cx, cy, r]) => (
+          <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />
+        ))}
+        <rect x={x} y={y} width={w} height={h} rx={h / 2} />
     </>
   );
 }
@@ -60,6 +78,8 @@ export function Cloud({ id, shape, palette, light = "top-right", className }: Pr
   const colors = CLOUD_PALETTES[palette];
   const { body, shade, shadeBand } = LIGHT[light];
   return (
+    <>
+    <Palette of={PAINT} />
     <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false" className={cn("block", className)}>
       <defs>
         <clipPath id={`${id}-shape`}>
@@ -83,5 +103,6 @@ export function Cloud({ id, shape, palette, light = "top-right", className }: Pr
         </g>
       </g>
     </svg>
+    </>
   );
 }

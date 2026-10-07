@@ -1,3 +1,5 @@
+import { Palette, palette } from "@/lib/palette";
+
 import { CoastCues } from "./CoastCues";
 import { VehicleSprite } from "./vehicles";
 
@@ -14,6 +16,10 @@ import { VehicleSprite } from "./vehicles";
  * arrives the sun's path on the water opens up, a sailboat glides in and the
  * gulls come; the sun's path shimmers, the gulls circle. Point at a gull and
  * it flies off; point at the sailboat and it rocks (CoastCues).
+ *
+ * At night (the night theme) the coast is blue under the moon: its path on
+ * the water is silver, the cottage window is lit, and the lighthouse is on —
+ * its lantern glowing, its beam sweeping out over the sea.
  */
 const W = 1440;
 const H = 240;
@@ -27,18 +33,25 @@ type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 const TOP = 122;
 const HORIZON = 150;
 
-const C = {
-  sea: "#d0521a",
-  glitter: "#ffd27a",
-  cliff: "#c9561e",
-  rock: "#b34a18",
-  asphalt: "#5d3526",
-  ink: "#3b1409",
-  paper: "#fffaf4",
-  red: "#b3300c",
-  wall: "#e6782a",
-  roof: "#9c3f16",
-} as const;
+const PAINT = palette("coast", {
+  sea: ["#d0521a", "#1a2458"],
+  glitter: ["#ffd27a", "#dfe6ff"],
+  cliff: ["#c9561e", "#1c2455"],
+  rock: ["#b34a18", "#151b45"],
+  asphalt: ["#5d3526", "#14182e"],
+  dash: ["#ffd84a", "#b9a35a"],
+  ink: ["#3b1409", "#0a0e22"],
+  paper: ["#fffaf4", "#c9d0ec"],
+  red: ["#b3300c", "#7a2410"],
+  wall: ["#e6782a", "#2f3a6b"],
+  roof: ["#9c3f16", "#151b42"],
+  sail: ["#ffe6c4", "#aeb8de"],
+  gull: ["#3b1409", "#c9d0ec"],
+});
+const C = PAINT.C;
+
+/** The lighthouse's lamp and the cottage window, lit (the night theme). */
+const LIT = "#ffcf6e";
 
 function Land() {
   return (
@@ -60,13 +73,14 @@ function Land() {
 
       {/* The highway's end: the road comes in from the left and stops at a lookout with a railing. */}
       <rect x="0" y={TOP - 7} width="410" height="7" fill={C.asphalt} />
-      <path d={`M0,${TOP - 3.5}H400`} stroke="#ffd84a" strokeWidth="1.2" strokeDasharray="10 8" />
+      <path d={`M0,${TOP - 3.5}H400`} stroke={C.dash} strokeWidth="1.2" strokeDasharray="10 8" />
       <path d={`M412,${TOP - 13}H478 M414,${TOP - 13}V${TOP} M436,${TOP - 13}V${TOP} M456,${TOP - 13}V${TOP} M476,${TOP - 13}V${TOP}`} stroke={C.paper} strokeWidth="1.6" />
 
       {/* The keeper's cottage and the lighthouse — not lit yet. */}
       <rect x="524" y={TOP - 20} width="50" height="20" fill={C.wall} />
       <path d={`M518,${TOP - 20} L549,${TOP - 34} L580,${TOP - 20} Z`} fill={C.roof} />
       <rect x="533" y={TOP - 14} width="9" height="8" fill={C.paper} opacity="0.9" />
+      <rect className="night-light" x="533" y={TOP - 14} width="9" height="8" fill={LIT} style={{ "--i": 1 } as Vars} />
       <rect x="555" y={TOP - 13} width="9" height="13" fill={C.ink} />
       <path d={`M589,${TOP} L593,60 L607,60 L611,${TOP} Z`} fill={C.paper} />
       <path d="M590.4,104 L609.6,104 L610.4,114 L589.6,114 Z M591.8,82 L608.2,82 L609,92 L591,92 Z" fill={C.red} />
@@ -76,6 +90,20 @@ function Land() {
       <path d="M588,57V51M593,57V51M600,57V51M607,57V51M612,57V51M587,51H613" stroke={C.ink} strokeWidth="1" />
       <rect x="592" y="44" width="16" height="13" fill={C.ink} />
       <path d="M589,44 L600,34 L611,44 Z" fill={C.ink} />
+
+      {/* At night the lighthouse is on: its beam sweeps out over the sea, its lantern glows. */}
+      <defs>
+        <linearGradient id="coast-beam-fade" x1="600" y1="0" x2="1120" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#ffe6a8" stopOpacity="0.5" />
+          <stop offset="0.45" stopColor="#ffe6a8" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#ffe6a8" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <g className="night-light" style={{ "--i": 3 } as Vars}>
+        <path className="coast-beam" d="M600,50 L1120,24 L1120,78 Z" fill="url(#coast-beam-fade)" />
+      </g>
+      <circle className="night-light" cx="600" cy="50" r="16" fill={LIT} style={{ "--i": 2, "--glow": 0.25 } as Vars} />
+      <rect className="night-light" x="594" y="46" width="12" height="9" fill="#fff0c0" style={{ "--i": 2 } as Vars} />
 
     </>
   );
@@ -88,7 +116,7 @@ function Gull({ x, y, i }: { x: number; y: number; i: number }) {
       <div className="coast-gull-loop">
         <div className="coast-gull">
           <svg viewBox="0 0 13 6" className="coast-gull-wings block w-full overflow-visible">
-            <path d="M0.5,4 C2.5,0.8 4.6,1 6.5,3.6 C8.4,1 10.5,0.8 12.5,4" fill="none" stroke={C.ink} strokeWidth="1.1" strokeLinecap="round" />
+            <path d="M0.5,4 C2.5,0.8 4.6,1 6.5,3.6 C8.4,1 10.5,0.8 12.5,4" fill="none" stroke={C.gull} strokeWidth="1.1" strokeLinecap="round" />
           </svg>
         </div>
       </div>
@@ -127,7 +155,7 @@ function Life() {
           <div className="coast-sail absolute bottom-0 left-0" style={{ width: px(26) }}>
             <svg viewBox="0 0 26 30" className="coast-sail-rock block w-full overflow-visible">
               <path d="M13,2 V22 L4,22 Z" fill={C.paper} />
-              <path d="M14,6 V22 L22,22 Z" fill="#ffe6c4" />
+              <path d="M14,6 V22 L22,22 Z" fill={C.sail} />
               <path d="M13,1V23" stroke={C.ink} strokeWidth="1" />
               <path d="M1,23 H25 L21,29 H5 Z" fill={C.ink} />
             </svg>
@@ -146,6 +174,7 @@ function Life() {
 export function Coast() {
   return (
     <div data-scene="journey" className="coast absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", contentVisibility: "hidden" }}>
+      <Palette of={PAINT} />
       <div className="absolute inset-0 overflow-hidden">
         <div className="town-box">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">

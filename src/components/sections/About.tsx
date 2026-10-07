@@ -67,6 +67,7 @@ function Signposts() {
   return (
     <ul
       aria-label="In numbers"
+      data-day-ink=""
       className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[max(var(--strip),5.5rem)] items-end justify-center gap-3 sm:gap-[clamp(1.5rem,7vw,7rem)] overflow-hidden px-(--gutter) sm:justify-end sm:pr-[12vw]"
     >
       {facts.map((fact, i) => (

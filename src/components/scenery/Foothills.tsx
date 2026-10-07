@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 
 import { FoothillsCues } from "./FoothillsCues";
 import { ridgePath, type RidgeSpec } from "./ridges";
@@ -15,6 +16,10 @@ import { ridgePath, type RidgeSpec } from "./ridges";
  * bales) with a windmill beside it, and a stream winding down the valley.
  * When the about arrives the windmill starts turning and the chimney smokes.
  * Point at the windmill and it spins faster (FoothillsCues).
+ *
+ * At night (the night theme) the hills are blue under the moon, the stream
+ * runs silver, the farm's windows and barn door light up, and fireflies drift
+ * over the fields.
  */
 const W = 1440;
 const H = 240;
@@ -39,23 +44,26 @@ function groundAt(anchors: Anchors, x: number) {
   return anchors[anchors.length - 1][1] * H;
 }
 
-const C = {
-  far: "#e0661f",
-  near: "#cf5a1c",
-  haze: "#ffd9a6",
-  trunk: "#9a3a12",
-  tree: "#b84a14",
-  wall: "#efb06a",
-  roof: "#9c3f16",
-  barn: "#a8441a",
-  wood: "#8a3412",
-  hay: "#f2b45e",
-  stream: "#f2a65a",
-  ink: "#3b1409",
-  paper: "#fffaf4",
-  flame: "#fd5d16",
-  gold: "#ffb629",
-} as const;
+const PAINT = palette("foothills", {
+  far: ["#e0661f", "#26306a"],
+  near: ["#cf5a1c", "#1a2152"],
+  haze: ["#ffd9a6", "#7c8cc8"],
+  trunk: ["#9a3a12", "#121838"],
+  tree: ["#b84a14", "#18204a"],
+  wall: ["#efb06a", "#3a4580"],
+  roof: ["#9c3f16", "#151b42"],
+  barn: ["#a8441a", "#2a2f66"],
+  wood: ["#8a3412", "#121838"],
+  hay: ["#f2b45e", "#4a5490"],
+  stream: ["#f2a65a", "#8fa3e0"],
+  ink: ["#3b1409", "#0a0e22"],
+  paper: ["#fffaf4", "#dfe6ff"],
+  smoke: ["#fff1d0", "#8f9cc9"],
+});
+const C = PAINT.C;
+
+/** Windows when they're lit (the night theme). */
+const LIT = "#ffcf6e";
 
 /** Where things stand. */
 const MILL = { x: 470, y: groundAt(NEAR, 470) };
@@ -102,12 +110,16 @@ function Land() {
       <rect x="206" y={farm - 22} width="50" height="24" fill={C.wall} />
       <path d={`M200,${farm - 21} L231,${farm - 38} L262,${farm - 21} Z`} fill={C.roof} />
       <rect x="226" y={farm - 12} width="9" height="14" fill={C.wood} />
-      {[212, 242].map((x) => (
-        <rect key={x} x={x} y={farm - 16} width="8" height="7" fill={C.paper} opacity="0.85" />
+      {[212, 242].map((x, i) => (
+        <g key={x}>
+          <rect x={x} y={farm - 16} width="8" height="7" fill={C.paper} opacity="0.85" />
+          <rect className="night-light" x={x} y={farm - 16} width="8" height="7" fill={LIT} style={{ "--i": i * 3 } as Vars} />
+        </g>
       ))}
       <rect x="270" y={farm - 26} width="44" height="28" fill={C.barn} />
       <path d={`M266,${farm - 25} L274,${farm - 36} L306,${farm - 36} L318,${farm - 25} Z`} fill={C.roof} />
       <rect x="282" y={farm - 14} width="18" height="16" fill={C.paper} opacity="0.9" />
+      <rect className="night-light" x="282" y={farm - 14} width="18" height="16" fill={LIT} style={{ "--i": 6, "--glow": 0.85 } as Vars} />
       <path d={`M282,${farm - 14} L300,${farm + 2} M300,${farm - 14} L282,${farm + 2}`} stroke={C.barn} strokeWidth="1.4" />
       <path
         d={`M324,${farm - 6} H420 M324,${farm - 1} H420 ${Array.from({ length: 7 }, (_, i) => `M${326 + i * 15},${farm - 9}V${farm + 2}`).join("")}`}
@@ -170,12 +182,23 @@ function Life() {
         <span
           key={i}
           className="fh-smoke town-smoke absolute rounded-full"
-          style={{ left: px(247.5 - 5), top: py(farm - 46), width: px(10), aspectRatio: 1, background: "#fff1d0", "--i": i } as Vars}
+          style={{ left: px(247.5 - 5), top: py(farm - 46), width: px(10), aspectRatio: 1, background: C.smoke, "--i": i } as Vars}
         />
+      ))}
+
+      {/* Fireflies over the fields, at night. */}
+      {FIREFLIES.map(([x, y], i) => (
+        <span key={i} className="firefly night-only absolute" style={{ left: px(x), top: py(y), "--i": i } as Vars} />
       ))}
     </>
   );
 }
+
+/** Where the fireflies drift, [x, y] in strip units: over the farm, the stream and the meadows. */
+const FIREFLIES = [
+  [150, 196], [330, 206], [395, 186], [540, 214], [610, 196], [690, 222], [800, 205],
+  [880, 190], [960, 216], [1080, 200], [1200, 212], [1290, 194], [1380, 208],
+] as const;
 
 /**
  * The foothills scene, mounted by Landscape.tsx in the about's place. Like the
@@ -185,6 +208,7 @@ function Life() {
 export function Foothills() {
   return (
     <div data-scene="about" className="foothills absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", contentVisibility: "hidden" }}>
+      <Palette of={PAINT} />
       <div className="absolute inset-0 overflow-hidden">
         <div className="town-box">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">

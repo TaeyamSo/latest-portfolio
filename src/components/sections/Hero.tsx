@@ -98,7 +98,7 @@ export function Hero() {
               <OrbitText className="orbit size-full text-ink/80" />
             </div>
           </div>
-          <p className="intro-from-right serif-accent absolute top-1/2 left-[4%] -translate-y-[58%] text-[clamp(2.6rem,5.6vw,6.6rem)] leading-none">
+          <p className="hero-portfolio intro-from-right serif-accent absolute top-1/2 left-[4%] -translate-y-[58%] text-[clamp(2.6rem,5.6vw,6.6rem)] leading-none">
             portfolio
           </p>
         </div>

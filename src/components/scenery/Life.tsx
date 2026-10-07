@@ -5,18 +5,26 @@ import { useEffect, useRef } from "react";
 import { marquee } from "@/content/site";
 import { CHAPTER_LEAVE, type ChapterLeave } from "@/lib/chapters";
 
-/** A bird in flight, as a simple silhouette; its wings beat while it flies (globals.css). */
+/**
+ * A bird in flight, as a simple silhouette; its wings beat while it flies
+ * (globals.css). At night (the night theme) it's a bat, flapping faster.
+ */
 function Bird({ size }: { size: number }) {
   return (
     <svg viewBox="-14 -9 28 12" width={28 * size} height={12 * size} className="block overflow-visible">
       <path
-        className="bird-wings"
+        className="bird-wings day-only"
         d="M-12,1 C-8,-7 -3,-5 0,0 C3,-5 8,-7 12,1"
         fill="none"
         stroke="#3b1409"
         strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        className="bird-wings bat-wings night-only"
+        d="M0,-1.6 L-1.2,-3.4 L-1.6,-1.2 C-4,-4 -8,-5.4 -13,-3.6 C-11,-2.4 -11.2,-0.4 -9.6,0.8 C-8,-0.2 -6.6,0.4 -5.6,1.8 C-4.4,0.8 -2.4,0.8 -1.2,2.2 L0,1.2 L1.2,2.2 C2.4,0.8 4.4,0.8 5.6,1.8 C6.6,0.4 8,-0.2 9.6,0.8 C11.2,-0.4 11,-2.4 13,-3.6 C8,-5.4 4,-4 1.6,-1.2 L1.2,-3.4 Z"
+        fill="#070a1a"
       />
     </svg>
   );
@@ -56,7 +64,8 @@ const at = ([x, y]: Point, scale: number, dx = 0, dy = 0) =>
  * towing a banner with what Tayam does; at golden hour a V of birds flies home towards
  * the sun. Time-based, transform-only animations on a fixed layer just above
  * the clouds; nothing runs between the moments, and nothing at all without
- * chapters (reduced motion).
+ * chapters (reduced motion). At night the birds are bats and the plane flies
+ * with its lights blinking.
  */
 export function Life() {
   const takeoff = useRef<HTMLDivElement>(null);
@@ -125,7 +134,7 @@ export function Life() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="scenery pointer-events-none fixed inset-0 z-[3] overflow-hidden">
+    <div aria-hidden="true" data-night-ink="" className="scenery pointer-events-none fixed inset-0 z-[3] overflow-hidden">
       <div ref={takeoff}>
         {TAKEOFF.map(({ size }, i) => (
           <span key={i} className="absolute top-0 left-0 opacity-0" style={{ "--beat": `${0.32 + (i % 3) * 0.05}s` } as React.CSSProperties}>
@@ -137,9 +146,12 @@ export function Life() {
       <div>
         {/* The plane, flying left, with the banner trailing behind it on a rope. */}
         <div ref={plane} className="absolute top-0 left-0 flex items-center" style={{ transform: "translate(105vw, 13vh)" }}>
-          <svg viewBox="-28 -16 62 32" className="block h-[clamp(1.6rem,3vw,2.4rem)] w-auto" fill="#3b1409">
+          <svg viewBox="-28 -16 62 32" className="block h-[clamp(1.6rem,3vw,2.4rem)] w-auto overflow-visible" fill="var(--plane, #3b1409)">
             <path d="M-24,0 Q-26,-3 -20,-4 L16,-4 L26,-14 L31,-14 L27,-2 Q30,0 27,2 L-20,3 Q-26,3 -24,0 Z" />
             <path d="M-2,-2 L10,-2 L-6,14 L-12,14 Z" />
+            {/* Its lights at night: red on the wing tip, white on the tail, blinking in turn. */}
+            <circle className="nav-blink night-only" cx="-9" cy="13" r="2.2" fill="#ff5a4a" />
+            <circle className="nav-blink night-only" cx="30" cy="-14" r="2" fill="#ffffff" style={{ "--i": 1 } as React.CSSProperties} />
           </svg>
           <span className="h-px w-[clamp(1.5rem,3vw,3rem)] bg-[#3b1409]/70" />
           <span className="banner meta border-2 border-ink bg-paper px-[clamp(0.6rem,1vw,1rem)] py-1.5 text-[clamp(0.6rem,0.8vw,0.75rem)] whitespace-nowrap text-ink">

@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import { DAY, dayAt, measureStops, mixHex } from "@/components/sun/day";
+import { DAY, NIGHT, dayAt, measureStops, mixHex } from "@/components/sun/day";
+import { THEME_EVENT } from "@/lib/theme";
 
 const AMBER = "#fd8916"; // the page's right edge, wherever there's no sky cycle (case studies, 404)
 const DARK = "#0d0a08";
@@ -17,6 +18,8 @@ const DARK = "#0d0a08";
  * own scrollbar: setting them as variables on <html> restyled every element
  * on the page (~50ms a time) and made glides stutter. Only writes when the
  * colour actually changes, once the scrolling rests; re-checks on every page.
+ * At night (the night theme, home page only) it follows the night's sky, with
+ * a light thumb.
  */
 export function ScrollbarTone() {
   const pathname = usePathname();
@@ -44,13 +47,15 @@ export function ScrollbarTone() {
         const r = el.getBoundingClientRect();
         return r.top <= line && r.bottom >= line && r.right >= edge && r.left <= edge;
       });
+      const night = Boolean(stops) && root.dataset.theme === "night";
       let sky = AMBER;
       if (stops) {
+        const line = night ? NIGHT : DAY;
         const day = dayAt(window.scrollY, stops);
-        sky = mixHex(DAY[day.index].sky[1], DAY[day.next].sky[1], Math.round(day.t * 20) / 20);
+        sky = mixHex(line[day.index].sky[1], line[day.next].sky[1], Math.round(day.t * 20) / 20);
       }
-      const track = dark ? DARK : sky;
-      const thumb = dark ? "rgb(255 250 244 / 0.4)" : "rgb(13 10 8 / 0.45)";
+      const track = dark ? (night ? "#05060f" : DARK) : sky;
+      const thumb = dark || night ? "rgb(255 250 244 / 0.4)" : "rgb(13 10 8 / 0.45)";
       const key = `${track}|${thumb}`;
       if (key === last) return;
       last = key;
@@ -70,12 +75,14 @@ export function ScrollbarTone() {
     const observer = new ResizeObserver(measure);
     observer.observe(document.body);
     window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener(THEME_EVENT, schedule);
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(idle);
       observer.disconnect();
       sheet.remove();
       window.removeEventListener("scroll", schedule);
+      window.removeEventListener(THEME_EVENT, schedule);
     };
   }, [pathname]);
 

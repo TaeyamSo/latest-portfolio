@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 
 import { mulberry32 } from "./ridges";
 import { TownCues } from "./TownCues";
@@ -13,6 +14,9 @@ import { TownCues } from "./TownCues";
  * bell and its pigeons, and the awnings.
  * Everything that moves is its own small element, moved only with transform
  * and opacity (globals.css, "The town at noon").
+ *
+ * At night (the night theme) the same street in blue, its windows lighting up
+ * one by one as the services arrive, the lamps glowing, the clock face lit.
  */
 const W = 1440;
 const H = 240;
@@ -26,33 +30,44 @@ const py = (y: number) => pct(y, H);
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 type Box = readonly [x: number, y: number, w: number, h: number];
 
-/** Mid-tones a step darker than the noon sky; ink for the people and the signs. */
-const C = {
-  far: "#f39a46",
-  wallA: "#e6782a",
-  wallB: "#ee8b3a",
-  wallC: "#dc6a26",
-  wallD: "#e98042",
-  wallE: "#ec9a4c",
-  stone: "#e07228",
-  roof: "#b84d1a",
-  roofDark: "#9c3f16",
-  trim: "#c25a20",
-  frame: "#f9c27a",
-  glass: "#9a4015",
-  door: "#8a3412",
-  shade: "#5a2410",
-  tree: "#b84a14",
-  trunk: "#9a3a12",
-  pavement: "#ec8d42",
-  kerb: "#b9531e",
-  road: "#d2662a",
-  ink: "#3b1409",
-  paper: "#fffaf4",
-  flame: "#fd5d16",
-  gold: "#ffb629",
-  lit: "#ffd84a",
-} as const;
+/**
+ * Mid-tones a step darker than the noon sky; ink for the people and the signs.
+ * The second colour is the night's: slate blues under the moon, dark glass,
+ * and the people as silhouettes.
+ */
+const PAINT = palette("town", {
+  far: ["#f39a46", "#2b3770"],
+  wallA: ["#e6782a", "#2f3a6b"],
+  wallB: ["#ee8b3a", "#35417a"],
+  wallC: ["#dc6a26", "#29336a"],
+  wallD: ["#e98042", "#323d74"],
+  wallE: ["#ec9a4c", "#3a4682"],
+  stone: ["#e07228", "#2c3770"],
+  roof: ["#b84d1a", "#1b2250"],
+  roofDark: ["#9c3f16", "#151b42"],
+  trim: ["#c25a20", "#232c5e"],
+  frame: ["#f9c27a", "#56649e"],
+  glass: ["#9a4015", "#151a3a"],
+  door: ["#8a3412", "#141a3a"],
+  shade: ["#5a2410", "#0e1330"],
+  tree: ["#b84a14", "#1a2252"],
+  trunk: ["#9a3a12", "#141a3e"],
+  pavement: ["#ec8d42", "#283265"],
+  kerb: ["#b9531e", "#1d254f"],
+  road: ["#d2662a", "#1a1f3c"],
+  dash: ["#ffd27a", "#7f8cc0"],
+  ink: ["#3b1409", "#0a0e22"],
+  paper: ["#fffaf4", "#fff0c4"],
+  poster: ["#f6dcc0", "#f3e3c6"],
+  smoke: ["#fff1d0", "#8f9cc9"],
+  flame: ["#fd5d16", "#c8451a"],
+  gold: ["#ffb629", "#e0a63a"],
+  lamp: ["#f9c27a", "#ffe6a8"],
+});
+const C = PAINT.C;
+
+/** Windows and lamps when they're lit (the night theme). */
+const LIT = "#ffcf6e";
 
 /* --- Drawing helpers -------------------------------------------------- */
 
@@ -61,12 +76,17 @@ function Gable({ x0, x1, eave, peak, fill }: { x0: number; x1: number; eave: num
   return <path d={`M${x0},${eave}L${(x0 + x1) / 2},${peak}L${x1},${eave}Z`} fill={fill} />;
 }
 
-/** A window: a light frame around dark glass. */
+/**
+ * A window: a light frame around dark glass. At night about two in three are
+ * lit — the same ones every time — each coming on at its own moment.
+ */
 function Win({ x, y, w = 12, h = 16 }: { x: number; y: number; w?: number; h?: number }) {
+  const n = (x * 37 + y * 101) % 23;
   return (
     <>
       <rect x={x - 1.5} y={y - 1.5} width={w + 3} height={h + 3} fill={C.frame} />
       <rect x={x} y={y} width={w} height={h} fill={C.glass} />
+      {n % 3 !== 0 && <rect className="night-light" x={x} y={y} width={w} height={h} fill={LIT} style={{ "--i": n % 14 } as Vars} />}
     </>
   );
 }
@@ -109,9 +129,12 @@ function Tree({ x, top = 168, size = 1 }: { x: number; top?: number; size?: numb
 function Lamp({ x }: { x: number }) {
   return (
     <>
+      {/* Its light at night: a warm pool around the head. */}
+      <circle className="night-light" cx={x} cy="167" r="16" fill={LIT} style={{ "--glow": 0.12, "--i": 2 } as Vars} />
+      <circle className="night-light" cx={x} cy="167" r="7" fill={LIT} style={{ "--glow": 0.3, "--i": 2 } as Vars} />
       <rect x={x - 1} y="170" width="2" height="46" fill={C.shade} />
       <path d={`M${x - 4},170h8l-1.5,-5h-5Z`} fill={C.shade} />
-      <rect x={x - 2.2} y="165.6" width="4.4" height="3.4" fill={C.frame} />
+      <rect x={x - 2.2} y="165.6" width="4.4" height="3.4" fill={C.lamp} />
     </>
   );
 }
@@ -120,7 +143,7 @@ function Lamp({ x }: { x: number }) {
 function Poster() {
   return (
     <>
-      <rect x="922" y="110" width="104" height="34" fill="#f6dcc0" />
+      <rect x="922" y="110" width="104" height="34" fill={C.poster} />
       <rect x="922" y="110" width="104" height="5" fill={C.flame} />
       <rect x="928" y="120" width="48" height="5" fill={C.ink} />
       <rect x="928" y="128" width="34" height="5" fill={C.ink} />
@@ -185,6 +208,7 @@ function Street() {
       <rect x="383" y="86" width="150" height="7" fill={C.roof} />
       {[100, 124, 148].map((y) => [404, 432, 460, 488].map((x) => <Win key={`${x}-${y}`} x={x} y={y} w={20} h={16} />))}
       <rect x="443" y="177" width="30" height="31" fill={C.glass} />
+      <rect className="night-light" x="443" y="177" width="30" height="31" fill={LIT} style={{ "--i": 5, "--glow": 0.8 } as Vars} />
 
       {/* A narrow house. */}
       <rect x="538" y="128" width="72" height={GROUND - 128} fill={C.wallB} />
@@ -263,7 +287,7 @@ function Street() {
       <rect y={GROUND} width={W} height="16" fill={C.pavement} />
       <rect y="224" width={W} height="2.5" fill={C.kerb} />
       <rect y="226.5" width={W} height="13.5" fill={C.road} />
-      <path d="M0,233.5H1440" stroke="#ffd27a" strokeWidth="1.6" strokeDasharray="16 14" opacity="0.7" />
+      <path d="M0,233.5H1440" stroke={C.dash} strokeWidth="1.6" strokeDasharray="16 14" opacity="0.7" />
 
       {/* On the pavement: lamps and the café's tables. */}
       {[249, 1040, 1273].map((x) => (
@@ -420,7 +444,7 @@ function Smoke({ x, y }: { x: number; y: number }) {
         <span
           key={i}
           className="town-smoke absolute rounded-full"
-          style={{ left: px(x - 5), top: py(y - 10), width: px(10), aspectRatio: 1, background: "#fff1d0", "--i": i } as Vars}
+          style={{ left: px(x - 5), top: py(y - 10), width: px(10), aspectRatio: 1, background: C.smoke, "--i": i } as Vars}
         />
       ))}
     </>
@@ -548,6 +572,7 @@ function Sky() {
 export function Town() {
   return (
     <div data-scene="services" className="town absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", contentVisibility: "hidden" }}>
+      <Palette of={PAINT} />
       <div className="absolute inset-0 overflow-hidden">
         <div className="town-box">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">

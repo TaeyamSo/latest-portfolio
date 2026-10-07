@@ -49,9 +49,11 @@ type StepProps = {
 
 function Step({ title, stage, address, description, index, count }: StepProps) {
   return (
+    // Black cards with bright screens, by day and by night (data-day-ink).
     <li
       data-step=""
       data-build=""
+      data-day-ink=""
       style={{ "--b": 1 + index, "--card": index } as Vars}
       className="w-[72vw] shrink-0 sm:w-[42vw] lg:w-auto lg:min-w-0 lg:flex-1 lg:shrink"
     >

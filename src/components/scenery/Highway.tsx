@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 
 import { HighwayCues } from "./HighwayCues";
 import { VEHICLES, VehicleSprite, type Vehicle } from "./vehicles";
@@ -14,6 +15,10 @@ import { VEHICLES, VehicleSprite, type Vehicle } from "./vehicles";
  * own: traffic both ways (one car taking a surfboard to the
  * coast), birds hopping on the wire and now and then flying off, a tumbleweed,
  * dust behind the truck. Point at a car and it honks (HighwayCues).
+ *
+ * At night (the night theme) the desert is blue, the cars drive with their
+ * headlights on, the city behind has lit windows and the lighthouse ahead
+ * blinks.
  */
 const W = 1440;
 const H = 240;
@@ -33,24 +38,29 @@ const POLES = [170, 470, 770, 1070, 1370];
 const WIRE_TOP = 104;
 const WIRE_SAG = 18;
 
-const C = {
-  haze: "#ef9446",
-  hills: "#e5813a",
-  hillsNear: "#da7030",
-  ground: "#d2662a",
-  sea: "#c9561e",
-  asphalt: "#5d3526",
-  verge: "#c75a22",
-  pole: "#7a3b17",
-  wire: "#3b1409",
-  rail: "#fffaf4",
-  post: "#8a3412",
-  ink: "#3b1409",
-  paper: "#fffaf4",
-  gold: "#ffb629",
-  sunlight: "#ffd84a",
-  flame: "#fd5d16",
-} as const;
+const PAINT = palette("highway", {
+  haze: ["#ef9446", "#3a4680"],
+  hills: ["#e5813a", "#26306a"],
+  hillsNear: ["#da7030", "#1e2659"],
+  ground: ["#d2662a", "#1a2152"],
+  sea: ["#c9561e", "#1f2a5e"],
+  asphalt: ["#5d3526", "#14182e"],
+  verge: ["#c75a22", "#1a2152"],
+  pole: ["#7a3b17", "#10142c"],
+  wire: ["#3b1409", "#0a0e22"],
+  rail: ["#fffaf4", "#8f9cc9"],
+  post: ["#8a3412", "#141a3e"],
+  ink: ["#3b1409", "#0a0e22"],
+  paper: ["#fffaf4", "#c9d0ec"],
+  sunlight: ["#ffd84a", "#b9a35a"],
+  glint: ["#ffd84a", "#dfe6ff"],
+  flame: ["#fd5d16", "#c8451a"],
+  band: ["#b3300c", "#86260e"],
+  canopy: ["#8f4a1c", "#1a2252"],
+  rock: ["#b8693a", "#2a3466"],
+  tuft: ["#b97a2c", "#4a5490"],
+});
+const C = PAINT.C;
 
 /** The wire's height between two poles (a gentle sag), at `t` (0–1) of the way across. */
 const wireAt = (t: number) => WIRE_TOP + 2 * WIRE_SAG * t * (1 - t);
@@ -64,12 +74,20 @@ function Land() {
         fill={C.haze}
         opacity="0.75"
       />
+      {/* At night, windows lit in those towers. */}
+      <path
+        className="night-only"
+        d="M28,90h3v4h-3zM38,98h3v4h-3zM76,72h3v4h-3zM84,86h3v4h-3zM78,100h3v4h-3zM104,120h3v4h-3zM128,100h3v4h-3zM134,112h3v4h-3zM176,160h3v4h-3zM56,110h3v4h-3z"
+        fill="#ffcf6e"
+        opacity="0.8"
+      />
       {/* The sea ahead, and the lighthouse waiting on its point (the journey is ahead). */}
       <path d="M1210,186 V172 Q1300,168 1440,166 V186 Z" fill={C.sea} />
-      <path d="M1250,172 h46 M1320,170 h60 M1390,168 h40" stroke={C.sunlight} strokeWidth="1.6" opacity="0.6" />
+      <path d="M1250,172 h46 M1320,170 h60 M1390,168 h40" stroke={C.glint} strokeWidth="1.6" opacity="0.6" />
       <path d="M1330,172 L1332,136 L1340,136 L1342,172 Z" fill={C.paper} />
-      <path d="M1331,152 h10 M1331.5,144 h9" stroke="#b3300c" strokeWidth="3" />
+      <path d="M1331,152 h10 M1331.5,144 h9" stroke={C.band} strokeWidth="3" />
       <path d="M1328,136 L1336,128 L1344,136 Z" fill={C.ink} />
+      <circle className="lamp-blink night-only" cx="1336" cy="138" r="5" fill="#ffe6a8" />
 
       {/* Low desert hills, and the land up to the road. */}
       <path
@@ -89,19 +107,19 @@ function Land() {
             strokeWidth="3.4"
             strokeLinecap="round"
           />
-          <ellipse cx={x - 9} cy={136} rx={5} ry={6} fill="#8f4a1c" />
-          <ellipse cx={x + 12} cy={144} rx={5} ry={6} fill="#8f4a1c" />
+          <ellipse cx={x - 9} cy={136} rx={5} ry={6} fill={C.canopy} />
+          <ellipse cx={x + 12} cy={144} rx={5} ry={6} fill={C.canopy} />
         </g>
       ))}
       {[250, 690, 1150].map((x) => (
-        <path key={x} d={`M${x},192 Q${x + 4},182 ${x + 10},186 Q${x + 16},181 ${x + 20},192 Z`} fill="#b8693a" />
+        <path key={x} d={`M${x},192 Q${x + 4},182 ${x + 10},186 Q${x + 16},181 ${x + 20},192 Z`} fill={C.rock} />
       ))}
       {[90, 560, 860, 1290].map((x) => (
         <path
           key={x}
           d={`M${x},193 q2,-7 1,-11 M${x + 4},193 q1,-8 4,-12 M${x + 8},193 q1,-6 6,-8`}
           fill="none"
-          stroke="#b97a2c"
+          stroke={C.tuft}
           strokeWidth="1.4"
           strokeLinecap="round"
         />
@@ -237,8 +255,8 @@ function Life() {
       {/* Now and then a tumbleweed rolls along the verge. */}
       <div className="hw-tumble absolute left-0 h-0 w-full" style={{ bottom: py(H - 238) }}>
         <svg viewBox="0 0 40 40" className="hw-tumble-roll absolute bottom-0 left-0 block" style={{ width: px(10) }}>
-          <circle cx="20" cy="20" r="17" fill="none" stroke="#b97a2c" strokeWidth="2.4" />
-          <path d="M6,14 Q20,28 34,12 M8,28 Q20,8 32,30 M20,3 Q12,20 22,37 M4,22 Q22,18 36,24" fill="none" stroke="#b97a2c" strokeWidth="2" />
+          <circle cx="20" cy="20" r="17" fill="none" stroke={C.tuft} strokeWidth="2.4" />
+          <path d="M6,14 Q20,28 34,12 M8,28 Q20,8 32,30 M20,3 Q12,20 22,37 M4,22 Q22,18 36,24" fill="none" stroke={C.tuft} strokeWidth="2" />
         </svg>
       </div>
     </>
@@ -253,6 +271,7 @@ function Life() {
 export function Highway() {
   return (
     <div data-scene="process" className="highway absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", contentVisibility: "hidden" }}>
+      <Palette of={PAINT} />
       <div className="absolute inset-0 overflow-hidden">
         <div className="town-box">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">

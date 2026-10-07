@@ -82,6 +82,34 @@ export const DAY: readonly DayStop[] = [
 /** The clock when the sun has set and the page has reached the bottom. */
 export const NIGHTFALL = 19 * 60 + 30;
 
+export type NightStop = {
+  /** The story clock here, in minutes after midnight (past 24:00 runs on into the small hours). */
+  minutes: number;
+  /** The night sky, the same shape as the day's: deeper on the left, lighter towards the moon. */
+  sky: readonly [left: string, right: string];
+  /** The moon's phase: 0 full … 1 new. */
+  phase: number;
+};
+
+/**
+ * The night theme's timeline, stop for stop with the DAY (same anchors, same
+ * places: the moon travels the sun's path). One night, full moon to crescent:
+ * the moon rises full over the hero's mountains and wanes as the night goes
+ * on — gibbous by the about, half over the work, a crescent by the coast —
+ * and the thinnest crescent sets into the sea in the footer.
+ */
+export const NIGHT: readonly NightStop[] = [
+  { minutes: 21 * 60, sky: ["#18204a", "#2b3a7a"], phase: 0 },
+  { minutes: 22 * 60 + 15, sky: ["#141b42", "#26346e"], phase: 0.14 },
+  { minutes: 24 * 60, sky: ["#0e1433", "#1d2a5e"], phase: 0.28 },
+  { minutes: 25 * 60 + 15, sky: ["#0f1636", "#212d62"], phase: 0.42 },
+  { minutes: 26 * 60 + 30, sky: ["#121838", "#262f66"], phase: 0.58 },
+  { minutes: 27 * 60 + 45, sky: ["#171a42", "#2f2f6a"], phase: 0.74 },
+];
+
+/** The clock and phase once the crescent has set and the page has reached the bottom. */
+export const MOONSET = { minutes: 29 * 60, phase: 0.84 };
+
 export const smooth = (from: number, to: number, v: number) => {
   const t = Math.min(1, Math.max(0, (v - from) / (to - from)));
   return t * t * (3 - 2 * t);
@@ -119,12 +147,13 @@ export function dayAt(scroll: number, stops: readonly number[]) {
 }
 
 /** The story clock, in minutes: through the stops, then on to nightfall across the footer. */
-export function minutesAt(scroll: number, stops: readonly number[], footer: { start: number; end: number }) {
+export function minutesAt(scroll: number, stops: readonly number[], footer: { start: number; end: number }, night = false) {
+  const line: readonly { minutes: number }[] = night ? NIGHT : DAY;
   if (scroll >= footer.start) {
-    return mix(DAY[DAY.length - 1].minutes, NIGHTFALL, smooth(footer.start, footer.end, scroll));
+    return mix(line[line.length - 1].minutes, night ? MOONSET.minutes : NIGHTFALL, smooth(footer.start, footer.end, scroll));
   }
   const { index, next, t } = dayAt(scroll, stops);
-  return mix(DAY[index].minutes, DAY[next].minutes, t);
+  return mix(line[index].minutes, line[next].minutes, t);
 }
 
 /** "08:30", to the nearest five minutes. */
@@ -143,6 +172,7 @@ export function mixHex(a: string, b: string, t: number) {
 // ring (it stands right of centre, where the sky is at its lightest).
 if (process.env.NODE_ENV !== "production") {
   if (DAY.some((stop) => stop.tone > DAY_TONE_MAX)) console.warn("[day] a daytime tone is past DAY_TONE_MAX");
+  if (NIGHT.length !== DAY.length) console.warn("[day] the NIGHT needs one stop per DAY stop");
   for (let i = 0; i < DAY.length - 1; i++) {
     for (const t of [0, 0.25, 0.5, 0.75, 1]) {
       const sky = mixHex(DAY[i].sky[1], DAY[i + 1].sky[1], t);

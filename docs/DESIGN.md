@@ -102,6 +102,37 @@ they can never disagree. Every sky keeps ink text above 5.8:1, and a development
 sky would let the sun's rim sink below its own light (a dark ring) — the reason the sun turns
 whiter as it climbs and the golden-hour sky is a touch deeper than the sunrise one.
 
+### Night
+
+The switch in the header (`chrome/ThemeToggle`, a small sun whose rays fold away into a
+crescent) turns the day into one night under a waning moon. The sun is the default; a visitor's
+night is remembered (`lib/theme.ts`, put on `<html data-theme="night">` before the first paint by
+an inline script, so it never flashes the day). Switching, the night spreads out from the sun
+itself — a soft circle growing from wherever the sun is on screen (a view transition) — while the
+WebGL sun cools to silver and the moon's shadow slides in.
+
+- **The moon** travels the sun's path, drawn the same way (a glowing disc in a soft bloom) but
+  still: a few soft seas, no simmer. It wanes as you scroll (`NIGHT` in `sun/day.ts`, stop for
+  stop with the day): full over the hero, gibbous by the about, half over the work, a crescent
+  by the coast, and the thinnest crescent sets into a silver sea in the footer. The dark side
+  keeps a faint earthshine; its bloom stays around the lit part.
+- **The sky** is deep blue — navy to indigo, darkest at midnight over the services, a violet hint
+  before dawn — with twinkling stars, a few bright ones that glint, and now and then a shooting
+  star (`scenery/NightSky`). The story clock runs 21:00 → 05:00 beside a crescent.
+- **The scenes** keep their drawings and change colour: every scene's palette has a day and a
+  night value side by side (`lib/palette.tsx` → CSS variables), so switching re-renders nothing.
+  Silhouettes are blues stepping down from the sky; the lights are warm and come on one by one
+  when their chapter arrives (`.night-light`): the farm's windows, two in three of the town's
+  windows, its lamps and clock face, the city's windows and blinking antennas, headlights with
+  short beams, the coast's lighthouse with its beam sweeping over the sea. The stream and the
+  sun's path on the water turn silver; fireflies drift over the foothills; the birds are bats;
+  the plane blinks; the balloon's burner glows.
+- **The copy** (`data-night-ink`: the home page's main, header, side nav and sky life) swaps ink
+  and paper, so dark text turns moonlight-white. Things with their own dark paint keep the day's
+  ink (`data-day-ink`): the shopfronts, the workshop, the signposts and the process cards. The
+  footer is dark in both; only its sky colours change (`MOONLIT` in `sun/geometry.ts`).
+- Only the home page dresses for the night; the case studies stay as they are.
+
 ### Pointer
 
 The native cursor stays (the custom cursor and the film grain are gone: both were common
@@ -329,7 +360,8 @@ with scrolling, the glowing-disc sun and the hero landscape with clouds through 
    in the "closer look", and real numbers in the story once there are some.
 2. **3D monitor** — the monitor as a 3D object with screenshots as textures and a scroll-driven
    orbit (this would bring three.js back, lazily, for that section only).
-3. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am).
+3. **Time of day** — tint the sky to the visitor's local time (a true sunrise at 6am), or start
+   in the night theme after dark.
 4. **Content** — a resume download, a LinkedIn link, newer projects, testimonials.
 
 ## 6. Content to confirm

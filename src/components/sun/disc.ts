@@ -28,6 +28,13 @@ export const DISC: Record<DiscTone, readonly string[]> = {
  */
 export const ZENITH: readonly string[] = ["#ffffff", "#fffdf0", "#fff4cc", "#ffe6a0", "#ffd985", "#ffd27a"];
 
+/**
+ * The moon (the night theme): silver-white, a touch warmer in the middle and
+ * cooler at the rim, drawn the same way as the sun — a glowing disc in a soft
+ * bloom — but still: no simmer, just its seas, and the phase's shadow.
+ */
+export const MOON: readonly string[] = ["#ffffff", "#fbfaf4", "#f3f2ea", "#e7e8e6", "#dadfe8", "#cfd6e6"];
+
 /** By day the sun stays bright; it only turns red once the dark sky is behind it. */
 export const DAY_TONE_MAX = 0.2;
 
@@ -46,8 +53,8 @@ const fade = (from: number, to: number, d: number) => {
   return 1 - t * t * (3 - 2 * t);
 };
 
-/** Light around the disc: by day over the orange page, at dusk over the dark sky. */
-export const BLOOM: Record<"day" | "dusk", Mood> = {
+/** Light around the disc: by day over the orange page, at dusk over the dark sky, and the moon's cool light at night. */
+export const BLOOM: Record<"day" | "dusk" | "moon", Mood> = {
   day: {
     color: "#ffe2a6",
     end: 2.8,
@@ -57,6 +64,11 @@ export const BLOOM: Record<"day" | "dusk", Mood> = {
     color: "#ff7a36",
     end: 3.4,
     alpha: (d) => (0.24 * Math.exp(-(d - 1) / 0.45) + 0.18 * Math.exp(-(d - 1) / 1.4)) * fade(2.6, 3.4, d),
+  },
+  moon: {
+    color: "#cfd8ff",
+    end: 2.6,
+    alpha: (d) => (0.2 * Math.exp(-(d - 1) / 0.3) + 0.12 * Math.exp(-(d - 1) / 1.1)) * fade(2, 2.6, d),
   },
 };
 
@@ -86,13 +98,16 @@ export function bloomCss(mood: keyof typeof BLOOM) {
   ].join(", ")})`;
 }
 
+/** The moon's wide glow: moonlight over the night sky. */
+export const MOON_GLOW = "#9fb2ff";
+
 /**
  * The wide glow as a CSS gradient for a box GLOW.end disc radii across from the
  * centre. It sits under the WebGL sun as its own layer, so the shader only has
  * to draw near the disc.
  */
-export function glowCss() {
-  const [r, g, b] = rgb(BLOOM.day.color);
+export function glowCss(color = BLOOM.day.color) {
+  const [r, g, b] = rgb(color);
   const stops = Array.from({ length: 10 }, (_, i) => {
     const d = 1 + (i / 9) * (GLOW.end - 1);
     return `rgb(${r} ${g} ${b} / ${glowAlpha(d).toFixed(3)}) ${((d / GLOW.end) * 100).toFixed(2)}%`;

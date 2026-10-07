@@ -67,7 +67,7 @@ export function Contact() {
 
       <SunsetStage />
 
-      <div className="sun-sky shell meta relative flex flex-col gap-3 bg-[#0a0403] pt-2 pb-6 text-paper/55 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sun-sky shell meta relative flex flex-col gap-3 bg-(--footer-sea) pt-2 pb-6 text-paper/55 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {year} {profile.fullName}
         </p>

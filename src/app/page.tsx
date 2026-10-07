@@ -49,7 +49,7 @@ export default function Home() {
       <Landscape />
       <Header />
       <SideNav />
-      <main id="main" className="relative z-10 overflow-x-clip outline-none">
+      <main id="main" data-night-ink="" className="relative z-10 overflow-x-clip outline-none">
         <Hero />
         <About />
         <Services />

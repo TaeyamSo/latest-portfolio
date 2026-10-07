@@ -3,6 +3,7 @@
 import { sections, type SectionId } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { useActiveSection } from "@/lib/use-active-section";
+import { useTheme } from "@/lib/theme";
 import { useDarkAt } from "@/lib/use-dark-at";
 import { useScrollTo } from "@/lib/use-scroll-to";
 
@@ -17,13 +18,16 @@ const ids = sections.map((s) => s.id) as SectionId[];
  */
 export function SideNav() {
   const active = useActiveSection(ids);
-  const dark = useDarkAt(0.5);
+  // At night the ink is already light (globals.css), even over the footer.
+  const night = useTheme() === "night";
+  const dark = useDarkAt(0.5) && !night;
   const scrollTo = useScrollTo();
   const activeIndex = ids.indexOf(active);
 
   return (
     <nav
       aria-label="Sections"
+      data-night-ink=""
       className={cn(
         "intro-slide fixed top-1/2 left-[calc(var(--gutter)*0.5)] z-40 hidden -translate-y-1/2 transition-colors duration-500 lg:block",
         dark ? "text-paper" : "text-ink",

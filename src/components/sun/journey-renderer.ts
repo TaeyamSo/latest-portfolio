@@ -1,10 +1,12 @@
 import { measureStops } from "./day";
 import { DAY_TONE_MAX, GLOW } from "./disc";
 import { SUN } from "./geometry";
-import { FLARE_EVENT, smooth, sunPath, type Spot } from "./journey";
+import { getTheme, THEME_EVENT, type ThemeChange } from "@/lib/theme";
+
+import { FLARE_EVENT, smooth, sunNow, sunPath, type Spot } from "./journey";
 import { journeyFragment, journeyVertex } from "./shaders";
 
-const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uPointer", "uFlare", "uIntro", "uFooter"] as const;
+const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uPointer", "uFlare", "uIntro", "uFooter", "uMoon", "uPhase"] as const;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /**
@@ -18,11 +20,20 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
  * are on screen it sets `html.sun-webgl`, which retires the SVG/CSS stand-ins
  * (see globals.css). It also moves the sun's wide glow, a CSS layer underneath.
  *
+ * In the night theme the same orb is the moon (THEME_EVENT): switching, the sun
+ * cools to silver as the phase's shadow slides in, over about a second and a
+ * half, and the glow's layer cross-fades to moonlight (`moonGlow`).
+ *
  * Renders at the display rate while something moves, ~30fps when only the
  * shimmer is moving.
  * Returns a cleanup that hands everything back to CSS.
  */
-export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null, onLost: () => void) {
+export function startJourney(
+  canvas: HTMLCanvasElement,
+  glow: HTMLElement | null,
+  moonGlow: HTMLElement | null,
+  onLost: () => void,
+) {
   const gl = canvas.getContext("webgl", {
     alpha: true,
     premultipliedAlpha: true,
@@ -98,6 +109,8 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
   const lean = { x: 0, y: 0, hover: 0 }; // pointer relative to the sun, eased
   let flare = 0;
   let intro = 0;
+  let moonTarget = getTheme() === "night" ? 1 : 0;
+  let moon = moonTarget; // starts where the page is: no morph on load
   let time = 8;
   let frames = 0;
   let raf = 0;
@@ -138,6 +151,8 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
     }
     lean.hover += ((pointer.inside ? 1 : 0) - lean.hover) * ease;
     flare *= Math.exp(-dt * 1.8);
+    moon += (moonTarget - moon) * (1 - Math.exp(-dt * 2.6));
+    if (Math.abs(moonTarget - moon) < 0.001) moon = moonTarget;
     time += dt;
     if (frames >= 2) intro = Math.min(1, intro + dt / 1.2);
 
@@ -159,17 +174,29 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
     gl.uniform1f(u.uFlare, flare);
     gl.uniform1f(u.uIntro, intro);
     gl.uniform4f(u.uFooter, footerTop, svh, horizonTop, seaDepth);
+    gl.uniform1f(u.uMoon, moon);
+    gl.uniform1f(u.uPhase, sun.phase);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    sunNow.x = sun.x;
+    sunNow.y = sun.y;
+    sunNow.r = sun.r;
 
-    // The wide glow follows the sun (by day; the footer's dark sky covers it).
+    // The wide glow follows the sun (by day; the footer's dark sky covers it),
+    // and its moonlit twin follows the moon.
     if (glow) {
       const size = glowSize;
-      const next = `translate3d(${(sun.x - size / 2).toFixed(1)}px, ${(sun.y - size / 2).toFixed(1)}px, 0) scale(${((sun.r * 2 * GLOW.end) / size).toFixed(4)})|${(intro * (1 - smooth(0.2, 0.6, tone))).toFixed(3)}`;
+      const shown = intro * (1 - smooth(0.2, 0.6, tone));
+      const lit = 1 - 0.6 * sun.phase;
+      const next = `translate3d(${(sun.x - size / 2).toFixed(1)}px, ${(sun.y - size / 2).toFixed(1)}px, 0) scale(${((sun.r * 2 * GLOW.end) / size).toFixed(4)})|${(shown * (1 - moon)).toFixed(3)}|${(intro * lit * moon * (1 - smooth(0.2, 0.6, tone))).toFixed(3)}`;
       if (next !== lastGlow) {
         lastGlow = next;
-        const [transform, opacity] = next.split("|");
+        const [transform, sunOpacity, moonOpacity] = next.split("|");
         glow.style.transform = transform;
-        glow.style.opacity = opacity;
+        glow.style.opacity = sunOpacity;
+        if (moonGlow) {
+          moonGlow.style.transform = transform;
+          moonGlow.style.opacity = moonOpacity;
+        }
       }
     }
 
@@ -205,7 +232,7 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
       activeUntil = now + 500;
     }
     // When nothing but the slow shimmer is moving, every other frame is plenty.
-    const busy = now < activeUntil || flare > 0.002 || intro < 1;
+    const busy = now < activeUntil || flare > 0.002 || intro < 1 || moon !== moonTarget;
     if (busy || now - last >= 30) render(now);
   };
 
@@ -222,6 +249,9 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
   const onFlare = () => {
     flare = 1;
   };
+  const onTheme = (event: Event) => {
+    moonTarget = (event as CustomEvent<ThemeChange>).detail.theme === "night" ? 1 : 0;
+  };
   const onContextLost = () => {
     stop();
     onLost();
@@ -235,6 +265,7 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
   window.addEventListener("pointermove", onMove, { passive: true });
   root.addEventListener("pointerleave", onLeave);
   window.addEventListener(FLARE_EVENT, onFlare);
+  window.addEventListener(THEME_EVENT, onTheme);
   canvas.addEventListener("webglcontextlost", onContextLost);
   raf = requestAnimationFrame(loop);
 
@@ -243,9 +274,12 @@ export function startJourney(canvas: HTMLCanvasElement, glow: HTMLElement | null
     observer.disconnect();
     stage?.removeEventListener("animationend", measure);
     if (glow) glow.style.opacity = "0";
+    if (moonGlow) moonGlow.style.opacity = "0";
+    sunNow.x = -1;
     window.removeEventListener("pointermove", onMove);
     root.removeEventListener("pointerleave", onLeave);
     window.removeEventListener(FLARE_EVENT, onFlare);
+    window.removeEventListener(THEME_EVENT, onTheme);
     canvas.removeEventListener("webglcontextlost", onContextLost);
     probe.remove();
     root.classList.remove("sun-webgl");

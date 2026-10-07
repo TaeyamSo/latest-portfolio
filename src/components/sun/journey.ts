@@ -1,4 +1,4 @@
-import { DAY, dayAt, mix, smooth, type DayStop } from "./day";
+import { DAY, MOONSET, NIGHT, dayAt, mix, smooth, type DayStop } from "./day";
 import { SUN } from "./geometry";
 
 export { smooth };
@@ -9,8 +9,18 @@ export const FLARE_EVENT = "sun:flare";
 /** A sun on screen: centre and disc radius in viewport CSS px. */
 export type Spot = { x: number; y: number; r: number };
 
-/** `tone` runs from −1 (high noon) through 0 (the hero's sun) to 1 (sunset). */
-export type SunState = Spot & { tone: number };
+/**
+ * Where the WebGL sun (or moon) was last drawn, for anything that wants to
+ * start from it — the theme switch spreads the night out from here. x < 0
+ * until the renderer runs.
+ */
+export const sunNow: Spot = { x: -1, y: -1, r: 0 };
+
+/**
+ * `tone` runs from −1 (high noon) through 0 (the hero's sun) to 1 (sunset);
+ * `phase` is the moon's at the same place in the night (0 full … 1 new).
+ */
+export type SunState = Spot & { tone: number; phase: number };
 
 /** Everything the path depends on, measured once per frame. */
 export type JourneyLayout = {
@@ -58,7 +68,11 @@ export function sunPath(l: JourneyLayout): SunState {
 
   if (l.scroll < l.footerStart) {
     const { index, next, t } = dayAt(l.scroll, l.stops);
-    return { ...between(place(DAY[index]), place(DAY[next]), t), tone: mix(DAY[index].tone, DAY[next].tone, t) };
+    return {
+      ...between(place(DAY[index]), place(DAY[next]), t),
+      tone: mix(DAY[index].tone, DAY[next].tone, t),
+      phase: mix(NIGHT[index].phase, NIGHT[next].phase, t),
+    };
   }
   const v = (l.scroll - l.footerStart) / (l.footerEnd - l.footerStart);
   const down = smooth(0, 1, v);
@@ -68,5 +82,6 @@ export function sunPath(l: JourneyLayout): SunState {
     y: mix(evening.y, set.y, down),
     r: mix(evening.r, set.r, across),
     tone: mix(last.tone, 1, down),
+    phase: mix(NIGHT[NIGHT.length - 1].phase, MOONSET.phase, down),
   };
 }
