@@ -5,17 +5,17 @@ import { Palette, palette } from "@/lib/palette";
  * The cars, vans and trucks of the scenery, side-on (the highway's traffic,
  * the car parked at the coast's lookout). Each is drawn facing one way and
  * mirrored when it should face the other; the wheels are their own elements
- * so they can turn. At night (the night theme) their paint is dimmed by the
- * dark and their headlights are on, a short beam ahead of them.
+ * so they can turn. At night (the night theme) their paint is cool and dim
+ * under the moon and their headlights are on, a short beam ahead of them.
  */
 const PAINT = palette("vehicle", {
-  flame: ["#fd5d16", "#b8431c"],
-  amber: ["#fd8916", "#b8661c"],
+  flame: ["#fd5d16", "#8a3a4a"],
+  amber: ["#fd8916", "#3f6a8a"],
   ink: ["#3b1409", "#0a0e22"],
   paper: ["#fffaf4", "#aab3d8"],
-  gold: ["#ffb629", "#c08a2a"],
-  box: ["#e6782a", "#a65524"],
-  red: ["#b3300c", "#86260e"],
+  gold: ["#ffb629", "#a9b0c8"],
+  box: ["#e6782a", "#4a5a8c"],
+  red: ["#b3300c", "#6a2a3a"],
   tyre: ["#1c120d", "#07091a"],
   hub: ["#d8c1a8", "#5a6290"],
 });

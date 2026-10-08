@@ -131,6 +131,13 @@ WebGL sun cools to silver and the moon's shadow slides in.
   and paper, so dark text turns moonlight-white. Things with their own dark paint keep the day's
   ink (`data-day-ink`): the shopfronts, the workshop, the signposts and the process cards. The
   footer is dark in both; only its sky colours change (`MOONLIT` in `sun/geometry.ts`).
+- **No orange at night.** On the home page the accents turn moonlit (flame and amber →
+  periwinkle, sunlight and gold → moonlight silver); the shopfronts get night-blue walls and
+  cool neon signs (cyan, pink, mint, lilac) that glow; the portrait's duotone, the balloon, the
+  signposts, the awnings and the cars all have night colours; the footer's CSS sunset is the
+  setting crescent. Only lights stay warm: windows, lamps, headlights, lighthouses.
+- Selected text at night is a light highlight with dark text (`::selection` in `globals.css`), so it shows on the dark sky.
+- There is no scrollbar (`globals.css`): the page scrolls as ever (wheel, touch, keys, links, chapters) but draws no bar.
 - Only the home page dresses for the night; the case studies stay as they are.
 
 ### Pointer
@@ -184,7 +191,7 @@ chapters are simply shown and the page scrolls normally.
 | Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
 | Testimonials | Hidden for now (not rendered in page.tsx); a chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
 | Contact · 19:30 | "Let's build something bright." The last chapter rests at the very bottom of the page: the glide down carries the sky through dusk while the sun sets into the WebGL sea; email, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, a hairline scrollbar in the colour of the sky, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+| Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, no scrollbar, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
 
 **Life in the sky** (`scenery/Life.tsx`) plays one moment per glide: leaving sunrise, a flock
 lifts off the mountains and flies up over the morning; between noon and the afternoon a small plane
@@ -257,8 +264,8 @@ src/
     ui/           Statement (chapter titles), InkLabel, Reveal, Tilt, Magnetic, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
     providers/    Chapters (the home page, a screen at a time), SmoothScroll (Lenis + Motion),
-                  PointerSync (hover while scrolling), SkyCycle (the sky), ScrollbarTone (scrollbar
-                  colours), HomeLanding (where the home page opens when you arrive from another page)
+                  PointerSync (hover while scrolling), SkyCycle (the sky),
+                  HomeLanding (where the home page opens when you arrive from another page)
   lib/            chapters (go to a chapter), accent markup, kerning, mock gating, work-return, hooks (active section, tone,
                   media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)

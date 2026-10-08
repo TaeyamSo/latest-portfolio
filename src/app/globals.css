@@ -1241,40 +1241,21 @@ html.chapters .town:not([data-open]) .town-awning {
 }
 
 /* ---------------------------------------------------------------------------
-   Scrollbar: a thin line in the colours of the section beside it. The track
-   matches the page there; ScrollbarTone keeps both colours in step as you
-   scroll (in a little stylesheet of its own, so the page isn't restyled). (Chrome/Safari use the ::-webkit-scrollbar pseudos; setting the
-   standard properties as well would switch those off, so Firefox gets them
-   on its own.)
+   No scrollbar. The page still scrolls — wheel, touch, keys, links, the
+   chapters — it just doesn't draw a bar. It's set on both html and body: the
+   page's scrollbar belongs to whichever defines the viewport, and here that
+   is body (its overflow-x: clip keeps html from owning it). The ::-webkit
+   pseudos cover Safari and older Chrome; Chrome and Firefox read
+   scrollbar-width.
 --------------------------------------------------------------------------- */
-:root {
-  --scrollbar-track: #fd8916;
-  --scrollbar-thumb: rgb(13 10 8 / 0.45);
+html,
+body {
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: var(--scrollbar-thumb);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
-}
-
-@supports not selector(::-webkit-scrollbar) {
-  html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1327,12 +1308,54 @@ html.sun-webgl .sun-legible {
 html[data-theme="night"] {
   --footer-sea: #03050d;
   --footer-rim: #8f9cc9;
+  --footer-horizon: #dfe6ff;
 }
 
-/* The page under the sky, on the home page (the night only dresses the home page). */
+/* The page under the sky, on the home page (the night only dresses the home page).
+   The accents turn moonlit too — no orange at night: flame and amber become
+   periwinkle, sunlight and gold moonlight silver, ember a deep blue. Only the
+   lights (windows, lamps, headlights, lighthouses) stay warm. */
 html[data-theme="night"]:has(#home) {
   background-color: #18204a;
   color-scheme: dark;
+  --color-flame: #7c8cff;
+  --color-amber: #9fb2ff;
+  --color-sunlight: #dfe6ff;
+  --color-gold: #c9d4ff;
+  --color-ember: #3a4690;
+}
+
+/* Painted wood and fabric that has a night colour of its own: About's
+   signposts, the hot-air balloon. */
+:root {
+  --signpost: #8a3a12;
+  --signpost-post: #5a2410;
+  --balloon-a: #fd5d16;
+  --balloon-b: #ffb629;
+  --balloon-c: #fffaf4;
+  --balloon-basket: #8a3412;
+  --balloon-rope: #3b1409;
+}
+html[data-theme="night"] {
+  --signpost: #2f3a72;
+  --signpost-post: #1a2152;
+  --balloon-a: #5a3f8e;
+  --balloon-b: #8fa0d8;
+  --balloon-c: #e6e9ff;
+  --balloon-basket: #3a2f5a;
+  --balloon-rope: #0a0e22;
+}
+
+/* The portrait at night: the same duotone in moonlight (ui/Duotone). */
+html[data-theme="night"]:has(#home) .duotone-layer {
+  filter: url(#duotone-moon);
+}
+
+/* The shops' signs glow like neon at night. */
+html[data-theme="night"] .shop h3 {
+  text-shadow:
+    0 0 6px color-mix(in srgb, currentColor 70%, transparent),
+    0 0 18px color-mix(in srgb, currentColor 35%, transparent);
 }
 html[data-theme="night"]:has(#home) body {
   background: linear-gradient(90deg, #18204a, #2b3a7a 49%);
@@ -1494,6 +1517,13 @@ html.chapters .foothills:not([data-open]) .firefly {
     opacity: 1;
     transform: scale(1.1);
   }
+}
+
+/* Selected text at night: a light highlight with dark text, so it stands out
+   against the night sky (by day it's a dark highlight with light text). */
+html[data-theme="night"] ::selection {
+  background: rgb(196 210 255 / 0.9);
+  color: #0b1026;
 }
 
 /* Things shown only by day or only at night. */

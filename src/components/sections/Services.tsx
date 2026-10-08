@@ -40,13 +40,14 @@ export function Services() {
         <p className="meta">Toolkit</p>
         <ul className="flex flex-wrap items-center gap-x-5 gap-y-3">
           {skills.map((skill) => (
-            <li key={skill.name} style={{ "--accent": skill.accent } as Vars} className="group/tool flex items-center gap-2">
+            <li key={skill.name} title={skill.name} style={{ "--accent": skill.accent } as Vars} className="group/tool flex items-center gap-2">
               <span className="grid size-8 place-items-center rounded-md bg-ink text-paper transition duration-300 ease-expo group-hover/tool:-translate-y-1 group-hover/tool:text-(--accent)">
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4 fill-current">
                   <path d={skill.icon.path} />
                 </svg>
               </span>
-              <span className="meta">{skill.name}</span>
+              {/* Names show from 1280px; below that the icons carry it (the name stays for screen readers and as a tooltip). */}
+              <span className="meta sr-only xl:not-sr-only">{skill.name}</span>
             </li>
           ))}
         </ul>

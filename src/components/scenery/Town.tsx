@@ -60,8 +60,8 @@ const PAINT = palette("town", {
   paper: ["#fffaf4", "#fff0c4"],
   poster: ["#f6dcc0", "#f3e3c6"],
   smoke: ["#fff1d0", "#8f9cc9"],
-  flame: ["#fd5d16", "#c8451a"],
-  gold: ["#ffb629", "#e0a63a"],
+  flame: ["#fd5d16", "#5b4a9e"],
+  gold: ["#ffb629", "#b8b0d8"],
   lamp: ["#f9c27a", "#ffe6a8"],
 });
 const C = PAINT.C;

@@ -3,7 +3,6 @@ import { JetBrains_Mono, Kanit } from "next/font/google";
 import localFont from "next/font/local";
 
 import { PointerSync } from "@/components/providers/PointerSync";
-import { ScrollbarTone } from "@/components/providers/ScrollbarTone";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { profile } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
@@ -42,7 +41,7 @@ const fraunces = localFont({
 
 const title = `${profile.fullName} — ${profile.role}`;
 const description =
-  "Tayam Soubuh is a front-end developer crafting fast, user-centric websites for real clients with React, Vue and Nuxt.";
+  "Tayam Soubuh is a full-stack developer building fast websites and web systems with Next.js, Prisma, PostgreSQL and Docker.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
   applicationName: profile.fullName,
   authors: [{ name: profile.fullName, url: profile.socials[0].href }],
   creator: profile.fullName,
-  keywords: ["Tayam Soubuh", "front-end developer", "portfolio", "React", "Vue", "Nuxt", "web developer"],
+  keywords: ["Tayam Soubuh", "full-stack developer", "portfolio", "Next.js", "Prisma", "PostgreSQL", "Docker", "web developer"],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -86,7 +85,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <SmoothScroll>{children}</SmoothScroll>
         <PointerSync />
-        <ScrollbarTone />
       </body>
     </html>
   );

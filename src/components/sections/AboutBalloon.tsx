@@ -78,13 +78,13 @@ export function AboutBalloon() {
       <div className="about-balloon-rise">
         <div ref={drag} className="pointer-events-auto touch-none select-none">
           <svg viewBox="0 0 26 40" className="fh-balloon-sway block w-full overflow-visible">
-            <path d="M13,1 C4,1 1,8 1,14 C1,22 8,27 10,31 H16 C18,27 25,22 25,14 C25,8 22,1 13,1 Z" fill="#fd5d16" />
-            <path d="M13,1 C9,1 7.5,8 7.5,14 C7.5,22 10,27 11,31 H15 C16,27 18.5,22 18.5,14 C18.5,8 17,1 13,1 Z" fill="#ffb629" />
-            <path d="M13,1 C11.6,1 11.2,8 11.2,14 C11.2,22 12,27 12.4,31 H13.6 C14,27 14.8,22 14.8,14 C14.8,8 14.4,1 13,1 Z" fill="#fffaf4" />
-            <path d="M10.4,31 L10.8,35 M15.6,31 L15.2,35" stroke="#3b1409" strokeWidth="0.6" />
+            <path d="M13,1 C4,1 1,8 1,14 C1,22 8,27 10,31 H16 C18,27 25,22 25,14 C25,8 22,1 13,1 Z" fill="var(--balloon-a)" />
+            <path d="M13,1 C9,1 7.5,8 7.5,14 C7.5,22 10,27 11,31 H15 C16,27 18.5,22 18.5,14 C18.5,8 17,1 13,1 Z" fill="var(--balloon-b)" />
+            <path d="M13,1 C11.6,1 11.2,8 11.2,14 C11.2,22 12,27 12.4,31 H13.6 C14,27 14.8,22 14.8,14 C14.8,8 14.4,1 13,1 Z" fill="var(--balloon-c)" />
+            <path d="M10.4,31 L10.8,35 M15.6,31 L15.2,35" stroke="var(--balloon-rope)" strokeWidth="0.6" />
             {/* At night the burner glows inside the envelope's mouth. */}
             <ellipse className="balloon-burner night-only" cx="13" cy="31.6" rx="2.6" ry="2.2" fill="#ffd27a" />
-            <rect x="10" y="35" width="6" height="4.5" rx="0.6" fill="#8a3412" />
+            <rect x="10" y="35" width="6" height="4.5" rx="0.6" fill="var(--balloon-basket)" />
           </svg>
         </div>
       </div>

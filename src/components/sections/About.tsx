@@ -73,13 +73,13 @@ function Signposts() {
       {facts.map((fact, i) => (
         <li key={fact.label} data-build="rise" style={{ "--b": 3 + i, "--i": i } as Vars} className="signpost pointer-events-auto flex flex-col items-center">
           <span
-            className="flex flex-col items-center rounded-[3px] bg-[#8a3a12] px-[clamp(0.6rem,1.2vw,1rem)] py-[clamp(0.3rem,0.7svh,0.55rem)] text-paper shadow-[inset_0_-3px_0_rgb(0_0_0/0.18)]"
+            className="flex flex-col items-center rounded-[3px] bg-(--signpost) px-[clamp(0.6rem,1.2vw,1rem)] py-[clamp(0.3rem,0.7svh,0.55rem)] text-paper shadow-[inset_0_-3px_0_rgb(0_0_0/0.18)]"
             style={{ rotate: `${tilt[i % tilt.length]}deg` }}
           >
             <span className="text-[clamp(1.1rem,1.8vw,1.7rem)] leading-none font-extrabold tabular-nums">{fact.value}</span>
             <span className="meta mt-1 max-w-[5.5rem] text-center text-[0.58rem] leading-tight tracking-[0.12em] text-paper/85 sm:max-w-none sm:whitespace-nowrap">{fact.label}</span>
           </span>
-          <span aria-hidden="true" className="h-[clamp(1.5rem,4svh,2.5rem)] w-[clamp(5px,0.5vw,8px)] bg-[#5a2410] sm:h-[clamp(2.5rem,7svh,5rem)]" />
+          <span aria-hidden="true" className="h-[clamp(1.5rem,4svh,2.5rem)] w-[clamp(5px,0.5vw,8px)] bg-(--signpost-post) sm:h-[clamp(2.5rem,7svh,5rem)]" />
         </li>
       ))}
     </ul>

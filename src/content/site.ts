@@ -13,11 +13,13 @@
  */
 import type { StaticImageData } from "next/image";
 import {
-  siCss,
+  siDocker,
   siJavascript,
+  siNextdotjs,
   siNuxt,
+  siPostgresql,
+  siPrisma,
   siReact,
-  siSass,
   siVuedotjs,
   type SimpleIcon,
 } from "simple-icons";
@@ -37,9 +39,10 @@ export const profile = {
   firstName: "Tayam",
   lastName: "Soubuh",
   fullName: "Tayam Soubuh",
-  role: "Front-End Developer",
+  role: "Full-Stack Developer",
+  age: 23,
   // DRAFT — replace with your own positioning line.
-  tagline: ["Front-end developer", "crafting websites that feel *alive*."],
+  tagline: ["Full-stack developer", "building web products that feel *alive*."],
   email: "taeyamfrontend@gmail.com",
   socials: [{ label: "GitHub", href: "https://github.com/TaeyamSo" }],
   // MOCK — your real status and city (the clock follows `timeZone`).
@@ -61,10 +64,10 @@ export type SectionId = (typeof sections)[number]["id"];
 
 export const about = {
   // DRAFT — the chapter's title is a plain sentence.
-  statement: "I'm Tayam. I turn ideas into fast, responsive websites for real businesses.",
+  statement: "I'm Tayam. I build full-stack web products for real businesses.",
   body: [
-    "From an online furniture store to a building contractor, I've shipped sites for clients who needed their brand to look as good online as it does in person.",
-    "I care about the details that make a site feel alive — clean code, smooth motion, pages that work on every screen — and I'm always learning what's next.",
+    `I'm a ${profile.age}-year-old full-stack developer. I work with Next.js, Prisma, PostgreSQL and Docker — from the interface people see to the database and the server behind it.`,
+    "In my first three months I delivered three websites for real clients in the UAE. For about a year now I've been at NVT-PNE Pizza — a company that works with Little Caesars and runs a franchise — designing and building whole systems for the business.",
   ],
   portrait: {
     src: portrait,
@@ -76,13 +79,29 @@ export type Skill = { name: string; icon: SimpleIcon; accent: string };
 
 // `accent` is the hover colour; the 2025 site gave each tile its own brand hue too.
 export const skills: Skill[] = [
-  { name: "CSS", icon: siCss, accent: "#9d7bff" },
-  { name: "Sass", icon: siSass, accent: "#ff8fc8" },
+  { name: "Next.js", icon: siNextdotjs, accent: "#ffffff" },
+  { name: "React", icon: siReact, accent: "#61dafb" },
+  { name: "Prisma", icon: siPrisma, accent: "#7f9cf5" },
+  { name: "PostgreSQL", icon: siPostgresql, accent: "#6f9bff" },
+  { name: "Docker", icon: siDocker, accent: "#2496ed" },
   { name: "JavaScript", icon: siJavascript, accent: "#f7df1e" },
   { name: "Vue", icon: siVuedotjs, accent: "#4fc08d" },
   { name: "Nuxt", icon: siNuxt, accent: "#00dc82" },
-  { name: "React", icon: siReact, accent: "#61dafb" },
 ];
+
+/** The journey's work history, newest first. */
+export const experience = [
+  {
+    period: "Now · NVT-PNE Pizza · 1 year",
+    title: "Full-stack developer",
+    text: "A company that works with Little Caesars and runs a franchise. I've designed and built whole systems for the business.",
+  },
+  {
+    period: "Before · 3 months",
+    title: "Web developer",
+    text: "Delivered three websites for real clients in the UAE.",
+  },
+] as const;
 
 export const study = {
   degree: {
@@ -320,11 +339,11 @@ const projectName = (slug: string) => projects.find((project) => project.slug ==
 
 // DRAFT — "what I do", each backed by work that exists. The intro is the chapter's title.
 export const services = {
-  intro: "I help businesses look as good online as they do in person.",
+  intro: "Websites that look right, systems that run right.",
   items: [
     {
       title: "Business websites",
-      description: "Fast, responsive sites that make a company look as good online as it does in person.",
+      description: "Fast, responsive sites that make a company look as good online as it does in person — landing pages included.",
       proof: ["hazo", "al-ain", "alaktabout"].map(projectName),
     },
     {
@@ -333,9 +352,9 @@ export const services = {
       proof: ["baddar"].map(projectName),
     },
     {
-      title: "Landing pages",
-      description: "Focused one-page stories that turn a visit into an enquiry.",
-      proof: ["kasper", "leon", "elzero"].map(projectName),
+      title: "Web apps & systems",
+      description: "Dashboards and internal tools that run a business day to day — built with Next.js, Prisma and PostgreSQL, shipped with Docker.",
+      proof: ["NVT-PNE Pizza"],
     },
     {
       title: "Interactive experiences",
@@ -377,18 +396,18 @@ export const steps = [
     title: "Build",
     stage: "Code",
     address: "localhost:3000",
-    description: "Clean, responsive code with motion and detail, shared as a live preview as it grows.",
+    description: "Clean code from the front end to the database, shared as a live preview as it grows.",
   },
   {
     title: "Launch",
     stage: "Live",
     address: "your-business.com",
-    description: "Testing on real devices and speed checks, then going live — with support after.",
+    description: "Real-device and speed checks, then deployed with Docker and live — with support after.",
   },
 ];
 
 // DRAFT — the band under the hero.
-export const marquee = ["Websites", "E-commerce", "Landing pages", "Interfaces", "Motion", "Responsive", "Accessible", "Fast"];
+export const marquee = ["Websites", "Web apps", "Next.js", "PostgreSQL", "Docker", "E-commerce", "Landing pages", "Responsive"];
 
 export type Testimonial = { quote: string; name: string; role: string; mock?: boolean };
 
@@ -415,8 +434,9 @@ export const testimonials: Testimonial[] = [
   },
 ];
 
+// DRAFT — the signposts on the about: three honest numbers from the bio.
 export const facts = [
-  { value: featuredProjects.length, label: "Client websites" },
-  { value: projects.length, label: "Projects shipped" },
+  { value: 3, label: "UAE client sites" },
+  { value: 1, label: "Year at NVT-PNE" },
   { value: skills.length, label: "Core technologies" },
 ];

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
 import { Tilt } from "@/components/ui/Tilt";
-import { chapters, featuredProjects, study } from "@/content/site";
+import { chapters, experience, study } from "@/content/site";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
@@ -12,25 +12,28 @@ const unbroken = (text: string) => text.replace(/-/g, "‑");
 
 /**
  * 17:45, golden hour, on the coast. Experience first, then credentials, side by
- * side: the freelance work, the Meta certificate as a compact verifiable entry,
- * and the degree.
+ * side: the two jobs (the current one on top), the Meta certificate as a
+ * compact verifiable entry, and the degree.
  */
 export function Journey() {
   const { degree, certificate } = study;
-  const clients = featuredProjects.map((project) => project.name).join(", ").replace(/, ([^,]*)$/, " and $1");
 
   return (
     <section id="journey" data-chapter aria-labelledby="journey-title" className="chapter shell relative outline-none">
       <Statement id="journey-title">{chapters.journey.statement}</Statement>
 
-      <ol className="mt-[clamp(1.25rem,4.5svh,3rem)] grid gap-x-10 gap-y-6 border-t-2 border-ink pt-[clamp(1rem,3svh,1.75rem)] md:grid-cols-3">
-        <li data-build="" style={{ "--b": 1 } as Vars}>
-          <p className="meta text-ink/85">Freelance</p>
-          <h3 className="mt-2 text-[clamp(1.3rem,1.9vw,1.9rem)] leading-tight font-semibold">{unbroken("Front-end developer")}</h3>
-          <p className="mt-2 text-[clamp(0.92rem,1vw,1.05rem)] leading-relaxed text-ink/85">Websites for {clients}.</p>
+      <ol className="mt-[clamp(1rem,3.5svh,3rem)] grid gap-x-10 gap-y-6 border-t-2 border-ink pt-[clamp(1rem,3svh,1.75rem)] md:grid-cols-3">
+        <li className="space-y-[clamp(0.75rem,2.5svh,1.5rem)]">
+          {experience.map((job, i) => (
+            <div key={job.period} data-build="" style={{ "--b": 1 + i } as Vars}>
+              <p className="meta text-ink/85">{job.period}</p>
+              <h3 className="mt-2 text-[clamp(1.3rem,1.9vw,1.9rem)] leading-tight font-semibold">{unbroken(job.title)}</h3>
+              <p className="mt-2 text-[clamp(0.92rem,1vw,1.05rem)] leading-relaxed text-ink/85">{job.text}</p>
+            </div>
+          ))}
         </li>
 
-        <li data-build="" style={{ "--b": 2 } as Vars}>
+        <li data-build="" style={{ "--b": 3 } as Vars}>
           <p className="meta text-ink/85">
             {certificate.date} · {certificate.kind}
           </p>
@@ -66,7 +69,7 @@ export function Journey() {
           </div>
         </li>
 
-        <li data-build="" style={{ "--b": 3 } as Vars}>
+        <li data-build="" style={{ "--b": 4 } as Vars}>
           <p className="meta text-ink/85">Degree</p>
           <h3 className="mt-2 text-[clamp(1.3rem,1.9vw,1.9rem)] leading-tight font-semibold">{degree.title}</h3>
           <p className="mt-2 text-[clamp(0.92rem,1vw,1.05rem)] text-ink/85">{degree.school}</p>

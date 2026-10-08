@@ -13,6 +13,8 @@ type Props = {
  * The image mapped onto the brand ramp — ink shadows, flame mids, sunlight
  * highlights — fading to the original on hover (inside a `group`). Both layers
  * use the same file, so it downloads once. Works for any photo dropped in later.
+ * At night (the night theme) the ramp is moonlit instead: navy shadows,
+ * periwinkle mids, moonlight highlights (`duotone-moon`, globals.css).
  */
 export function Duotone({ src, alt, sizes, className }: Props) {
   return (
@@ -26,6 +28,14 @@ export function Duotone({ src, alt, sizes, className }: Props) {
             <feFuncB type="table" tableValues="0.031 0.086 0.29" />
           </feComponentTransfer>
         </filter>
+        <filter id="duotone-moon" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.043 0.29 0.875" />
+            <feFuncG type="table" tableValues="0.063 0.357 0.902" />
+            <feFuncB type="table" tableValues="0.149 0.69 1" />
+          </feComponentTransfer>
+        </filter>
       </svg>
       <Image src={src} alt={alt} sizes={sizes} placeholder="blur" className="w-full" />
       <Image
@@ -33,7 +43,7 @@ export function Duotone({ src, alt, sizes, className }: Props) {
         alt=""
         aria-hidden="true"
         sizes={sizes}
-        className="absolute inset-0 size-full object-cover transition-opacity duration-700 ease-expo [filter:url(#duotone-sun)] group-hover:opacity-0"
+        className="duotone-layer absolute inset-0 size-full object-cover transition-opacity duration-700 ease-expo [filter:url(#duotone-sun)] group-hover:opacity-0"
       />
     </div>
   );

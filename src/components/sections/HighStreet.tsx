@@ -6,6 +6,7 @@ import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
 import { archiveProjects, caseStudyPath, chapters, featuredProjects, type Project } from "@/content/site";
 import { cn } from "@/lib/cn";
+import { Palette, palette } from "@/lib/palette";
 import { workCardId } from "@/lib/work-return";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
@@ -14,13 +15,33 @@ type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
  * Each shop has its own front, so the street reads as a street: a classic shop
  * under a striped awning, an arched front, a gabled one with a pointed roof,
  * and a modern box with an outlined sign. `wall` is the facade, `trim` the
- * sign letters and frames, `awning` the classic shop's two stripes.
+ * sign letters and frames, `awning` the classic shop's two stripes, `roof` the
+ * gabled one's roof. At night (the second colours) the walls are night blues
+ * and the signs glow in cool neon — cyan, pink, mint, lilac (globals.css).
  */
+const PAINT = palette("shops", {
+  wall0: ["#0d0a08", "#0f1330"],
+  trim0: ["#ffb629", "#8fe3ff"],
+  awnA0: ["#fd5d16", "#3a4a8c"],
+  awnB0: ["#fffaf4", "#c9d0ec"],
+  wall1: ["#3b1409", "#24183f"],
+  trim1: ["#ffd84a", "#ff9ec4"],
+  wall2: ["#1f1611", "#112434"],
+  trim2: ["#fd8916", "#9ff0c8"],
+  roof2: ["#fd8916", "#2c3a6a"],
+  wall3: ["#4a1d0c", "#1c1a44"],
+  trim3: ["#ffd84a", "#c9b6ff"],
+  awnA3: ["#fd8916", "#4a3f8c"],
+  street: ["#3b1409", "#141a3a"],
+  board: ["#7a4320", "#2a2f55"],
+});
+const P = PAINT.C;
+
 const FRONTS = [
-  { kind: "awning", wall: "#0d0a08", trim: "#ffb629", awning: ["#fd5d16", "#fffaf4"] },
-  { kind: "arch", wall: "#3b1409", trim: "#ffd84a", awning: ["#ffb629", "#0d0a08"] },
-  { kind: "gable", wall: "#1f1611", trim: "#fd8916", awning: ["#fffaf4", "#b3300c"] },
-  { kind: "modern", wall: "#4a1d0c", trim: "#ffd84a", awning: ["#fd8916", "#fffaf4"] },
+  { kind: "awning", wall: P.wall0, trim: P.trim0, roof: P.trim0, awning: [P.awnA0, P.awnB0] },
+  { kind: "arch", wall: P.wall1, trim: P.trim1, roof: P.trim1, awning: [P.trim1, P.wall0] },
+  { kind: "gable", wall: P.wall2, trim: P.trim2, roof: P.roof2, awning: [P.awnB0, P.wall2] },
+  { kind: "modern", wall: P.wall3, trim: P.trim3, roof: P.trim3, awning: [P.awnA3, P.awnB0] },
 ] as const;
 
 type Front = (typeof FRONTS)[number];
@@ -58,7 +79,8 @@ export function HighStreet() {
         </ol>
       </div>
       {/* The pavement the shops stand on. */}
-      <div aria-hidden="true" className="-mx-(--gutter) h-[clamp(0.5rem,1.4svh,0.9rem)] border-t-[3px] border-ink bg-[#3b1409]" />
+      <div aria-hidden="true" className="-mx-(--gutter) h-[clamp(0.5rem,1.4svh,0.9rem)] border-t-[3px] border-ink bg-(--shops-street)" />
+      <Palette of={PAINT} />
     </section>
   );
 }
@@ -141,7 +163,7 @@ function Shop({ project, front, order }: { project: Project; front: Front; order
           {front.kind === "gable" && (
             <>
               {/* A pointed roof, its gable in the trim colour with a round window. */}
-              <div aria-hidden="true" className="relative mx-[3%] h-[clamp(2.4rem,8svh,4.2rem)]" style={{ background: front.trim, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}>
+              <div aria-hidden="true" className="relative mx-[3%] h-[clamp(2.4rem,8svh,4.2rem)]" style={{ background: front.roof, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}>
                 <span className="absolute bottom-[18%] left-1/2 size-[clamp(0.5rem,1.4svh,0.8rem)] -translate-x-1/2 rounded-full" style={wall} />
               </div>
               <div className="border-b-4 border-(--trim) px-[6%] py-[clamp(0.4rem,1.2svh,0.7rem)] text-center" style={wall}>
@@ -209,7 +231,7 @@ function Workshop({ order }: { order: number }) {
   const tilt = [-2.5, 1.5, -1];
   return (
     <li data-step="" data-build="" style={{ "--b": 2 + order } as Vars} className={`shop ${SHOP}`}>
-      <section aria-labelledby="workshop-title" data-day-ink="" className="border-[6px] border-[#3b1409] bg-[#7a4320] p-[5%] text-paper shadow-[inset_0_0_0_2px_rgb(0_0_0/0.15)]">
+      <section aria-labelledby="workshop-title" data-day-ink="" className="border-[6px] border-(--shops-street) bg-(--shops-board) p-[5%] text-paper shadow-[inset_0_0_0_2px_rgb(0_0_0/0.15)]">
         <h3 id="workshop-title" className="text-[clamp(1rem,1.5vw,1.4rem)] font-extrabold tracking-[0.04em] uppercase">
           {title}
         </h3>
