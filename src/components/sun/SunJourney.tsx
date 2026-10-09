@@ -3,11 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/lib/use-media-query";
+import { WELCOME_DONE, welcomeActive, welcomeReleasedAt } from "@/lib/welcome";
 
 import { glowCss, MOON_GLOW } from "./disc";
 import { canUseWebGL, whenIdle } from "./webgl";
 
-/** The hero intro is pure CSS and lands at ~2s; the WebGL sun takes over after it. */
+/**
+ * The hero intro is pure CSS and lands at ~2s after it starts — at the first
+ * paint, or when the welcome screen lets the page go; the WebGL sun takes
+ * over after it.
+ */
 const INTRO_MS = 2000;
 
 /**
@@ -30,11 +35,20 @@ export function SunJourney() {
   useEffect(() => {
     if (!allowed || status !== "waiting" || !canUseWebGL()) return;
     let cancelIdle: (() => void) | undefined;
-    const timer = setTimeout(() => {
-      cancelIdle = whenIdle(() => setStatus("on"));
-    }, Math.max(0, INTRO_MS - performance.now()));
+    let timer = 0;
+    const start = () => {
+      timer = window.setTimeout(
+        () => {
+          cancelIdle = whenIdle(() => setStatus("on"));
+        },
+        Math.max(0, INTRO_MS - (performance.now() - welcomeReleasedAt())),
+      );
+    };
+    if (welcomeActive()) window.addEventListener(WELCOME_DONE, start, { once: true });
+    else start();
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener(WELCOME_DONE, start);
+      window.clearTimeout(timer);
       cancelIdle?.();
     };
   }, [allowed, status]);

@@ -1241,6 +1241,309 @@ html.chapters .town:not([data-open]) .town-awning {
 }
 
 /* ---------------------------------------------------------------------------
+   Welcome (components/welcome/Welcome.tsx, lib/welcome.ts): on every full page
+   load, TAYAM in white on black, split by a thin wiggly line through the Y into
+   the sun's half and the night's. Plays on its own (CSS) once the word's font
+   is in — the screen stays black until then, a moment at most.
+
+     0–1490 ms     TAYAM rises in, letter by letter (the hero's motion)
+     700–1500      the line draws itself down through the Y
+     1500–2400     the sun's sky fills the left half from the left edge (the
+                   letters there turn black)
+     1600–2500     the night's sky fills the right half from the right edge
+                   (they stay white)
+     until 2750    hold: the Y split along the line
+     2750–3250     the line fades away, slipping under the winner as it goes
+     2900–3700     the sun's sky sweeps on across the night's (in the night
+                   theme the night's across the sun's), letters changing as it
+                   passes
+     3650–4240     the word slides up out of sight
+     4250          the page underneath is let go (its own intro starts), and
+     4250–4700     the screen fades into it — its sky is the same
+
+   A half is a window with the line for an edge (.w-panel, a clip-path that
+   slides in) holding the sky and a copy of the word (.w-pin, sliding back by
+   the same amount, so it stays put): the colour sweeps in and the letters
+   change exactly where its edge passes. Transforms only.
+--------------------------------------------------------------------------- */
+.welcome {
+  --wa: clamp(6px, 0.9vw, 16px); /* how far the line wiggles either way */
+  --wl: 1px; /* half the line's width */
+  --w-fs: min(12vw, 24svh); /* the word's size */
+  /* The Y sits 0.153em left of the word's middle (the M is wider than the T,
+     measured in Kanit ExtraBold): the word moves right by that much, so the Y
+     is in the middle of the screen, where the line runs. */
+  --w-nudge: 0.153em;
+  --w-exit: 3650ms;
+  --w-ink: #0d0a08;
+  --w-sweep: cubic-bezier(0.76, 0, 0.24, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: hidden;
+  background: var(--w-ink);
+  animation:
+    welcome-release var(--w-release, 4250ms) linear both,
+    welcome-fade 0.45s ease-out var(--w-release, 4250ms) forwards;
+}
+
+/* Its end marks the moment the page is let go (lib/welcome.ts listens). */
+@keyframes welcome-release {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+@keyframes welcome-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The word, set like the hero's name, in the middle of the screen. */
+.w-word {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: var(--w-fs);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.w-word-ink {
+  color: var(--w-ink);
+}
+.w-word-white {
+  color: #fff;
+}
+.w-mask {
+  display: block;
+  overflow: hidden;
+  margin-block: -0.08em;
+  padding-block: 0.08em;
+  /* So the line, down the middle of the screen, runs through the middle of the Y. */
+  transform: translateX(var(--w-nudge, 0em));
+}
+.w-mask > span {
+  display: inline-block;
+}
+.w-letter {
+  animation: letter-in 1.15s var(--ease-expo) both;
+  animation-delay: calc(120ms + var(--i, 0) * 55ms);
+}
+
+/* On its way out the word slides up out of its mask (the hero's rise, in reverse). */
+.w-panel .w-mask > span {
+  animation: letter-out 0.45s cubic-bezier(0.7, 0, 0.84, 0) both;
+  animation-delay: calc(var(--w-exit) + var(--i, 0) * 35ms);
+}
+
+@keyframes letter-out {
+  to {
+    transform: translate3d(0.25em, -108%, 0) rotate(-6deg);
+  }
+}
+
+/* The halves. The line sits 8vw in from the sun window's right edge and the
+   night window's left edge, i.e. down the middle of the screen at rest. Then
+   the winner (the sun; the night in the night theme) comes on top and carries
+   on across the screen. */
+.w-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 118vw;
+  will-change: transform;
+}
+.w-pin {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.w-frame {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100vw;
+  overflow: hidden;
+}
+.w-sun {
+  left: -60vw;
+  z-index: 2;
+  animation:
+    w-sun-in 0.9s var(--w-sweep) 1.5s both,
+    w-sun-over 0.8s var(--w-sweep) 2.9s forwards;
+}
+.w-sun > .w-pin {
+  animation:
+    w-sun-pin 0.9s var(--w-sweep) 1.5s both,
+    w-sun-over-pin 0.8s var(--w-sweep) 2.9s forwards;
+}
+.w-sun .w-frame {
+  left: 60vw;
+}
+.w-night {
+  right: -60vw;
+  z-index: 1;
+  animation: w-night-in 0.9s var(--w-sweep) 1.6s both;
+}
+.w-night > .w-pin {
+  animation: w-night-pin 0.9s var(--w-sweep) 1.6s both;
+}
+.w-night .w-frame {
+  left: -42vw;
+}
+
+/* In the night theme the night wins: it comes on top and sweeps on across. */
+html[data-theme="night"] .w-sun {
+  z-index: 1;
+  animation: w-sun-in 0.9s var(--w-sweep) 1.5s both;
+}
+html[data-theme="night"] .w-sun > .w-pin {
+  animation: w-sun-pin 0.9s var(--w-sweep) 1.5s both;
+}
+html[data-theme="night"] .w-night {
+  z-index: 2;
+  animation:
+    w-night-in 0.9s var(--w-sweep) 1.6s both,
+    w-night-over 0.8s var(--w-sweep) 2.9s forwards;
+}
+html[data-theme="night"] .w-night > .w-pin {
+  animation:
+    w-night-pin 0.9s var(--w-sweep) 1.6s both,
+    w-night-over-pin 0.8s var(--w-sweep) 2.9s forwards;
+}
+
+@keyframes w-sun-in {
+  from {
+    transform: translateX(calc(-50vw - var(--wa) - 4px));
+  }
+}
+@keyframes w-sun-pin {
+  from {
+    transform: translateX(calc(50vw + var(--wa) + 4px));
+  }
+}
+@keyframes w-night-in {
+  from {
+    transform: translateX(calc(50vw + var(--wa) + 4px));
+  }
+}
+@keyframes w-night-pin {
+  from {
+    transform: translateX(calc(-50vw - var(--wa) - 4px));
+  }
+}
+
+/* Taking the whole screen: the edge carries on past the far side. */
+@keyframes w-sun-over {
+  to {
+    transform: translateX(calc(50vw + var(--wa) + 4px));
+  }
+}
+@keyframes w-sun-over-pin {
+  to {
+    transform: translateX(calc(-50vw - var(--wa) - 4px));
+  }
+}
+@keyframes w-night-over {
+  to {
+    transform: translateX(calc(-50vw - var(--wa) - 4px));
+  }
+}
+@keyframes w-night-over-pin {
+  to {
+    transform: translateX(calc(50vw + var(--wa) + 4px));
+  }
+}
+
+/* The line: drawn top to bottom by a window that comes down over it (the line
+   itself held still inside). It goes quietly: it fades, and as the winner sets
+   off it drops beneath it (above the other half still), so the moving edge
+   covers what's left of it — it never shows apart from the edge. */
+.w-line-window {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  will-change: transform;
+  animation:
+    w-drop 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.7s both,
+    w-under 1ms linear 2.9s forwards;
+}
+.w-line-pin {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  animation: w-lift 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.7s both;
+}
+.w-line {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: w-fade 0.5s ease-in-out 2.75s forwards;
+}
+
+@keyframes w-drop {
+  from {
+    transform: translateY(-100%);
+  }
+}
+@keyframes w-lift {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes w-under {
+  to {
+    z-index: 1;
+  }
+}
+@keyframes w-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Until the word's font is in, the screen waits (lib/welcome.ts): all of it
+   starts together once it is. */
+html[data-welcome-wait] :is(.welcome, .welcome *) {
+  animation-play-state: paused;
+}
+
+/* While the screen holds the page: the page's own intro waits (it plays from
+   the start once let go), and the page can't be scrolled. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-welcome]
+    :is(.intro-letter, .intro-slide, .intro-dash, .intro-from-right, .intro-rise, .intro-ridge, .intro-cloud, .orbit-write) {
+    animation-play-state: paused;
+  }
+  html[data-welcome] body {
+    overflow: hidden;
+  }
+}
+
+/* With reduced motion the site has no intro to wait for: no welcome either. */
+@media (prefers-reduced-motion: reduce) {
+  .welcome {
+    display: none;
+  }
+}
+
+@media print {
+  .welcome {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    No scrollbar. The page still scrolls — wheel, touch, keys, links, the
    chapters — it just doesn't draw a bar. It's set on both html and body: the
    page's scrollbar belongs to whichever defines the viewport, and here that

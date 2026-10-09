@@ -4,6 +4,7 @@ import { useLenis } from "lenis/react";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { CHAPTER_ARRIVE, CHAPTER_LEAVE, chapterNav, type ChapterArrive, type ChapterLeave, type ChapterOptions } from "@/lib/chapters";
+import { WELCOME_DONE, welcomeActive } from "@/lib/welcome";
 
 /** One place the page can rest: a chapter, its scroll position and (for a sideways track) which step. */
 type Stop = { chapter: HTMLElement; y: number; track?: HTMLElement; shift?: number; step?: number };
@@ -33,6 +34,9 @@ const isTyping = (el: EventTarget | null) =>
  * and find-in-page still work; external jumps settle onto the nearest chapter.
  * With reduced motion none of this runs: the page scrolls normally and every
  * chapter's content is simply there.
+ *
+ * While the welcome screen is up (lib/welcome.ts) the page doesn't move, and
+ * the chapter it opens on builds in only once the screen lets it go.
  */
 export function Chapters() {
   const lenis = useLenis();
@@ -56,6 +60,7 @@ export function Chapters() {
     let settleTimer = 0;
     let doneTimer = 0;
     let touch: { x: number; y: number } | null = null;
+    let waiting: HTMLElement | null = null; // the chapter to arrive at once the welcome screen lets go
 
     const chapters = () => Array.from(document.querySelectorAll<HTMLElement>("[data-chapter]"));
 
@@ -136,6 +141,10 @@ export function Chapters() {
     };
 
     const arrive = (chapter: HTMLElement) => {
+      if (welcomeActive()) {
+        waiting = chapter;
+        return;
+      }
       for (const other of chapters()) if (other !== chapter) other.removeAttribute("data-arrived");
       if (chapter.hasAttribute("data-arrived")) return; // another step along the same chapter
       chapter.setAttribute("data-arrived", "");
@@ -213,6 +222,11 @@ export function Chapters() {
     const free = () => lenisRef.current?.isStopped || root.dataset.menu === "open";
 
     const onWheel = (event: WheelEvent) => {
+      if (welcomeActive()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (free() || event.ctrlKey) return; // the mobile menu is open, or a pinch-zoom
       event.preventDefault();
       event.stopPropagation();
@@ -232,7 +246,7 @@ export function Chapters() {
     };
 
     const onTouchStart = (event: TouchEvent) => {
-      touch = event.touches.length === 1 && !free() ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+      touch = event.touches.length === 1 && !free() && !welcomeActive() ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
     };
     const onTouchMove = (event: TouchEvent) => {
       if (!touch || event.touches.length > 1) return;
@@ -252,7 +266,7 @@ export function Chapters() {
     };
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || free() || isTyping(event.target)) return;
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || free() || welcomeActive() || isTyping(event.target)) return;
       const onControl = event.target instanceof HTMLElement && event.target.closest("a, button, summary, [role='button']");
       const track = Boolean(stops[at]?.track);
       let handled = true;
@@ -291,7 +305,7 @@ export function Chapters() {
 
     // Tabbing into another chapter (or another shop) glides there.
     const onFocusIn = (event: FocusEvent) => {
-      if (busy) return;
+      if (busy || welcomeActive()) return;
       const target = event.target as HTMLElement;
       const chapter = target.closest<HTMLElement>("[data-chapter]");
       if (!chapter) return;
@@ -353,6 +367,7 @@ export function Chapters() {
 
     // A #section typed into the address bar (or the browser's own anchor jump).
     const onHash = () => {
+      if (welcomeActive()) return;
       const id = location.hash.slice(1) || "home";
       const index = stops.findIndex((stop) => stop.chapter.id === id);
       if (index !== -1 && stops[index].chapter !== stops[at]?.chapter) go(index, { focus: true });
@@ -371,6 +386,13 @@ export function Chapters() {
       return index;
     };
 
+    // The welcome screen has let go: arrive where the page opened.
+    const onWelcome = () => {
+      const chapter = waiting;
+      waiting = null;
+      if (chapter && stops[at]?.chapter === chapter) arrive(chapter);
+    };
+
     measure();
     at = initial();
     go(at, { immediate: true });
@@ -385,6 +407,7 @@ export function Chapters() {
     window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("focusin", onFocusIn);
     window.addEventListener("hashchange", onHash);
+    window.addEventListener(WELCOME_DONE, onWelcome);
 
     return () => {
       chapterNav.current = null;
@@ -397,6 +420,7 @@ export function Chapters() {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("hashchange", onHash);
+      window.removeEventListener(WELCOME_DONE, onWelcome);
       window.clearTimeout(settleTimer);
       window.clearTimeout(doneTimer);
       root.classList.remove("chapters");

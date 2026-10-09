@@ -140,6 +140,32 @@ WebGL sun cools to silver and the moon's shadow slides in.
 - There is no scrollbar (`globals.css`): the page scrolls as ever (wheel, touch, keys, links, chapters) but draws no bar.
 - Only the home page dresses for the night; the case studies stay as they are.
 
+### Welcome
+
+Every full page load opens on a welcome screen (`welcome/Welcome.tsx`; styles in `globals.css`,
+"Welcome"; timing, geometry and the hand-over in `lib/welcome.ts`), about four seconds long:
+
+- **The sequence.** Black, with TAYAM in white — Kanit ExtraBold with the hero's kerning, rising
+  letter by letter like the hero's name. A thin white wiggly line draws itself down through the Y
+  (the word is nudged so the Y sits in the exact middle of the screen). The sun's sky fills the
+  left half from the left edge, the letters there turning black, and the night's sky with its
+  stars fills the right half from the right edge, the letters staying white: the Y ends up split
+  along the line. Then the line fades — slipping under the winning half as it sets off, so it
+  never shows apart from the edge — and the sun sweeps across the night, turning the letters
+  black (in the night theme the night sweeps across the sun and they stay white). The word slides
+  up out of sight and the screen fades into the page, whose sky is the same.
+- **How it moves.** Each half is a window with the wiggly edge (a `clip-path` polygon) that slides
+  in while its contents slide back by the same amount, so the colour sweeps in and the letters
+  change exactly where its edge passes. Transforms only, so it stays smooth while the page loads
+  behind it. The line and both edges come from one wiggle function, so they meet at every size.
+- **The hand-over.** While it shows, `<html data-welcome>` holds the page: the hero's intro waits
+  (and plays from the start once let go), the page can't scroll, a chapter link (`/#work`) builds
+  in afterwards, and the WebGL sun counts its start from the release. The screen itself starts
+  once the word's font is in (`data-welcome-wait`, at most 1.2s on a slow connection — black
+  until then), so the word never changes font mid-animation.
+- It plays on every full load, with no skip. Without JavaScript it still plays and goes away on
+  its own; with reduced motion there is none, like the site's other intros.
+
 ### Pointer
 
 The native cursor stays (the custom cursor and the film grain are gone: both were common
@@ -162,10 +188,11 @@ restyle the whole page).
 
 1. Things arrive from the left (the original's direction) or rise out of a mask.
 2. One easing curve (`ease-expo`) everywhere, so the site moves with one voice.
-3. The hero intro is pure CSS, so it plays on first paint — no waiting for JavaScript.
+3. The welcome screen and the hero intro are pure CSS — neither waits for JavaScript (the hero's
+   intro waits only for the welcome to let go).
 4. Everything continuous is a compositor-friendly transform or opacity.
-5. `prefers-reduced-motion` turns off smooth scrolling, intros, the marquee, scroll
-   scrubbing and the sun's animation — the content is identical, just still.
+5. `prefers-reduced-motion` turns off the welcome screen, smooth scrolling, intros, the marquee,
+   scroll scrubbing and the sun's animation — the content is identical, just still.
 
 ## 3. What was built
 
@@ -191,7 +218,7 @@ chapters are simply shown and the page scrolls normally.
 | Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
 | Testimonials | Hidden for now (not rendered in page.tsx); a chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
 | Contact · 19:30 | "Let's build something bright." The last chapter rests at the very bottom of the page: the glide down carries the sky through dusk while the sun sets into the WebGL sea; email, copy-to-clipboard, GitHub, back to sunrise |
-| Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, no scrollbar, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. No preloader: the intro is CSS and plays on first paint |
+| Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, no scrollbar, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. The welcome screen on every full load (see Welcome), then the hero's CSS intro |
 
 **Life in the sky** (`scenery/Life.tsx`) plays one moment per glide: leaving sunrise, a flock
 lifts off the mountains and flies up over the morning; between noon and the afternoon a small plane
@@ -263,10 +290,12 @@ src/
                   geometry.ts → SunGlyph, the faceted brand mark
     ui/           Statement (chapter titles), InkLabel, Reveal, Tilt, Magnetic, Dashes, RollText,
                   AccentText, BrowserFrame, Duotone, LocalTime, MockBadge
+    welcome/      Welcome (the welcome screen), WelcomeGuard (keeps its hold in development)
     providers/    Chapters (the home page, a screen at a time), SmoothScroll (Lenis + Motion),
                   PointerSync (hover while scrolling), SkyCycle (the sky),
                   HomeLanding (where the home page opens when you arrive from another page)
-  lib/            chapters (go to a chapter), accent markup, kerning, mock gating, work-return, hooks (active section, tone,
+  lib/            chapters (go to a chapter), welcome (the welcome screen's timing, line and hand-over),
+                  accent markup, kerning, mock gating, work-return, hooks (active section, tone,
                   media queries, scroll-to)
   assets/         optimised WebP images (see scripts/optimize-images.mjs)
 ```

@@ -4,9 +4,11 @@ import localFont from "next/font/local";
 
 import { PointerSync } from "@/components/providers/PointerSync";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
+import { Welcome } from "@/components/welcome/Welcome";
 import { profile } from "@/content/site";
 import { siteUrl } from "@/lib/site-url";
 import { THEME_SCRIPT } from "@/lib/theme-script";
+import { WELCOME_END_SCRIPT, WELCOME_HEAD_SCRIPT } from "@/lib/welcome";
 
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -71,10 +73,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The theme (day or night) is put on <html> before the first paint by the
-    // inline script, so a saved night never flashes the day first.
+    // inline script, so a saved night never flashes the day first; so is the
+    // welcome screen's hold on the page (lib/welcome.ts).
     <html lang="en" className={`${kanit.variable} ${mono.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: `${THEME_SCRIPT};${WELCOME_HEAD_SCRIPT}` }} />
       </head>
       <body>
         <a
@@ -83,6 +86,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <Welcome />
+        <script dangerouslySetInnerHTML={{ __html: WELCOME_END_SCRIPT }} />
         <SmoothScroll>{children}</SmoothScroll>
         <PointerSync />
       </body>
