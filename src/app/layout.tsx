@@ -43,7 +43,7 @@ const fraunces = localFont({
 
 const title = `${profile.fullName} — ${profile.role}`;
 const description =
-  "Tayam Soubuh is a full-stack developer building fast websites and web systems with Next.js, Prisma, PostgreSQL and Docker.";
+  "Tayam Soubuh is a full stack / front end developer in the UAE building websites and web systems with React, Next.js and TypeScript, from live store-monitoring dashboards to bilingual English and Arabic sites.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   applicationName: profile.fullName,
   authors: [{ name: profile.fullName, url: profile.socials[0].href }],
   creator: profile.fullName,
-  keywords: ["Tayam Soubuh", "full-stack developer", "portfolio", "Next.js", "Prisma", "PostgreSQL", "Docker", "web developer"],
+  keywords: ["Tayam Soubuh", "full stack developer", "front end developer", "UAE", "portfolio", "React", "Next.js", "TypeScript", "web developer"],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",

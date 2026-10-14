@@ -5,21 +5,22 @@
  * Markers:
  * - `// DRAFT` — copy written from real facts (projects, certificate, skills);
  *   ships as-is, but should be read and adjusted by Tayam.
- * - `mock: true` — placeholder content (testimonials, status, city). It renders
- *   only in development (see src/lib/mock.ts), so it can never ship by accident.
+ * - `mock: true` — placeholder content. It renders only in development (see
+ *   src/lib/mock.ts), so it can never ship by accident. There is none left in
+ *   the projects: nothing here is invented.
  *
  * `*word*` sets that word in the serif accent — on the hero only; every chapter
  * title is a plain sentence.
  */
 import type { StaticImageData } from "next/image";
 import {
-  siDocker,
   siJavascript,
   siNextdotjs,
+  siNodedotjs,
   siNuxt,
-  siPostgresql,
-  siPrisma,
   siReact,
+  siTailwindcss,
+  siTypescript,
   siVuedotjs,
   type SimpleIcon,
 } from "simple-icons";
@@ -28,26 +29,47 @@ import portrait from "@/assets/about/portrait.webp";
 import alAin from "@/assets/projects/al-ain.webp";
 import alaktabout from "@/assets/projects/alaktabout.webp";
 import baddar from "@/assets/projects/baddar.webp";
+import bDashboard from "@/assets/projects/b-dashboard.webp";
+import bdCompact from "@/assets/projects/b-dashboard/compact.webp";
+import bdDriveThru from "@/assets/projects/b-dashboard/drive-thru.webp";
+import bdDriveThruStill from "@/assets/projects/b-dashboard/drive-thru-still.webp";
+import bdEmployeeForm from "@/assets/projects/b-dashboard/employee-form.webp";
+import bdHiring from "@/assets/projects/b-dashboard/hiring.webp";
+import bdMonitoring from "@/assets/projects/b-dashboard/monitoring.webp";
+import bdNavigation from "@/assets/projects/b-dashboard/navigation.webp";
+import bdReportProblem from "@/assets/projects/b-dashboard/report-problem.webp";
+import bdReportProblemStill from "@/assets/projects/b-dashboard/report-problem-still.webp";
+import bdScheduling from "@/assets/projects/b-dashboard/scheduling.webp";
 import elzero from "@/assets/projects/elzero.webp";
 import hazo from "@/assets/projects/hazo.webp";
 import kasper from "@/assets/projects/kasper.webp";
 import leon from "@/assets/projects/leon.webp";
+import mangos from "@/assets/projects/mangos.webp";
+import mangosMobile from "@/assets/projects/mangos/mobile.webp";
+import mangosVenue from "@/assets/projects/mangos/venue.webp";
 import certificate from "@/assets/study/certificate.webp";
 import metaBadge from "@/assets/study/meta-badge.webp";
+
+/**
+ * The live address of the Mangos site (the Vercel URL). Fill it in and the
+ * project gets its "visit the live site" links, its address bar and its
+ * structured data; until then the site is shown without a link.
+ */
+export const MANGOS_URL: string = "";
 
 export const profile = {
   firstName: "Tayam",
   lastName: "Soubuh",
   fullName: "Tayam Soubuh",
-  role: "Full-Stack Developer",
+  role: "Full Stack / Front End Developer",
   age: 23,
   // DRAFT — replace with your own positioning line.
   tagline: ["Full-stack developer", "building web products that feel *alive*."],
   email: "taeyamfrontend@gmail.com",
   socials: [{ label: "GitHub", href: "https://github.com/TaeyamSo" }],
-  // MOCK — your real status and city (the clock follows `timeZone`).
-  availability: { mock: true, text: "Available for new projects" },
-  location: { mock: true, city: "Dubai", timeZone: "Asia/Dubai" },
+  // Real (not mock) — the clock follows `timeZone` (the UAE has one).
+  availability: { text: "Open to full-time roles" } as { text: string; mock?: boolean },
+  location: { city: "UAE", timeZone: "Asia/Dubai" } as { city: string; timeZone: string; mock?: boolean },
 } as const;
 
 export const sections = [
@@ -64,10 +86,10 @@ export type SectionId = (typeof sections)[number]["id"];
 
 export const about = {
   // DRAFT — the chapter's title is a plain sentence.
-  statement: "I'm Tayam. I build full-stack web products for real businesses.",
+  statement: "I'm Tayam. I build web products for real businesses.",
   body: [
-    `I'm a ${profile.age}-year-old full-stack developer. I work with Next.js, Prisma, PostgreSQL and Docker — from the interface people see to the database and the server behind it.`,
-    "In my first three months I delivered three websites for real clients in the UAE. For about a year now I've been at NVT-PNE Pizza — a company that works with Little Caesars and runs a franchise — designing and building whole systems for the business.",
+    `I'm a ${profile.age}-year-old developer who works across the front end and the API layer: React, Next.js and TypeScript, with real-time video, role-based access and interfaces in English and Arabic.`,
+    "At NVT - PNE Pizza I'm the largest contributor to the B Dashboard, the operations platform a multi-store pizza business runs on. Before that I built bilingual websites for UAE businesses, and I delivered a brand site for a restaurant group in Columbus, Ohio.",
   ],
   portrait: {
     src: portrait,
@@ -78,13 +100,14 @@ export const about = {
 export type Skill = { name: string; icon: SimpleIcon; accent: string };
 
 // `accent` is the hover colour; the 2025 site gave each tile its own brand hue too.
+// Only what the work above actually used (plus the Vue/Nuxt this portfolio's first version was built in).
 export const skills: Skill[] = [
   { name: "Next.js", icon: siNextdotjs, accent: "#ffffff" },
   { name: "React", icon: siReact, accent: "#61dafb" },
-  { name: "Prisma", icon: siPrisma, accent: "#7f9cf5" },
-  { name: "PostgreSQL", icon: siPostgresql, accent: "#6f9bff" },
-  { name: "Docker", icon: siDocker, accent: "#2496ed" },
+  { name: "TypeScript", icon: siTypescript, accent: "#3178c6" },
+  { name: "Tailwind CSS", icon: siTailwindcss, accent: "#38bdf8" },
   { name: "JavaScript", icon: siJavascript, accent: "#f7df1e" },
+  { name: "Node.js", icon: siNodedotjs, accent: "#5fa04e" },
   { name: "Vue", icon: siVuedotjs, accent: "#4fc08d" },
   { name: "Nuxt", icon: siNuxt, accent: "#00dc82" },
 ];
@@ -92,20 +115,20 @@ export const skills: Skill[] = [
 /** The journey's work history, newest first. */
 export const experience = [
   {
-    period: "Now · NVT-PNE Pizza · 1 year",
-    title: "Full-stack developer",
-    text: "A company that works with Little Caesars and runs a franchise. I've designed and built whole systems for the business.",
+    period: "Now · NVT - PNE Pizza",
+    title: "Web developer engineer",
+    text: "Largest contributor to the B Dashboard, the operations platform a multi-store pizza business runs on: live store monitoring, hiring, scheduling and analytics.",
   },
   {
     period: "Before · 3 months",
-    title: "Web developer",
-    text: "Delivered three websites for real clients in the UAE.",
+    title: "Front-end developer",
+    text: "Delivered bilingual websites for UAE businesses.",
   },
 ] as const;
 
 export const study = {
   degree: {
-    title: "IT Student — Year 3", // DRAFT — confirm the current year.
+    title: "IT student — in progress", // DRAFT — add the year when you want to show it.
     school: "Syrian Virtual University",
   },
   certificate: {
@@ -132,43 +155,222 @@ export const study = {
   },
 };
 
-/** A detail of the live site, and where to look for it on the screenshot (0–1 from the top left). */
+/** A detail of the project's screenshot, and where to look for it (0–1 from the top left). */
 export type Highlight = { title: string; text: string; focus: { x: number; y: number; zoom: number } };
+/** `short` is the label for tight spaces (the Work chapter's overview). */
+export type Metric = { value: string; label: string; short?: string };
+export type DeepDive = { title: string; text: string; image: StaticImageData; alt: string };
+export type Shot = { image: StaticImageData; alt: string; caption: string };
+/** A short screen recording: an animated image, plus a still for visitors who prefer no motion. */
+export type Clip = { title: string; text: string; clip: StaticImageData; still: StaticImageData; alt: string };
 
 export type CaseStudy = {
-  /** DRAFT — what the site is, written from what's on it. */
+  /** DRAFT — what the project is, written from what's on it. */
   summary: string;
-  /** DRAFT — details you can see on the live site; the case page zooms into each one. */
+  /** DRAFT — details you can see on the screenshot; the case page zooms into each one. */
   highlights: Highlight[];
-  /** MOCK — the story behind the project, in Tayam's words once written. */
-  story?: { brief: string; approach: string; outcome: string; mock?: boolean };
+  /** A few plain numbers, each one counted. */
+  metrics?: Metric[];
+  /** The product in motion: short looping screen recordings. */
+  clips?: Clip[];
+  /** What I built: a screen and a few plain sentences each. */
+  deepDives?: DeepDive[];
+  /** The hard parts, in plain words. */
+  challenges?: { title: string; text: string }[];
+  /** How it's wired, step by step. */
+  architecture?: { label: string; note: string }[];
+  /** More screens. */
+  gallery?: Shot[];
+  /** A client's own words — shown only when there are real ones. */
+  quote?: { text: string; by: string };
+  /** What I would do next. */
+  nextUp?: string;
 };
+
+export type ProjectKind = "Flagship" | "Client" | "Freelance" | "Template build";
 
 export type Project = {
   slug: string;
   name: string;
   category: string;
-  kind: "Client" | "Template build";
-  url: string;
+  kind: ProjectKind;
+  /** The public address, when it has one. */
+  url?: string;
+  /** False when the address is known not to load — it is shown, but not linked. */
+  linkable?: boolean;
+  /** What the browser frame shows when there is no public address. */
+  displayUrl?: string;
   image: StaticImageData;
-  /** DRAFT — what Tayam did on it. */
+  /** What Tayam did on it. */
   role?: string;
-  /** MOCK until confirmed — shown on the project cards in development only. */
-  details?: { year: string; stack: string; mock?: boolean };
-  /** Client projects get a page at /work/[slug]. */
+  period?: string;
+  stack?: string;
+  /** The project's public code, when it is public. */
+  repo?: string;
+  /** Projects with a case study get a page at /work/[slug]. */
   caseStudy?: CaseStudy;
 };
 
 export const projects: Project[] = [
+  {
+    slug: "b-dashboard",
+    name: "B Dashboard",
+    category: "Operations platform for a multi-store pizza business",
+    kind: "Flagship",
+    displayUrl: "internal tool — screenshots only",
+    image: bDashboard,
+    role: "Largest contributor: front end and API layer",
+    period: "NVT - PNE Pizza · now",
+    stack: "Next.js 16 · React 19 · TypeScript · Tailwind CSS · Zustand · LiveKit",
+    caseStudy: {
+      summary:
+        "The operations platform a multi-store pizza business runs on: live store monitoring, hiring, scheduling and sales analytics in one place, in English and Arabic. Four core developers built it; I'm the largest contributor, with 301 of its 497 commits.",
+      highlights: [
+        {
+          title: "The day at a glance",
+          text: "A strip of the day's key numbers (cash sales, deposits, refunds, customers, tips, over/short and waste) sits above more than thirty cards in six colour-coded groups.",
+          focus: { x: 0.58, y: 0.18, zoom: 1.5 },
+        },
+        {
+          title: "One score for the store",
+          text: "Store Score turns the day's targets into a single score out of 100, with every target listed underneath it.",
+          focus: { x: 0.68, y: 0.44, zoom: 2.4 },
+        },
+        {
+          title: "Sales by hour and channel",
+          text: "Hourly sales stack by order channel — register, phone, website, mobile, delivery apps and drive-thru — so a quiet hour or a busy one shows at once.",
+          focus: { x: 0.78, y: 0.82, zoom: 2 },
+        },
+      ],
+      metrics: [
+        { value: "95", label: "screens" },
+        { value: "380+", label: "API routes" },
+        { value: "13", label: "backend services connected", short: "backend services" },
+        { value: "2", label: "languages, English and Arabic", short: "languages" },
+        { value: "301", label: "of 497 commits, one of 4 core developers", short: "commits" },
+      ],
+      clips: [
+        {
+          title: "Report a Problem",
+          text: "Anyone can pick any card or section of any dashboard page. The page screenshots exactly what they picked, without touching the live screen, and files a ticket with the page details attached.",
+          clip: bdReportProblem,
+          still: bdReportProblemStill,
+          alt: "A screen recording: the Report a problem button is pressed, the Weekly Sales card is picked, and a ticket form opens with its screenshot",
+        },
+        {
+          title: "The drive-thru hotline",
+          text: "From any page, connect to a drive-thru lane and talk with one tap. The microphone goes through in-browser noise suppression that can be tuned from the same panel.",
+          clip: bdDriveThru,
+          still: bdDriveThruStill,
+          alt: "A screen recording: the drive-thru panel opens over the dashboard, connects, and the talk button lights up red while talking (logo blurred)",
+        },
+      ],
+      deepDives: [
+        {
+          title: "Live store monitoring",
+          text: "Every kitchen screen and drive-thru lane is a live room. Managers watch several at once, control them remotely, keep them in a floating window while they work elsewhere, and talk to any lane with browser-based noise suppression.",
+          image: bdMonitoring,
+          alt: "The Screen Project page: one live station large, three more beside it (face blurred)",
+        },
+        {
+          title: "Hiring and labor",
+          text: "Hiring and separation requests, an employee master with multi-section forms, and a weekly labor dashboard for headcount, turnover and overtime.",
+          image: bdHiring,
+          alt: "The Manage Requests page: a table of hiring requests with their status",
+        },
+        {
+          title: "Weekly scheduling",
+          text: "Planned, actual and compare views from one fetch, shift drafts with bulk save, conflict warnings a manager can override, and publishing to staff.",
+          image: bdScheduling,
+          alt: "The Employee Schedule page: a week of shifts per employee (names blurred)",
+        },
+      ],
+      challenges: [
+        {
+          title: "Many live rooms, one page",
+          text: "Several stations stay connected while their tiles swap places, so nothing reconnects or flickers when a manager rearranges the view.",
+        },
+        {
+          title: "Screens that look after themselves",
+          text: "A store screen runs unattended. After a drop it signs itself back in, replays the last commands and checks a device change before trusting it.",
+        },
+        {
+          title: "Cleaner audio, inside the browser",
+          text: "Noise suppression runs in an audio worklet in the page and falls back to the raw microphone if it fails, so the line never goes silent.",
+        },
+      ],
+      architecture: [
+        { label: "Screen", note: "React components" },
+        { label: "Hook", note: "one per feature" },
+        { label: "Service", note: "typed API calls" },
+        { label: "Route handler", note: "Next.js: auth, errors, uploads" },
+        { label: "Backend", note: "13 services" },
+      ],
+      gallery: [
+        { image: bdEmployeeForm, alt: "The Add Employee form, with its Personal, Availability, Compensation and Admin tabs", caption: "Add an employee, in four tabs." },
+        { image: bdNavigation, alt: "The dashboard with the sidebar open, showing every area of the platform", caption: "Every area, one sidebar." },
+        { image: bdCompact, alt: "The dashboard with the sidebar collapsed to icons", caption: "The same page with the sidebar collapsed." },
+      ],
+      nextUp: "Next, I'd add automated tests around the money and scheduling logic, where a mistake costs the most.",
+    },
+  },
+  {
+    slug: "mangos",
+    name: "Mangos",
+    category: "Website for a two-venue restaurant group",
+    kind: "Freelance",
+    url: MANGOS_URL || undefined,
+    linkable: Boolean(MANGOS_URL),
+    displayUrl: "mangos — live link coming",
+    image: mangos,
+    role: "Design and development",
+    period: "Jul–Sep 2026 · freelance, part-time · Columbus, Ohio",
+    stack: "Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Motion",
+    repo: "https://github.com/TaeyamSo/mangos-website",
+    caseStudy: {
+      summary:
+        "A brand website for Mangos, a restaurant group in Columbus, Ohio with two venues: a bar and hookah lounge, and a Mediterranean grill. A branded intro opens onto the two venues, and each venue's photo grows into its own page.",
+      highlights: [
+        {
+          title: "Mangos Cafe",
+          text: "The bar and hookah lounge gets its own card, with its address and phone number and one tap to enter.",
+          focus: { x: 0.29, y: 0.55, zoom: 2.1 },
+        },
+        {
+          title: "Mangos Mediterranean Grill",
+          text: "The grill sits beside it, with its halal certification and the same one-tap way in.",
+          focus: { x: 0.71, y: 0.55, zoom: 2.1 },
+        },
+      ],
+      challenges: [
+        {
+          title: "A bug only the live site had",
+          text: "The page transition stuttered in production only: an uncached image fetch was racing the route animation. Preloading the images and making the timing consistent fixed it.",
+        },
+        {
+          title: "Content that can move to a backend",
+          text: "Every word and image sits in a typed content layer that one setting switches to an HTTP backend, so a CMS can take over without touching a component.",
+        },
+        {
+          title: "The client's real tools",
+          text: "Square gift-card checkout, Apple or Google Maps depending on the device, a live \"open now\" badge that handles hours past midnight, and an embedded PDF menu.",
+        },
+      ],
+      gallery: [
+        { image: mangosVenue, alt: "A venue page: the bar's photo behind its name, address and phone number", caption: "A venue page, after the photo has grown into it." },
+        { image: mangosMobile, alt: "The Mangos home page on a phone: the two venue cards stacked", caption: "On a phone, the venues stack." },
+      ],
+    },
+  },
   {
     slug: "baddar",
     name: "Baddar Furniture",
     category: "Furniture e-commerce store",
     kind: "Client",
     url: "https://baddarfurniture.com/",
+    linkable: false,
     image: baddar,
     role: "Front-end development",
-    details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
         "An online store for Baddar Furniture: office furniture and sofas by category, every piece with its model code, its price in dirhams and an order button — in English and Arabic.",
@@ -189,12 +391,6 @@ export const projects: Project[] = [
           focus: { x: 0.8, y: 0.72, zoom: 2 },
         },
       ],
-      story: {
-        mock: true,
-        brief: "Baddar wanted its whole catalogue online in both languages, so customers could browse every collection and order without visiting the showroom.",
-        approach: "A responsive catalogue with category navigation and reusable product cards, an Arabic version laid out right to left, and the brand's gold carried through every page.",
-        outcome: "Every collection went online, and orders now start on the site or with a single WhatsApp tap.",
-      },
     },
   },
   {
@@ -203,9 +399,9 @@ export const projects: Project[] = [
     category: "Interior design & furnishing",
     kind: "Client",
     url: "https://hazoco.net",
+    linkable: true,
     image: hazo,
     role: "Front-end development",
-    details: { mock: true, year: "2024", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
         "The website of Hazo Interiors, an interior design and furnishing company: a full-screen slider of interiors up front, with projects, services, clients and certificates a click away — in English and Arabic.",
@@ -221,12 +417,6 @@ export const projects: Project[] = [
           focus: { x: 0.5, y: 0.56, zoom: 1.5 },
         },
       ],
-      story: {
-        mock: true,
-        brief: "Hazo needed a site as calm and considered as its interiors, one that lets the work speak before the words do.",
-        approach: "Full-bleed photography, a restrained palette and a menu that reaches every part of the company in one move, in English and Arabic.",
-        outcome: "A site the team now sends to clients in place of a printed portfolio.",
-      },
     },
   },
   {
@@ -235,9 +425,9 @@ export const projects: Project[] = [
     category: "Documents clearing services",
     kind: "Client",
     url: "https://alaktabout.net/",
+    linkable: false,
     image: alaktabout,
     role: "Front-end development",
-    details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
         "The website of Al Aktabout, a documents clearing company, dressed in its black and gold identity from the header to a framed hero slider — in English and Arabic.",
@@ -253,12 +443,6 @@ export const projects: Project[] = [
           focus: { x: 0.5, y: 0.55, zoom: 1.35 },
         },
       ],
-      story: {
-        mock: true,
-        brief: "Al Aktabout handles paperwork people find daunting; the site had to feel trustworthy and make each service easy to find.",
-        approach: "A premium black-and-gold look straight from the brand, clear service pages and a bilingual layout that reads naturally in both directions.",
-        outcome: "Clients now find the right service and get in touch without a phone call first.",
-      },
     },
   },
   {
@@ -267,9 +451,9 @@ export const projects: Project[] = [
     category: "Building contracting company",
     kind: "Client",
     url: "https://aatb-rak.net/",
+    linkable: true,
     image: alAin,
     role: "Front-end development",
-    details: { mock: true, year: "2023", stack: "HTML · Sass · JavaScript" },
     caseStudy: {
       summary:
         "The website of Al Ain Al Thahabiah, a building contracting company: a bilingual identity, a city skyline up front, and its services, projects and certificates one click away.",
@@ -290,12 +474,6 @@ export const projects: Project[] = [
           focus: { x: 0.6, y: 0.9, zoom: 2 },
         },
       ],
-      story: {
-        mock: true,
-        brief: "A contractor's reputation rests on finished buildings; the site needed to show scale and credentials at a glance.",
-        approach: "A skyline hero, the bilingual logo up front, and services, projects and certificates each a click from the menu.",
-        outcome: "The company now shares one link for its profile, its projects and its certificates.",
-      },
     },
   },
   {
@@ -324,11 +502,15 @@ export const projects: Project[] = [
   },
 ];
 
-/** Client work is featured in the monitor; template builds live in the archive. */
+/** The flagship, then the freelance work: the first two stops of the Work chapter. */
+export const flagshipProjects = projects.filter((project) => project.kind === "Flagship");
+export const freelanceProjects = projects.filter((project) => project.kind === "Freelance");
+/** The UAE client websites (the town scene lights exactly four windows for them). */
 export const featuredProjects = projects.filter((project) => project.kind === "Client");
+/** Template builds live in the workshop at the end of the Work chapter. */
 export const archiveProjects = projects.filter((project) => project.kind === "Template build");
 
-/** Projects with a case-study page, in the order of the cards. */
+/** Projects with a case-study page, in the order of the Work chapter. */
 export const caseStudies = projects.filter(
   (project): project is Project & { caseStudy: CaseStudy } => project.caseStudy !== undefined,
 );
@@ -353,13 +535,13 @@ export const services = {
     },
     {
       title: "Web apps & systems",
-      description: "Dashboards and internal tools that run a business day to day — built with Next.js, Prisma and PostgreSQL, shipped with Docker.",
-      proof: ["NVT-PNE Pizza"],
+      description: "Dashboards and internal tools that run a business day to day: live video monitoring, hiring, scheduling and analytics.",
+      proof: ["B Dashboard"],
     },
     {
       title: "Interactive experiences",
       description: "Motion, micro-interactions and the small details that make an interface feel alive.",
-      proof: ["This portfolio"],
+      proof: ["Mangos", "This portfolio"],
     },
   ],
 };
@@ -367,8 +549,8 @@ export const services = {
 // DRAFT — the titles of the remaining chapters: plain sentences.
 export const chapters = {
   work: {
-    statement: "The businesses I've built for.",
-    hint: "Scroll to walk down the street",
+    statement: "The things I've built, for real businesses.",
+    hint: "Scroll to move through the work",
     workshop: { title: "The workshop", text: "Template builds — sites I made to practise and to learn." },
   },
   process: { statement: "From first call to launch." },
@@ -396,47 +578,29 @@ export const steps = [
     title: "Build",
     stage: "Code",
     address: "localhost:3000",
-    description: "Clean code from the front end to the database, shared as a live preview as it grows.",
+    description: "Clean code from the front end to the API layer, shared as a live preview as it grows.",
   },
   {
     title: "Launch",
     stage: "Live",
     address: "your-business.com",
-    description: "Real-device and speed checks, then deployed with Docker and live — with support after.",
+    description: "Real-device and speed checks, then live — with support after.",
   },
 ];
 
 // DRAFT — the band under the hero.
-export const marquee = ["Websites", "Web apps", "Next.js", "PostgreSQL", "Docker", "E-commerce", "Landing pages", "Responsive"];
+export const marquee = ["Websites", "Web apps", "Next.js", "TypeScript", "React", "E-commerce", "Landing pages", "Responsive"];
 
 export type Testimonial = { quote: string; name: string; role: string; mock?: boolean };
 
-// MOCK — fictional people, so the section can be designed. Replace with real
-// client quotes (with permission) and drop `mock: true`.
-export const testimonials: Testimonial[] = [
-  {
-    mock: true,
-    quote: "Tayam turned our catalogue into a store customers actually enjoy browsing. Quick, patient, and sharp on every detail.",
-    name: "Client name",
-    role: "Owner · Retail business",
-  },
-  {
-    mock: true,
-    quote: "We finally have a website that looks like the company we are. The whole process was clear from the first call to launch.",
-    name: "Client name",
-    role: "Managing director · Contracting company",
-  },
-  {
-    mock: true,
-    quote: "Every change we asked for came back better than we imagined, and always on time.",
-    name: "Client name",
-    role: "Marketing lead · Services company",
-  },
-];
+// Real client quotes only (with permission), word for word. None yet — the
+// Mangos client's exact words go here once they're in hand. Not shown anywhere
+// until the Testimonials section is mounted.
+export const testimonials: Testimonial[] = [];
 
-// DRAFT — the signposts on the about: three honest numbers from the bio.
+// DRAFT — the signposts on the about: three honest numbers, each one counted.
 export const facts = [
-  { value: 3, label: "UAE client sites" },
-  { value: 1, label: "Year at NVT-PNE" },
-  { value: skills.length, label: "Core technologies" },
+  { value: 95, label: "Screens in the B Dashboard" },
+  { value: 13, label: "Backend services connected" },
+  { value: 2, label: "Languages, English and Arabic" },
 ];

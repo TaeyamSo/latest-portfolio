@@ -5,18 +5,17 @@ import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 
 import { CaseBackdrop } from "@/components/case/CaseBackdrop";
+import { CaseExtras } from "@/components/case/CaseExtras";
 import { CaseMarker } from "@/components/case/CaseMarker";
 import { CaseTour } from "@/components/case/CaseTour";
 import { Header } from "@/components/chrome/Header";
 import { CopyEmail } from "@/components/sections/ContactActions";
 import { AccentText } from "@/components/ui/AccentText";
 import { BrowserFrame } from "@/components/ui/BrowserFrame";
-import { MockBadge } from "@/components/ui/MockBadge";
 import { RevealWords } from "@/components/ui/Reveal";
 import { RollText } from "@/components/ui/RollText";
 import { caseStudies, caseStudyPath, profile, type Project } from "@/content/site";
 import { stripAccents } from "@/lib/accent";
-import { visible } from "@/lib/mock";
 import { siteUrl } from "@/lib/site-url";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -59,8 +58,9 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
   const project = caseStudies[index];
   const next = caseStudies[(index + 1) % caseStudies.length];
   const { caseStudy } = project;
-  const details = project.details && visible(project.details) ? project.details : null;
-  const story = caseStudy.story && visible(caseStudy.story) ? caseStudy.story : null;
+  // What the browser frame shows, and whether there is a live site to link to.
+  const address = project.url ?? project.displayUrl ?? project.name;
+  const liveUrl = project.linkable && project.url ? project.url : null;
   const ratio = { aspectRatio: `${project.image.width} / ${project.image.height}` };
 
   const jsonLd = {
@@ -70,7 +70,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
     about: project.category,
     description: stripAccents(caseStudy.summary),
     url: `${siteUrl}${caseStudyPath(slug)}`,
-    sameAs: project.url,
+    ...(liveUrl ? { sameAs: liveUrl } : {}),
     creator: { "@type": "Person", name: profile.fullName, url: siteUrl },
   };
 
@@ -110,21 +110,13 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
 
               <div className="mt-6 flex flex-wrap items-end justify-between gap-6 lg:mt-8">
                 <p className="text-lead text-paper/80">{project.category}</p>
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group group/roll inline-flex items-center gap-2 rounded-full border border-paper/35 px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300 hover:border-paper hover:bg-paper hover:text-ink"
-                >
-                  <RollText>Visit the live site</RollText>
-                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    ↗
-                  </span>
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
+                <div className="flex flex-wrap gap-3">
+                  {liveUrl && <OutLink href={liveUrl}>Visit the live site</OutLink>}
+                  {project.repo && <OutLink href={project.repo}>Read the code</OutLink>}
+                </div>
               </div>
 
-              <BrowserFrame url={project.url} className="mt-10 lg:mt-12">
+              <BrowserFrame url={address} className="mt-10 lg:mt-12">
                 <ViewTransition name={`shot-${slug}`} share="case-shot" default="none">
                   <div className="relative overflow-hidden bg-night" style={ratio}>
                     <Image
@@ -154,8 +146,8 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
                 <dl className="meta mt-14 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-paper/15 pt-6 text-paper/60 sm:grid-cols-4">
                   {project.role && <Fact term="Role" value={project.role} />}
                   <Fact term="Sector" value={project.category} />
-                  {details && <Fact term="Year" value={details.year} mock={details.mock} />}
-                  {details && <Fact term="Stack" value={details.stack} mock={details.mock} />}
+                  {project.period && <Fact term="When" value={project.period} />}
+                  {project.stack && <Fact term="Stack" value={project.stack} />}
                 </dl>
               </div>
             </section>
@@ -163,35 +155,12 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
             <CaseTour
               highlights={caseStudy.highlights}
               image={project.image}
-              url={project.url}
+              url={address}
               name={project.name}
               label="02"
             />
 
-            {story && (
-              <section aria-labelledby="story-title" className="shell py-24 lg:py-36">
-                <h2 id="story-title" className="meta flex items-center gap-3 text-paper/60">
-                  <span>(03)</span>
-                  <span aria-hidden="true" className="h-px w-10 bg-current" />
-                  <span>The story</span>
-                  {story.mock && <MockBadge className="text-paper/70" />}
-                </h2>
-                <div className="mt-12 grid gap-12 lg:grid-cols-3">
-                  {(
-                    [
-                      ["The brief", story.brief],
-                      ["The approach", story.approach],
-                      ["The outcome", story.outcome],
-                    ] as const
-                  ).map(([title, text]) => (
-                    <div key={title} className="border-t border-paper/15 pt-6">
-                      <h3 className="text-2xl font-bold">{title}</h3>
-                      <p className="mt-4 leading-relaxed text-paper/75">{text}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+            <CaseExtras caseStudy={caseStudy} name={project.name} from={3} />
 
             <NextProject project={next} />
           </main>
@@ -222,15 +191,29 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
   );
 }
 
-function Fact({ term, value, mock }: { term: string; value: string; mock?: boolean }) {
+function Fact({ term, value }: { term: string; value: string }) {
   return (
     <div>
-      <dt className="flex items-center gap-2">
-        {term}
-        {mock && <MockBadge className="text-paper/70" />}
-      </dt>
+      <dt>{term}</dt>
       <dd className="mt-1.5 tracking-[0.08em] text-paper normal-case">{value}</dd>
     </div>
+  );
+}
+
+function OutLink({ href, children }: { href: string; children: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group group/roll inline-flex items-center gap-2 rounded-full border border-paper/35 px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300 hover:border-paper hover:bg-paper hover:text-ink"
+    >
+      <RollText>{children}</RollText>
+      <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+        ↗
+      </span>
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
   );
 }
 
@@ -275,7 +258,7 @@ function NextProject({ project }: { project: Project }) {
           <p className="mt-5 text-lg text-paper/70">{project.category}</p>
         </div>
         <BrowserFrame
-          url={project.url}
+          url={project.url ?? project.displayUrl ?? project.name}
           className="w-full max-w-[28rem] shrink-0 transition-transform duration-700 ease-expo group-hover:-translate-y-2 group-hover:-rotate-2"
         >
           <div className="relative overflow-hidden bg-night" style={{ aspectRatio: `${project.image.width} / ${project.image.height}` }}>

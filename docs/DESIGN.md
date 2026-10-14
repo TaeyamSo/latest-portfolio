@@ -133,11 +133,10 @@ WebGL sun cools to silver and the moon's shadow slides in.
   the plane blinks; the balloon's burner glows.
 - **The copy** (`data-night-ink`: the home page's main, header, side nav and sky life) swaps ink
   and paper, so dark text turns moonlight-white. Things with their own dark paint keep the day's
-  ink (`data-day-ink`): the shopfronts, the workshop, the signposts and the process cards. The
+  ink (`data-day-ink`): the Work stage and its workshop, the signposts and the process cards. The
   footer is dark in both; only its sky colours change (`MOONLIT` in `sun/geometry.ts`).
 - **No orange at night.** On the home page the accents turn moonlit (flame and amber →
-  periwinkle, sunlight and gold → moonlight silver); the shopfronts get night-blue walls and
-  cool neon signs (cyan, pink, mint, lilac) that glow; the portrait's duotone, the balloon, the
+  periwinkle, sunlight and gold → moonlight silver); the portrait's duotone, the balloon, the
   signposts, the awnings and the cars all have night colours; the footer's CSS sunset is the
   crescent over the sea. Only lights stay warm: windows, lamps, headlights, lighthouses.
 - Selected text at night is a light highlight with dark text (`::selection` in `globals.css`), so it shows on the dark sky.
@@ -210,19 +209,19 @@ The home page reads as **chapters**, one screen and one hour each (`providers/Ch
 small scroll, a swipe or a key press glides to the next chapter: the content steps aside, the page
 glides — so the sky, the sun, the clock and the landscape change with it — and once it rests the
 new chapter's content builds in, piece by piece. Content that doesn't fit one screen walks
-sideways instead (the high street's shops; services and process cards on phones). Every chapter
+sideways instead (the Work chapter's projects; services and process cards on phones). Every chapter
 title is a plain sentence: no section numbers, no italic accent word. With reduced motion the
 chapters are simply shown and the page scrolls normally.
 
 | Chapter | What it does |
 | --- | --- |
 | Hero · 06:30 | Letter-by-letter mask reveal with restored kerning, the sun rising out of the mountains (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, a text ring that writes itself letter by letter around the sun, status kicker (availability + live local time) |
-| About · 08:30 | "I'm Tayam. I turn ideas into fast, responsive websites for real businesses." Two short paragraphs, the duotone portrait (ink → flame → sunlight) that reveals the original on hover, and the numbers as wooden signposts planted in the morning foothills, rising out of the ground once the rest has built in |
+| About · 08:30 | "I'm Tayam. I build web products for real businesses." Two short paragraphs (what I work with, and what I've built), the duotone portrait (ink → flame → sunlight) that reveals the original on hover, and the numbers as wooden signposts planted in the morning foothills, rising out of the ground once the rest has built in |
 | Services · 12:00 | The promise is the title, on ink bands that sweep in ("I help businesses look as good online as they do in person."); four services side by side, each backed by real projects; the toolkit. Below, **the town at noon** comes to life: the shops open (awnings unroll), the bell rings and the pigeons lift off the tower; people stroll by and a cyclist rides past, smoke rises, the clock turns |
-| Work · 14:00 | **The high street**: every client project is a shopfront in its own style — a classic shop under a striped awning, an arched front, a gabled one with a pointed roof, a modern box with an outlined sign — its name on the sign and its live site in the shop window. Scrolling walks down the street a shop at a time (the one you're at comes forward); the window or "Read the case study" opens the project's page, which grows out of the shopfront. The street ends at the workshop, where the template builds are pinned to a board |
-| Case studies | `/work/[slug]` for each client project: the shopfront grows into a dark page while its window's screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the live site), the story (brief, approach, outcome), next project, contact. "All work" returns to the same shop. A share image per project |
+| Work · 14:00 | **The takeover**: the chapter fills the screen with an opaque dark stage — a different world from the sky around it — with a warm glow and a town skyline at its foot. Each gesture of scroll, swipe or key slides the track to the next step (`providers/Chapters.tsx`, the same sideways-track mechanism the old high street used): the **B Dashboard** (overview, what I built, then *in motion* — two looping screen recordings, Report a Problem and the drive-thru hotline), **Mangos**, the **UAE client sites**, then the **workshop** where the template builds are pinned to a board. A project index and a "03 / 06" counter sit at the top, a thin road along the bottom shows how far along you are. The resting step's content rises in (`.work-rise`, transform/opacity only); the next gesture after the last step glides on to Process. "Read the case study" opens the project's page, which grows out of its card (`WorkStage.tsx`; step map in `lib/work-return.ts`). By night the stage becomes a night sky of its own — deep blue, a moonlit glow, stars, the skyline's windows lit, periwinkle accents, no orange. Without chapters (reduced motion) the steps simply stack, a screen each, and the recordings show a still |
+| Case studies | `/work/[slug]` for the B Dashboard, Mangos and each UAE client site: the card grows into a dark page while its screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the screenshot), then — for the projects that have them — by the numbers, in motion (the recordings), what I built (a screen each), the hard parts, how it's wired, more screens, a client's words (only when real) and what I'd do next (`components/case/CaseExtras.tsx`). "All work" returns to the same step. A share image per project |
 | Process · 16:00 | "From first call to launch." Four framed cards, each with a small paper browser showing the same website at that stage: notes on a blank page, a wireframe, half built with the code open, the live site. When the chapter arrives the cards build one after another — each edge lights up and its page builds itself |
-| Journey · 17:45 | "Where I've worked, and what I've learned." Freelance work, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
+| Journey · 17:45 | "Where I've worked, and what I've learned." The job, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
 | Testimonials | Hidden for now (not rendered in page.tsx); a chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
 | Contact · 19:30 | "Let's build something bright." The last chapter rests at the very bottom of the page: the glide down carries the sky through dusk while the sun sets into the WebGL sea; email, copy-to-clipboard, GitHub, back to sunrise |
 | Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, no scrollbar, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. The welcome screen on every full load (see Welcome), then the hero's CSS intro |
@@ -409,19 +408,29 @@ with scrolling, the glowing-disc sun and the hero landscape with clouds through 
 
 ## 6. Content to confirm
 
-These should be checked by Tayam (all in `src/content/site.ts`):
+These should be checked by Tayam (all in `src/content/site.ts`). Nothing is mock any more: the
+Work chapter, the case studies, the About, the experience and the facts are written from the CV
+and from what git shows he built (the B Dashboard) or from the projects themselves.
 
-- **Mock — replace to make it appear on the live site:** the 3 testimonials, the availability line
-  ("Available for new projects"), the city/time zone (placeholder: Dubai), each client
-  project's year and stack (`details` in `projects`), and each case study's story — the brief,
-  the approach and the outcome (`caseStudy.story`).
-- **Draft — read and adjust:** the hero tagline ("crafting websites that feel *alive*.", replacing
-  "21 Year Old /"), the About lead and body, the four services and their one-liners, the four
-  process steps, the marquee words, the role on each project ("Front-end development"), and each
-  case study's summary and "closer look" details. These were written only from what the
-  screenshots show (bilingual menus, the catalogue, the sliders) — check they still match the
-  live sites and say what you'd like said about your part in them.
-- "IT Student — Year 3" and the Journey entries (add dates if you'd like them shown).
+- **To fill in:** `MANGOS_URL` (the live address — it switches on the "Visit the live site" links
+  and the address bar), the Mangos client's exact words (`quote` in its case study — never shown
+  until it is real), a LinkedIn link in `profile.socials`, and a city if you want one instead of "UAE".
+- **Draft — read and adjust:** the hero tagline, the About lead and body, the four services and
+  their one-liners, the four process steps, the marquee words, the role on each project, and each
+  case study's summary and "closer look" details.
+- **Removed on purpose** because they were not backed by the B Dashboard: Prisma, PostgreSQL and
+  Docker (skills, About, services, process, metadata). Add them back only if you have shipped with
+  them. Also removed: any "years at the company" claim, the company's franchise brand, and every
+  invented testimonial or outcome story.
+- **Client links:** only hazoco.net and aatb-rak.net are linked (`linkable: true`). baddarfurniture.com
+  (certificate error) and alaktabout.net (does not resolve) are shown but not linked — switch
+  `linkable` on once they load.
+- **B Dashboard screenshots and recordings** are in `src/assets/projects/b-dashboard/`, with the staff
+  names, the signed-in user, one face and the logo in the drive-thru panel blurred. The two
+  recordings were cut from Tayam's own screen captures (`Videos/Screen Recordings`, 2026-10-14) as
+  8 fps looping WebP with a still each; to change them, re-cut from the recordings. Check with the employer before keeping real sales figures
+  and the store number on show. The repo link stays off until the repo's README is replaced.
+- "IT student — in progress" and the Journey entries (add dates if you'd like them shown).
 - The contact email (`taeyamfrontend@gmail.com`, taken from the git author config).
 - A real photo for About — it gets the duotone treatment automatically.
 - Unused assets in the old repo (`baker.png` — Tayam's Bakery, `fin.jpg`, `htmllogo.png`) were

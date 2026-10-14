@@ -1,22 +1,28 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 
-import { featuredProjects } from "@/content/site";
 import { goToChapter } from "@/lib/chapters";
 import { useScrollTo } from "@/lib/use-scroll-to";
-import { workCardId, workReturn } from "@/lib/work-return";
+import { workCardId, workReturn, workStepOf } from "@/lib/work-return";
 
 /**
  * Where the home page opens when you arrive from another page: at the chapter
- * in the URL (`/#contact`), or back on the high street at the shop of the case
- * study you were reading — before the first paint, so its shopfront can morph
- * back into place. Mounted after Chapters, so the chapters are ready.
+ * in the URL (`/#contact`), or back on the Work chapter at the step of the case
+ * study you were reading — before the first paint, so its card can morph back
+ * into place. Mounted after Chapters, so the chapters are ready.
  */
 export function HomeLanding() {
   const scrollTo = useScrollTo();
+  // React runs this effect twice in development. The first run lands (and the
+  // chapters write `#work` into the URL), so a second run would read that hash
+  // and jump to the chapter's first step instead of the project's.
+  const landed = useRef(false);
 
   useLayoutEffect(() => {
+    if (landed.current) return;
+    landed.current = true;
+
     const slug = workReturn.slug;
     workReturn.slug = null;
 
@@ -26,16 +32,16 @@ export function HomeLanding() {
     }
     if (!slug) return;
 
-    const step = Math.max(0, featuredProjects.findIndex((project) => project.slug === slug));
+    const step = workStepOf(slug);
     if (goToChapter("work", { step, immediate: true })) return;
 
-    // Without chapters (reduced motion): scroll to the street and along it to the shop.
-    const street = document.getElementById("work");
-    const shop = document.getElementById(workCardId(slug));
-    if (!street) return;
-    window.scrollTo({ top: street.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
-    const view = shop?.closest<HTMLElement>("[data-track-view]");
-    if (shop && view) view.scrollLeft = shop.offsetLeft - (view.firstElementChild as HTMLElement).offsetLeft;
+    // Without chapters (reduced motion): scroll to the Work chapter and to the project's step.
+    const work = document.getElementById("work");
+    const card = document.getElementById(workCardId(slug));
+    if (!work) return;
+    window.scrollTo({ top: work.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
+    const stacked = card ?? work.querySelector<HTMLElement>(`[data-step="${step}"]`);
+    if (stacked) window.scrollTo({ top: stacked.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
     // Only on arrival: later re-renders must not move the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

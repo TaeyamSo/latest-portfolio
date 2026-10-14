@@ -8,8 +8,8 @@ import { Contact } from "@/components/sections/Contact";
 import { Hero } from "@/components/sections/Hero";
 import { Journey } from "@/components/sections/Journey";
 import { Process } from "@/components/sections/Process";
-import { HighStreet } from "@/components/sections/HighStreet";
 import { Services } from "@/components/sections/Services";
+import { WorkStage } from "@/components/sections/WorkStage";
 import { CloudLayer } from "@/components/scenery/CloudLayer";
 import { Landscape } from "@/components/scenery/Landscape";
 import { Life } from "@/components/scenery/Life";
@@ -53,7 +53,7 @@ export default function Home() {
         <Hero />
         <About />
         <Services />
-        <HighStreet />
+        <WorkStage />
         <Process />
         <Journey />
       </main>
