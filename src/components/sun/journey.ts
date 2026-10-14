@@ -1,4 +1,4 @@
-import { DAY, MOONSET, NIGHT, dayAt, mix, smooth, type DayStop } from "./day";
+import { DAY, MOONSET, MOON_STAND, NIGHT, dayAt, mix, smooth, type DayStop } from "./day";
 import { SUN } from "./geometry";
 
 export { smooth };
@@ -39,6 +39,8 @@ export type JourneyLayout = {
   footerEnd: number;
   /** The viewport y the horizon will have once the page is scrolled to the bottom. */
   horizon: number;
+  /** 0 the sun … 1 the moon (the night theme), eased: how far the sunset has become the moon's stand over the sea. */
+  moon: number;
 };
 
 const between = (a: Spot, b: Spot, t: number): Spot => ({ x: mix(a.x, b.x, t), y: mix(a.y, b.y, t), r: mix(a.r, b.r, t) });
@@ -52,7 +54,8 @@ const between = (a: Spot, b: Spot, t: number): Spot => ({ x: mix(a.x, b.x, t), y
  * 4. sets in the footer: it drifts down to where the horizon will end up, and
  *    the horizon rises to meet it. It only moves over and grows once the
  *    contact copy has scrolled past, so it never sits behind the heading on
- *    large screens.
+ *    large screens. The moon doesn't set: it ends up smaller, standing over
+ *    the sea (MOON_STAND), and the two blend as the theme changes.
  */
 export function sunPath(l: JourneyLayout): SunState {
   const { width: w, height: h } = l;
@@ -62,9 +65,12 @@ export function sunPath(l: JourneyLayout): SunState {
   };
   const last = DAY[DAY.length - 1];
   const evening = place(last);
-  // Same size, position and final sink as the CSS sunset (SunsetStage).
+  // Same size, position and final sink as the CSS sunset (SunsetStage) — and,
+  // at night, the same stand for the moon.
   const box = Math.min(0.78 * w, 640);
-  const set = { x: (l.desktop ? 0.75 : 0.5) * w, y: l.horizon + 0.18 * box, r: box / (2 * SUN.extent) };
+  const sunset = { x: (l.desktop ? 0.75 : 0.5) * w, y: l.horizon + 0.18 * box, r: box / (2 * SUN.extent) };
+  const moonR = Math.min(sunset.r * MOON_STAND.scale, MOON_STAND.maxR * h);
+  const set = between(sunset, { x: sunset.x, y: l.horizon - MOON_STAND.lift * moonR, r: moonR }, l.moon);
 
   if (l.scroll < l.footerStart) {
     const { index, next, t } = dayAt(l.scroll, l.stops);

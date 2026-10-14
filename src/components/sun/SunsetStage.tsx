@@ -6,9 +6,9 @@ import { useRef } from "react";
 import { Cloud } from "@/components/scenery/Cloud";
 import { cn } from "@/lib/cn";
 
-import { MOONSET } from "./day";
+import { MOONSET, MOON_STAND } from "./day";
 import { bloomCss } from "./disc";
-import { EVENING } from "./geometry";
+import { EVENING, SUN } from "./geometry";
 import { MoonDisc, SunDisc, bloomInset, moonBloomInset } from "./SunDisc";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
@@ -27,13 +27,22 @@ const { gold: GOLD } = EVENING;
 const SEA = "var(--footer-sea)";
 const seaFade = (percent: number) => `color-mix(in srgb, ${SEA} ${percent}%, transparent)`;
 const SUN_BOX = "aspect-square w-[min(78vw,40rem)]";
+/**
+ * At night the moon stands over the sea instead of setting: its box is
+ * MOON_STAND.scale of the sun's, and at most MOON_STAND.maxR of the screen's
+ * height in radius (`--moon`, set on the stage), its centre
+ * `MOON_LIFT` boxes above the horizon — what the shader's path does (journey.ts).
+ */
+const MOON_LIFT = MOON_STAND.lift / (2 * SUN.extent);
+const moonUp = (boxes: number) => `calc(var(--moon) * ${boxes.toFixed(3)})`;
 
 /** Clouds dark against the setting sun, its light catching their undersides. */
 const DUSK_CLOUDS = [
   // A low bank resting across the lower-left of the sun's cap…
-  { id: "dusk-bank", shape: "bank", aspect: "aspect-[100/26]", above: "0.5svh", className: "left-[8%] w-[40%] lg:left-[53%] lg:w-[22%]" },
+  { id: "dusk-bank", shape: "bank", aspect: "aspect-[100/26]", above: "0.5svh", nightAbove: "0.5svh", className: "left-[8%] w-[40%] lg:left-[53%] lg:w-[22%]" },
   // …and a thin wisp drifting above it.
-  { id: "dusk-wisp", shape: "wisp", aspect: "aspect-[100/14]", above: "13svh", className: "left-[40%] w-[50%] lg:left-[67%] lg:w-[26%]" },
+  // (At night it rides higher, clear of the moon standing over the sea.)
+  { id: "dusk-wisp", shape: "wisp", aspect: "aspect-[100/14]", above: "13svh", nightAbove: "30svh", className: "left-[40%] w-[50%] lg:left-[67%] lg:w-[26%]" },
 ] as const;
 
 /**
@@ -44,8 +53,8 @@ const DUSK_CLOUDS = [
  *
  * The sun, sea and sky here are the CSS/SVG version: when the WebGL sun runs
  * it draws those itself, and only the horizon mark and the clouds are used.
- * In the night theme the CSS version is the setting crescent moon instead, in
- * silver light.
+ * In the night theme the CSS version is the crescent moon instead, in silver
+ * light: smaller, standing over the sea with its path on the water.
  */
 export function SunsetStage() {
   const ref = useRef<HTMLDivElement>(null);
@@ -56,7 +65,7 @@ export function SunsetStage() {
   const drift = useTransform(scrollYProgress, [0, 1], ["translate3d(0px, -6svh, 0px)", "translate3d(0px, 0svh, 0px)"]);
 
   return (
-    <div ref={ref} aria-hidden="true" className="relative h-[46svh] min-h-[18rem] [--sunset-x:50%] lg:[--sunset-x:75%]">
+    <div ref={ref} aria-hidden="true" className="relative h-[46svh] min-h-[18rem] [--moon:min(23.4vw,12rem,26.3svh)] [--sunset-x:50%] lg:[--sunset-x:75%]">
       <div data-horizon className="absolute inset-x-0" style={{ top: HORIZON }} />
 
       <div className="sunset-fallback absolute inset-0">
@@ -85,16 +94,20 @@ export function SunsetStage() {
         <div className="absolute inset-x-0 -z-10 h-[300%] overflow-hidden" style={{ bottom: `calc(100% - ${HORIZON})` }}>
           <motion.div style={{ y: sink }} className={cn("absolute bottom-0 left-(--sunset-x) -translate-x-1/2 translate-y-1/2", SUN_BOX)}>
             <span className="day-only absolute" style={{ inset: bloomInset("sunset"), background: bloomCss("dusk") }} />
-            <span className="night-only absolute" style={{ inset: moonBloomInset, background: bloomCss("moon") }} />
           </motion.div>
+          <div className="night-only absolute left-(--sunset-x) aspect-square w-(--moon) -translate-x-1/2" style={{ bottom: moonUp(MOON_LIFT - 0.5) }}>
+            <span className="absolute" style={{ inset: moonBloomInset, background: bloomCss("moon") }} />
+          </div>
         </div>
 
         {/* Sky: the sun, clipped at the horizon */}
         <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: HORIZON }}>
           <motion.div style={{ y: sink }} className={cn("absolute top-full left-(--sunset-x) -translate-1/2", SUN_BOX)}>
             <SunDisc id="sunset-sun" tone="sunset" bloom={false} className="day-only size-full" />
-            <MoonDisc id="sunset-moon" phase={MOONSET.phase} bloom={false} className="night-only size-full" />
           </motion.div>
+          <div className="night-only absolute left-(--sunset-x) aspect-square w-(--moon) -translate-x-1/2" style={{ bottom: moonUp(MOON_LIFT - 0.5) }}>
+            <MoonDisc id="sunset-moon" phase={MOONSET.phase} bloom={false} className="size-full" />
+          </div>
         </div>
 
         {/* Water: a mirrored reflection broken into drifting stripes */}
@@ -104,8 +117,13 @@ export function SunsetStage() {
             className={cn("absolute top-0 left-(--sunset-x) -translate-1/2 -scale-y-100 opacity-50", SUN_BOX)}
           >
             <SunDisc id="sunset-reflection" tone="sunset" bloom={false} className="day-only size-full" />
-            <MoonDisc id="sunset-moon-reflection" phase={MOONSET.phase} bloom={false} className="night-only size-full" />
           </motion.div>
+          <div
+            className="night-only absolute left-(--sunset-x) aspect-square w-(--moon) opacity-50"
+            style={{ top: moonUp(MOON_LIFT / 1.1), transform: "translate(-50%, -50%) scale(1, -0.9)" }}
+          >
+            <MoonDisc id="sunset-moon-reflection" phase={MOONSET.phase} bloom={false} className="size-full" />
+          </div>
           <div
             className="water-stripes absolute inset-x-0 -top-[18px] bottom-0"
             style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0 5px, ${SEA} 5px 9px)` }}
@@ -124,7 +142,11 @@ export function SunsetStage() {
       <div className="scenery pointer-events-none absolute inset-x-0 h-[160%] overflow-hidden" style={{ bottom: `calc(100% - ${HORIZON})` }}>
         <motion.div style={{ transform: drift }} className="absolute inset-0">
           {DUSK_CLOUDS.map((cloud) => (
-            <div key={cloud.id} className={cn("absolute", cloud.className)} style={{ bottom: cloud.above }}>
+            <div
+              key={cloud.id}
+              className={cn("dusk-cloud absolute", cloud.className)}
+              style={{ "--above": cloud.above, "--above-night": cloud.nightAbove } as Vars}
+            >
               <Cloud id={cloud.id} shape={cloud.shape} palette="dusk" light="below" className={cn("w-full", cloud.aspect)} />
             </div>
           ))}

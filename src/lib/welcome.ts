@@ -53,33 +53,38 @@ export const WELCOME_END_SCRIPT = `(function(){var r=document.documentElement,o=
 /* --- The wiggly line ------------------------------------------------------- */
 
 /**
- * The line's sideways offset at height y (0 top … 1 bottom), in units of its
- * amplitude (`--wa`, set in CSS): two gentle waves, crossing the exact middle
- * at half height — where the Y of TAYAM is.
+ * The line's sideways offset at height u (in screen heights, 0 top … 1 bottom),
+ * in units of its amplitude (`--wa`, set in CSS): a wave and its third harmonic.
+ * It repeats exactly every screen height, so the shapes below — two screen
+ * heights tall — can slide up by one screen height, over and over, and the
+ * wave runs along the line without a seam (globals.css, `w-wave`).
  */
-const wiggle = (y: number) => {
-  const u = y - 0.5;
-  return 0.62 * Math.sin(2 * Math.PI * 1.35 * u) + 0.38 * Math.sin(2 * Math.PI * 3.1 * u);
-};
+const wiggle = (u: number) => 0.62 * Math.sin(2 * Math.PI * u) + 0.38 * Math.sin(2 * Math.PI * 3 * u + 0.9);
 
-/** Heights the edge is drawn through (%), a little past the top and bottom. */
-const HEIGHTS = Array.from({ length: 57 }, (_, i) => -2 + (104 * i) / 56);
+/** The shapes cover u = -0.05 … 2.05 (a little past each end), in 84 steps — a whole number per wave. */
+const FROM = -0.05;
+const SPAN = 2.1;
+const STEPS = 84;
+const HEIGHTS = Array.from({ length: STEPS + 1 }, (_, i) => FROM + (SPAN * i) / STEPS);
 
 /** A point on the line, `base` from the element's left edge (a CSS length), plus `extra`. */
-const point = (base: string, y: number, extra = "") => `calc(${base} + var(--wa) * ${wiggle(y / 100).toFixed(4)}${extra}) ${y.toFixed(2)}%`;
+const point = (base: string, u: number, extra = "") =>
+  `calc(${base} + var(--wa) * ${wiggle(u).toFixed(4)}${extra}) ${(((u - FROM) / SPAN) * 100).toFixed(3)}%`;
 
 /**
  * The shapes, as CSS clip-paths, all from the same line so they meet exactly
- * at every screen size: the sun's window (everything left of the line, which
- * sits 8vw in from its right edge), the night's (everything right of it, 8vw
- * in from its left edge) and the line itself (a band `2 × --wl` wide) — down
- * the middle of the screen, where the word's Y is.
+ * at every screen size and at every moment of the wave: the sun's window
+ * (everything left of the line, which sits 8vw in from its right edge), the
+ * night's (everything right of it, 8vw in from its left edge) and the line
+ * itself (a band `2 × --wl` wide) — down the middle of the screen, where the
+ * word's Y is. Each is for an element 2.1 screen heights tall that starts 5% of
+ * a screen above the top (`.w-clip`, `.w-line` in globals.css).
  */
 export const WELCOME_SHAPES = {
-  sun: `polygon(0% -2%, ${HEIGHTS.map((y) => point("100% - 8vw", y)).join(", ")}, 0% 102%)`,
-  night: `polygon(${HEIGHTS.map((y) => point("8vw", y)).join(", ")}, 100% 102%, 100% -2%)`,
-  line: `polygon(${HEIGHTS.map((y) => point("50%", y, " - var(--wl)")).join(", ")}, ${[...HEIGHTS]
+  sun: `polygon(0% 0%, ${HEIGHTS.map((u) => point("100% - 8vw", u)).join(", ")}, 0% 100%)`,
+  night: `polygon(${HEIGHTS.map((u) => point("8vw", u)).join(", ")}, 100% 100%, 100% 0%)`,
+  line: `polygon(${HEIGHTS.map((u) => point("50%", u, " - var(--wl)")).join(", ")}, ${[...HEIGHTS]
     .reverse()
-    .map((y) => point("50%", y, " + var(--wl)"))
+    .map((u) => point("50%", u, " + var(--wl)"))
     .join(", ")})`,
 };

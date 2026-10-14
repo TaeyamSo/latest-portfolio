@@ -41,6 +41,9 @@ const PAINT = palette("coast", {
   asphalt: ["#5d3526", "#14182e"],
   dash: ["#ffd84a", "#aab3d8"],
   ink: ["#3b1409", "#0a0e22"],
+  // The lighthouse's roof, gallery and lantern room: dark by day, but at night they'd vanish into the sky.
+  cap: ["#3b1409", "#8c98cf"],
+  cabin: ["#3b1409", "#4b5896"],
   paper: ["#fffaf4", "#c9d0ec"],
   red: ["#b3300c", "#7a2a3c"],
   wall: ["#e6782a", "#2f3a6b"],
@@ -86,10 +89,10 @@ function Land() {
       <path d="M590.4,104 L609.6,104 L610.4,114 L589.6,114 Z M591.8,82 L608.2,82 L609,92 L591,92 Z" fill={C.red} />
       <rect x="597.5" y="68" width="5" height="7" rx="2.5" fill={C.ink} />
       <rect x="596" y="96" width="8" height="5" fill={C.ink} />
-      <rect x="587" y="57" width="26" height="3" fill={C.ink} />
-      <path d="M588,57V51M593,57V51M600,57V51M607,57V51M612,57V51M587,51H613" stroke={C.ink} strokeWidth="1" />
-      <rect x="592" y="44" width="16" height="13" fill={C.ink} />
-      <path d="M589,44 L600,34 L611,44 Z" fill={C.ink} />
+      <rect x="587" y="57" width="26" height="3" fill={C.cap} />
+      <path d="M588,57V51M593,57V51M600,57V51M607,57V51M612,57V51M587,51H613" stroke={C.cap} strokeWidth="1" />
+      <rect x="592" y="44" width="16" height="13" fill={C.cabin} />
+      <path d="M589,44 L600,34 L611,44 Z" fill={C.cap} />
 
       {/* At night the lighthouse is on: its beam sweeps out over the sea, its lantern glows. */}
       <defs>
@@ -169,13 +172,15 @@ function Life() {
 /**
  * The coast scene, mounted by Landscape.tsx in the journey's place. Like the
  * town and the highway: the drawing and its life share one box, clipped to
- * the strip; the gulls have a box of their own so they can fly up and away.
+ * the strip at the sides (not the top, so the lighthouse is whole on wide
+ * screens); the gulls have a box of their own so they can fly up and away.
  */
 export function Coast() {
   return (
     <div data-scene="journey" className="coast absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", contentVisibility: "hidden" }}>
       <Palette of={PAINT} />
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Clipped at the sides only: on a wide, short screen the drawing is taller than the strip, and its top — the lighthouse's lantern and roof — rises above it instead of being cut off. */}
+      <div className="absolute inset-0 overflow-x-clip">
         <div className="town-box">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
             <Land />

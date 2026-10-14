@@ -58,7 +58,8 @@ export function MoonDisc({
             <stop offset="1" stopColor="#c9cdd8" stopOpacity="0" />
           </radialGradient>
         </defs>
-        {phase > 0 && <circle r="1" fill={`url(#${id}-moon)`} opacity="0.12" />}
+        {/* The dark side: a faint, cool navy over the glow behind (the shader draws no glow on the disc), as the shader draws it. */}
+        {phase > 0 && <circle r="1" fill="#0a0e26" opacity="0.95" />}
         <g mask={phase > 0 ? `url(#${id}-phase)` : undefined}>
           <circle r="1" fill={`url(#${id}-moon)`} />
           {[

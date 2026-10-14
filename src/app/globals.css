@@ -1264,11 +1264,16 @@ html.chapters .town:not([data-open]) .town-awning {
    A half is a window with the line for an edge (.w-panel, a clip-path that
    slides in) holding the sky and a copy of the word (.w-pin, sliding back by
    the same amount, so it stays put): the colour sweeps in and the letters
-   change exactly where its edge passes. Transforms only.
+   change exactly where its edge passes. The line wiggles all the while: its
+   shape and the edges' (.w-clip, .w-line) are 2.1 screens tall and repeat
+   every screen, and slide up by one screen in a loop (w-wave) while what is
+   inside slides down (w-wave-back) — the wave runs along the line and the
+   edges follow it. Transforms only.
 --------------------------------------------------------------------------- */
 .welcome {
   --wa: clamp(6px, 0.9vw, 16px); /* how far the line wiggles either way */
   --wl: 1px; /* half the line's width */
+  --w-wave: 3.6s; /* how long the wave takes to run one screen height along the line */
   --w-fs: min(12vw, 24svh); /* the word's size */
   /* The Y sits 0.153em left of the word's middle (the M is wider than the T,
      measured in Kanit ExtraBold): the word moves right by that much, so the Y
@@ -1367,6 +1372,38 @@ html.chapters .town:not([data-open]) .town-awning {
   inset: 0;
   will-change: transform;
 }
+/* The wiggle, always moving: the clip (two screens of the wave, a little more
+   each end) slides up one screen over and over; its contents slide down by the
+   same, so they stay put. The wave repeats every screen height, so the loop
+   has no seam. */
+.w-clip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5%;
+  height: 210%;
+  will-change: transform;
+  animation: w-wave var(--w-wave) linear infinite;
+}
+.w-vpin {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% * 0.05 / 2.1);
+  height: calc(100% / 2.1);
+  will-change: transform;
+  animation: w-wave-back var(--w-wave) linear infinite;
+}
+@keyframes w-wave {
+  to {
+    transform: translateY(calc(-100% / 2.1));
+  }
+}
+@keyframes w-wave-back {
+  to {
+    transform: translateY(100%);
+  }
+}
 .w-frame {
   position: absolute;
   top: 0;
@@ -1381,7 +1418,7 @@ html.chapters .town:not([data-open]) .town-awning {
     w-sun-in 0.9s var(--w-sweep) 1.5s both,
     w-sun-over 0.8s var(--w-sweep) 2.9s forwards;
 }
-.w-sun > .w-pin {
+.w-sun .w-pin {
   animation:
     w-sun-pin 0.9s var(--w-sweep) 1.5s both,
     w-sun-over-pin 0.8s var(--w-sweep) 2.9s forwards;
@@ -1394,7 +1431,7 @@ html.chapters .town:not([data-open]) .town-awning {
   z-index: 1;
   animation: w-night-in 0.9s var(--w-sweep) 1.6s both;
 }
-.w-night > .w-pin {
+.w-night .w-pin {
   animation: w-night-pin 0.9s var(--w-sweep) 1.6s both;
 }
 .w-night .w-frame {
@@ -1406,7 +1443,7 @@ html[data-theme="night"] .w-sun {
   z-index: 1;
   animation: w-sun-in 0.9s var(--w-sweep) 1.5s both;
 }
-html[data-theme="night"] .w-sun > .w-pin {
+html[data-theme="night"] .w-sun .w-pin {
   animation: w-sun-pin 0.9s var(--w-sweep) 1.5s both;
 }
 html[data-theme="night"] .w-night {
@@ -1415,7 +1452,7 @@ html[data-theme="night"] .w-night {
     w-night-in 0.9s var(--w-sweep) 1.6s both,
     w-night-over 0.8s var(--w-sweep) 2.9s forwards;
 }
-html[data-theme="night"] .w-night > .w-pin {
+html[data-theme="night"] .w-night .w-pin {
   animation:
     w-night-pin 0.9s var(--w-sweep) 1.6s both,
     w-night-over-pin 0.8s var(--w-sweep) 2.9s forwards;
@@ -1486,9 +1523,15 @@ html[data-theme="night"] .w-night > .w-pin {
 }
 .w-line {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: -5%;
+  height: 210%;
   background: #fff;
-  animation: w-fade 0.5s ease-in-out 2.75s forwards;
+  will-change: transform;
+  animation:
+    w-wave var(--w-wave) linear infinite,
+    w-fade 0.5s ease-in-out 2.75s forwards;
 }
 
 @keyframes w-drop {
@@ -1827,6 +1870,15 @@ html.chapters .foothills:not([data-open]) .firefly {
 html[data-theme="night"] ::selection {
   background: rgb(196 210 255 / 0.9);
   color: #0b1026;
+}
+
+/* The dusk clouds (SunsetStage) sit where their `--above` says; at night, where `--above-night` does. */
+.dusk-cloud {
+  bottom: var(--above);
+  transition: bottom 1.4s var(--ease-expo);
+}
+html[data-theme="night"] .dusk-cloud {
+  bottom: var(--above-night);
 }
 
 /* Things shown only by day or only at night. */

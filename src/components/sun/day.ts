@@ -96,7 +96,7 @@ export type NightStop = {
  * places: the moon travels the sun's path). One night, full moon to crescent:
  * the moon rises full over the hero's mountains and wanes as the night goes
  * on — gibbous by the about, half over the work, a crescent by the coast —
- * and the thinnest crescent sets into the sea in the footer.
+ * and in the footer the crescent stands, small, over the silver sea.
  */
 export const NIGHT: readonly NightStop[] = [
   { minutes: 21 * 60, sky: ["#18204a", "#2b3a7a"], phase: 0 },
@@ -107,8 +107,17 @@ export const NIGHT: readonly NightStop[] = [
   { minutes: 27 * 60 + 45, sky: ["#171a42", "#2f2f6a"], phase: 0.74 },
 ];
 
-/** The clock and phase once the crescent has set and the page has reached the bottom. */
-export const MOONSET = { minutes: 29 * 60, phase: 0.84 };
+/** The clock and phase once the page has reached the bottom (the moon stands over the sea). */
+export const MOONSET = { minutes: 29 * 60, phase: 0.76 };
+
+/**
+ * Where the moon stands in the footer instead of setting like the sun: its
+ * radius as a fraction of the setting sun's (and never more than `maxR` of the
+ * screen's height, so it stays small on short screens), and the height of its
+ * centre above the horizon in its own radii. Shared by the shader's path
+ * (journey.ts) and the CSS stage (SunsetStage).
+ */
+export const MOON_STAND = { scale: 0.3, maxR: 0.09, lift: 2 };
 
 export const smooth = (from: number, to: number, v: number) => {
   const t = Math.min(1, Math.max(0, (v - from) / (to - from)));

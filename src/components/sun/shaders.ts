@@ -231,7 +231,8 @@ export const journeyFragment = /* glsl */ `
     }
 
     float depth = frag.y - uFooter.z; // below the horizon when positive
-    float low = fall(0.4, 3.0, (uFooter.z - uSun.y) / r); // 1 once the sun is down on the horizon
+    // 1 once the sun is down on the horizon; the moon stands over the sea and its path is always there.
+    float low = mix(fall(0.4, 3.0, (uFooter.z - uSun.y) / r), 0.9, uMoon);
 
     vec4 col = vec4(0.0);
     float dusk = 0.0; // how much of the footer's dark sky is behind this pixel
@@ -275,13 +276,13 @@ export const journeyFragment = /* glsl */ `
     if (depth > -1.0) {
       float w = max(depth, 0.0);
       float k = clamp(w / max(uFooter.w, 1.0), 0.0, 1.0);
-      float fade = 1.0 - smoothstep(0.0, 1.0, k);
+      float fade = 1.0 - smoothstep(0.0, 1.0, k * mix(1.0, 0.4, uMoon)); // the moon's light reaches further down the sea
       vec4 sea = over(vec4(mix(SEA, N_SEA, uMoon), 1.0), lightPool(frag.x, w) * 0.3 * fade);
 
       float band = fract(sqrt(w) * 1.7 - uTime * 0.45); // ripples: thin far away, wider up close
       float ripple = smoothstep(0.0, 0.12, band) * fall(0.5, 0.62, band);
       float sway = (sin(w * 0.12 - uTime * 1.7) * 0.7 + sin(w * 0.047 + uTime * 0.8)) * (1.5 + w * 0.05);
-      vec2 m = (vec2(frag.x + sway, uFooter.z - w * 0.72) - uSun.xy) / r; // mirrored, stretched
+      vec2 m = (vec2(frag.x + sway, uFooter.z - w * mix(0.72, 1.1, uMoon)) - uSun.xy) / r; // mirrored, stretched
       if (length(m) < 1.1) {
         sea = over(sea, orb(m, 1.5 / (r * uDpr), tone, 0.0) * 0.55 * fade * ripple);
       }

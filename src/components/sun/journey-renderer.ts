@@ -132,7 +132,11 @@ export function startJourney(
     const seaDepth = marks.seaBottom - marks.horizonTop;
     const footerStart = Math.max(stops[stops.length - 1] + 1, marks.footerTop - vh);
     const heroSpot: Spot | null = marks.stage ? { ...marks.stage, y: marks.stage.y - scroll } : null;
+    // Ahead of the path: the footer's sunset becomes the moon's stand as it blends.
+    moon += (moonTarget - moon) * (1 - Math.exp(-dt * 2.6));
+    if (Math.abs(moonTarget - moon) < 0.001) moon = moonTarget;
     const sun = sunPath({
+      moon,
       width: cssWidth,
       height: svh,
       scroll,
@@ -151,8 +155,6 @@ export function startJourney(
     }
     lean.hover += ((pointer.inside ? 1 : 0) - lean.hover) * ease;
     flare *= Math.exp(-dt * 1.8);
-    moon += (moonTarget - moon) * (1 - Math.exp(-dt * 2.6));
-    if (Math.abs(moonTarget - moon) < 0.001) moon = moonTarget;
     time += dt;
     if (frames >= 2) intro = Math.min(1, intro + dt / 1.2);
 

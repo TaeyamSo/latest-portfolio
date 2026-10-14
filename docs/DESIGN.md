@@ -114,8 +114,12 @@ WebGL sun cools to silver and the moon's shadow slides in.
 - **The moon** travels the sun's path, drawn the same way (a glowing disc in a soft bloom) but
   still: a few soft seas, no simmer. It wanes as you scroll (`NIGHT` in `sun/day.ts`, stop for
   stop with the day): full over the hero, gibbous by the about, half over the work, a crescent
-  by the coast, and the thinnest crescent sets into a silver sea in the footer. The dark side
-  keeps a faint earthshine; its bloom stays around the lit part.
+  by the coast. In the footer it doesn't set like the sun: the crescent stands over the silver
+  sea, small (`MOON_STAND` in `sun/day.ts`: 0.3 of the sunset sun's size, never more than 9% of the
+  screen's height in radius), its path glittering on the water. The sun's sunset and the moon's
+  stand blend as the theme changes (`journey.ts`), so switching there lifts the sun and shrinks it
+  into the moon, or lets it sink back. The dark side keeps a faint earthshine; its bloom stays
+  around the lit part.
 - **The sky** is deep blue — navy to indigo, darkest at midnight over the services, a violet hint
   before dawn — with twinkling stars, a few bright ones that glint, and now and then a shooting
   star (`scenery/NightSky`). The story clock runs 21:00 → 05:00 beside a crescent.
@@ -135,7 +139,7 @@ WebGL sun cools to silver and the moon's shadow slides in.
   periwinkle, sunlight and gold → moonlight silver); the shopfronts get night-blue walls and
   cool neon signs (cyan, pink, mint, lilac) that glow; the portrait's duotone, the balloon, the
   signposts, the awnings and the cars all have night colours; the footer's CSS sunset is the
-  setting crescent. Only lights stay warm: windows, lamps, headlights, lighthouses.
+  crescent over the sea. Only lights stay warm: windows, lamps, headlights, lighthouses.
 - Selected text at night is a light highlight with dark text (`::selection` in `globals.css`), so it shows on the dark sky.
 - There is no scrollbar (`globals.css`): the page scrolls as ever (wheel, touch, keys, links, chapters) but draws no bar.
 - Only the home page dresses for the night; the case studies stay as they are.
@@ -158,6 +162,9 @@ Every full page load opens on a welcome screen (`welcome/Welcome.tsx`; styles in
   in while its contents slide back by the same amount, so the colour sweeps in and the letters
   change exactly where its edge passes. Transforms only, so it stays smooth while the page loads
   behind it. The line and both edges come from one wiggle function, so they meet at every size.
+  The line never stops wiggling: the shapes are two screens tall and the wave repeats every
+  screen, so they slide up one screen in a loop (`w-wave`, 3.6s) while their contents slide back —
+  the wave runs along the line and the edges follow it, still all transforms.
 - **The hand-over.** While it shows, `<html data-welcome>` holds the page: the hero's intro waits
   (and plays from the start once let go), the page can't scroll, a chapter link (`/#work`) builds
   in afterwards, and the WebGL sun counts its start from the release. The screen itself starts

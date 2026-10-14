@@ -51,7 +51,10 @@ function Word({ tone, rise }: { tone: "ink" | "white"; rise?: boolean }) {
  * Each half is a window with the line for an edge that slides in, while what's
  * inside it slides back by the same amount — so the colour sweeps in and the
  * letters change exactly where its edge passes, all with transforms (smooth
- * while the page loads underneath). Pure CSS from the first paint
+ * while the page loads underneath). The line never stops wiggling: its shape
+ * and both edges are two screens tall and slide up one screen over and over
+ * (their wave repeats every screen), the contents sliding back so they stay
+ * put — the wave runs along the line and the edges follow it. Pure CSS from the first paint
  * (globals.css, "Welcome"); lib/welcome.ts has the line and the hand-over.
  */
 export function Welcome() {
@@ -59,19 +62,27 @@ export function Welcome() {
     <div id="welcome" className="welcome" aria-hidden="true" style={{ "--w-release": `${WELCOME_RELEASE_MS}ms` } as Vars}>
       <Word tone="white" rise />
 
-      <div className="w-panel w-night" style={{ clipPath: WELCOME_SHAPES.night }}>
-        <div className="w-pin">
-          <div className="w-frame" style={{ background: sky(NIGHT[0]) }}>
-            <NightStars />
-            <Word tone="white" />
+      <div className="w-panel w-night">
+        <div className="w-clip" style={{ clipPath: WELCOME_SHAPES.night }}>
+          <div className="w-vpin">
+            <div className="w-pin">
+              <div className="w-frame" style={{ background: sky(NIGHT[0]) }}>
+                <NightStars />
+                <Word tone="white" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="w-panel w-sun" style={{ clipPath: WELCOME_SHAPES.sun }}>
-        <div className="w-pin">
-          <div className="w-frame" style={{ background: sky(DAY[0]) }}>
-            <Word tone="ink" />
+      <div className="w-panel w-sun">
+        <div className="w-clip" style={{ clipPath: WELCOME_SHAPES.sun }}>
+          <div className="w-vpin">
+            <div className="w-pin">
+              <div className="w-frame" style={{ background: sky(DAY[0]) }}>
+                <Word tone="ink" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
