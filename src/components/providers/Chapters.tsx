@@ -128,11 +128,13 @@ export function Chapters() {
       const { track } = stop;
       if (immediate) track.style.transition = "none";
       track.style.transform = `translate3d(${-(stop.shift ?? 0)}px, 0, 0)`;
-      // The step the track rests on comes forward (the others dim, see globals.css).
+      // The step the track rests on comes forward (the others dim, see globals.css): the first
+      // one that starts in view — at the end of the track, the first of those fully shown.
       const steps = Array.from(track.querySelectorAll<HTMLElement>(":scope > [data-step]"));
       const shift = stop.shift ?? 0;
       const offsets = steps.map((el) => el.offsetLeft - steps[0].offsetLeft);
-      const active = offsets.reduce((best, offset, i) => (Math.abs(offset - shift) < Math.abs(offsets[best] - shift) ? i : best), 0);
+      const first = offsets.findIndex((offset) => offset >= shift - 4);
+      const active = first === -1 ? steps.length - 1 : first;
       steps.forEach((el, i) => el.toggleAttribute("data-active", i === active));
       if (immediate) {
         void track.offsetWidth; // apply without the transition, then hand it back
@@ -354,7 +356,9 @@ export function Chapters() {
         let index = first;
         if (options.step) {
           const wanted = stops.findIndex((stop) => stop.chapter.id === id && stop.step === options.step);
-          index = wanted !== -1 ? wanted : first;
+          // Past the track's last stop (the last steps share it once the end is in view): the chapter's last stop.
+          const last = stops.reduce((found, stop, i) => (stop.chapter.id === id ? i : found), first);
+          index = wanted !== -1 ? wanted : last;
         }
         if (busy && !options.immediate) {
           queued = 0;

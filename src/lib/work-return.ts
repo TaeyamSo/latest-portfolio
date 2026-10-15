@@ -1,4 +1,4 @@
-import { projects } from "@/content/site";
+import { featuredProjects, flagshipProjects, freelanceProjects, projects } from "@/content/site";
 
 /**
  * The case study the visitor is reading. When they head back to the home page
@@ -11,8 +11,17 @@ export const workReturn: { slug: string | null } = { slug: null };
 /** The project's wrapper on the home page. */
 export const workCardId = (slug: string) => `work-${slug}`;
 
+/** The high street's shops, in order (sections/HighStreet.tsx): the flagship, the freelance work, the UAE client sites. */
+const STREET = [...flagshipProjects, ...freelanceProjects, ...featuredProjects].map((project) => project.slug);
+
+/** Which shop along the street a project is — the step its track rests on. */
+export function streetStepOf(slug: string) {
+  return Math.max(0, STREET.indexOf(slug));
+}
+
 /**
- * Which step of the Work chapter's track a project lives on: the B Dashboard
+ * (For the Work stage, sections/WorkStage.tsx — commented out in app/page.tsx
+ * for now.) Which step of the stage's track a project lives on: the B Dashboard
  * takes the first three (overview, what I built, in motion), Mangos the fourth,
  * the UAE client sites share the fifth; the workshop is the last.
  */

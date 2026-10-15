@@ -5,7 +5,7 @@
  * nothing is registered and callers fall back to ordinary scrolling.
  */
 export type ChapterOptions = {
-  /** Which step of the chapter's sideways track to land on (the Work chapter's projects). */
+  /** Which step of the chapter's sideways track to land on (the high street's shops). */
   step?: number;
   /** Jump there without the glide (arriving from another page). */
   immediate?: boolean;

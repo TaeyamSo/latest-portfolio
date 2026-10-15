@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { marquee } from "@/content/site";
+// import { marquee } from "@/content/site"; // the plane's banner (commented out, with the plane)
 import { CHAPTER_LEAVE, type ChapterLeave } from "@/lib/chapters";
 
 /**
@@ -60,17 +60,18 @@ const at = ([x, y]: Point, scale: number, dx = 0, dy = 0) =>
 /**
  * Life in the sky, played as the day moves on (one moment per glide, when the
  * chapter controller announces it): at sunrise a flock lifts off the
- * mountains; between noon and the afternoon a small plane crosses the sky
- * towing a banner with what Tayam does; at golden hour a V of birds flies home towards
- * the sun. Time-based, transform-only animations on a fixed layer just above
+ * mountains; at golden hour a V of birds flies home towards the sun.
+ * (A small plane towing a banner used to cross the sky between noon and the
+ * afternoon; it is commented out below — the `plane` ref, `banner`, its
+ * services → work trigger and the markup — and can be brought back.)
+ * Time-based, transform-only animations on a fixed layer just above
  * the clouds; nothing runs between the moments, and nothing at all without
- * chapters (reduced motion). At night the birds are bats and the plane flies
- * with its lights blinking.
+ * chapters (reduced motion). At night the birds are bats.
  */
 export function Life() {
   const takeoff = useRef<HTMLDivElement>(null);
   const home = useRef<HTMLDivElement>(null);
-  const plane = useRef<HTMLDivElement>(null);
+  // const plane = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     /** Play a group's flights: wings beat only while they're in the air. */
@@ -115,18 +116,19 @@ export function Life() {
         );
       });
 
-    const banner = () =>
-      play(plane.current?.parentElement ?? null, () =>
-        plane.current!.animate(
-          [{ transform: "translate(105vw, 13vh)" }, { transform: "translate(calc(-100% - 4vw), 11vh)" }],
-          { duration: 9500, easing: "linear", fill: "backwards" },
-        ),
-      );
+    // The plane (commented out): crossed the sky towing a banner, services → work.
+    // const banner = () =>
+    //   play(plane.current?.parentElement ?? null, () =>
+    //     plane.current!.animate(
+    //       [{ transform: "translate(105vw, 13vh)" }, { transform: "translate(calc(-100% - 4vw), 11vh)" }],
+    //       { duration: 9500, easing: "linear", fill: "backwards" },
+    //     ),
+    //   );
 
     const onLeave = (event: Event) => {
       const { from, to } = (event as CustomEvent<ChapterLeave>).detail;
       if (from === "home" && to === "about") lift();
-      else if (from === "services" && to === "work") banner();
+      // else if (from === "services" && to === "work") banner();
       else if (from === "process" && to === "journey") homeward();
     };
     window.addEventListener(CHAPTER_LEAVE, onLeave);
@@ -143,13 +145,15 @@ export function Life() {
         ))}
       </div>
 
+      {/*
+        The plane (commented out), flying left with the banner trailing behind it on a rope;
+        at night its lights blink, red on the wing tip and white on the tail:
+
       <div>
-        {/* The plane, flying left, with the banner trailing behind it on a rope. */}
         <div ref={plane} className="absolute top-0 left-0 flex items-center" style={{ transform: "translate(105vw, 13vh)" }}>
           <svg viewBox="-28 -16 62 32" className="block h-[clamp(1.6rem,3vw,2.4rem)] w-auto overflow-visible" fill="var(--plane, #3b1409)">
             <path d="M-24,0 Q-26,-3 -20,-4 L16,-4 L26,-14 L31,-14 L27,-2 Q30,0 27,2 L-20,3 Q-26,3 -24,0 Z" />
             <path d="M-2,-2 L10,-2 L-6,14 L-12,14 Z" />
-            {/* Its lights at night: red on the wing tip, white on the tail, blinking in turn. */}
             <circle className="nav-blink night-only" cx="-9" cy="13" r="2.2" fill="#ff5a4a" />
             <circle className="nav-blink night-only" cx="30" cy="-14" r="2" fill="#ffffff" style={{ "--i": 1 } as React.CSSProperties} />
           </svg>
@@ -159,6 +163,7 @@ export function Life() {
           </span>
         </div>
       </div>
+      */}
 
       <div ref={home}>
         {FORMATION.map(({ size }, i) => (

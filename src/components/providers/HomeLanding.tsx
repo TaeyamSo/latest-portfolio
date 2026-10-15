@@ -4,13 +4,13 @@ import { useLayoutEffect, useRef } from "react";
 
 import { goToChapter } from "@/lib/chapters";
 import { useScrollTo } from "@/lib/use-scroll-to";
-import { workCardId, workReturn, workStepOf } from "@/lib/work-return";
+import { streetStepOf, workCardId, workReturn } from "@/lib/work-return";
 
 /**
  * Where the home page opens when you arrive from another page: at the chapter
- * in the URL (`/#contact`), or back on the Work chapter at the step of the case
- * study you were reading — before the first paint, so its card can morph back
- * into place. Mounted after Chapters, so the chapters are ready.
+ * in the URL (`/#contact`), or back on the high street at the shop of the case
+ * study you were reading — before the first paint, so its shopfront can morph
+ * back into place. Mounted after Chapters, so the chapters are ready.
  */
 export function HomeLanding() {
   const scrollTo = useScrollTo();
@@ -32,16 +32,15 @@ export function HomeLanding() {
     }
     if (!slug) return;
 
-    const step = workStepOf(slug);
-    if (goToChapter("work", { step, immediate: true })) return;
+    if (goToChapter("work", { step: streetStepOf(slug), immediate: true })) return;
 
-    // Without chapters (reduced motion): scroll to the Work chapter and to the project's step.
-    const work = document.getElementById("work");
-    const card = document.getElementById(workCardId(slug));
-    if (!work) return;
-    window.scrollTo({ top: work.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
-    const stacked = card ?? work.querySelector<HTMLElement>(`[data-step="${step}"]`);
-    if (stacked) window.scrollTo({ top: stacked.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
+    // Without chapters (reduced motion): scroll to the street and along it to the shop.
+    const street = document.getElementById("work");
+    const shop = document.getElementById(workCardId(slug));
+    if (!street) return;
+    window.scrollTo({ top: street.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
+    const view = shop?.closest<HTMLElement>("[data-track-view]");
+    if (shop && view) view.scrollLeft = shop.offsetLeft - (view.firstElementChild as HTMLElement).offsetLeft;
     // Only on arrival: later re-renders must not move the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

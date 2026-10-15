@@ -130,13 +130,15 @@ WebGL sun cools to silver and the moon's shadow slides in.
   windows, its lamps and clock face, the city's windows and blinking antennas, headlights with
   short beams, the coast's lighthouse with its beam sweeping over the sea. The stream and the
   sun's path on the water turn silver; fireflies drift over the foothills; the birds are bats;
-  the plane blinks; the balloon's burner glows.
+  the street's lamps light up; the balloon's burner glows.
 - **The copy** (`data-night-ink`: the home page's main, header, side nav and sky life) swaps ink
   and paper, so dark text turns moonlight-white. Things with their own dark paint keep the day's
-  ink (`data-day-ink`): the Work stage and its workshop, the signposts and the process cards. The
+  ink (`data-day-ink`): the shopfronts, the workshop, the signposts and the process cards. The
   footer is dark in both; only its sky colours change (`MOONLIT` in `sun/geometry.ts`).
 - **No orange at night.** On the home page the accents turn moonlit (flame and amber →
-  periwinkle, sunlight and gold → moonlight silver); the portrait's duotone, the balloon, the
+  periwinkle, sunlight and gold → moonlight silver); the shopfronts get night-blue walls and
+  cool neon signs (cyan, pink, mint, lilac, a soft yellow for the restaurant) that glow, and the
+  flagship store's upper windows are lit; the portrait's duotone, the balloon, the
   signposts, the awnings and the cars all have night colours; the footer's CSS sunset is the
   crescent over the sea. Only lights stay warm: windows, lamps, headlights, lighthouses.
 - Selected text at night is a light highlight with dark text (`::selection` in `globals.css`), so it shows on the dark sky.
@@ -209,7 +211,7 @@ The home page reads as **chapters**, one screen and one hour each (`providers/Ch
 small scroll, a swipe or a key press glides to the next chapter: the content steps aside, the page
 glides — so the sky, the sun, the clock and the landscape change with it — and once it rests the
 new chapter's content builds in, piece by piece. Content that doesn't fit one screen walks
-sideways instead (the Work chapter's projects; services and process cards on phones). Every chapter
+sideways instead (the high street's shops; services and process cards on phones). Every chapter
 title is a plain sentence: no section numbers, no italic accent word. With reduced motion the
 chapters are simply shown and the page scrolls normally.
 
@@ -218,8 +220,8 @@ chapters are simply shown and the page scrolls normally.
 | Hero · 06:30 | Letter-by-letter mask reveal with restored kerning, the sun rising out of the mountains (SVG on first paint, then the WebGL sun takes over from the same spot), click-to-flare, a text ring that writes itself letter by letter around the sun, status kicker (availability + live local time) |
 | About · 08:30 | "I'm Tayam. I build web products for real businesses." Two short paragraphs (what I work with, and what I've built), the duotone portrait (ink → flame → sunlight) that reveals the original on hover, and the numbers as wooden signposts planted in the morning foothills, rising out of the ground once the rest has built in |
 | Services · 12:00 | The promise is the title, on ink bands that sweep in ("I help businesses look as good online as they do in person."); four services side by side, each backed by real projects; the toolkit. Below, **the town at noon** comes to life: the shops open (awnings unroll), the bell rings and the pigeons lift off the tower; people stroll by and a cyclist rides past, smoke rises, the clock turns |
-| Work · 14:00 | **The takeover**: the chapter fills the screen with an opaque dark stage — a different world from the sky around it — with a warm glow and a town skyline at its foot. Each gesture of scroll, swipe or key slides the track to the next step (`providers/Chapters.tsx`, the same sideways-track mechanism the old high street used): the **B Dashboard** (overview, what I built, then *in motion* — two looping screen recordings, Report a Problem and the drive-thru hotline), **Mangos**, the **UAE client sites**, then the **workshop** where the template builds are pinned to a board. A project index and a "03 / 06" counter sit at the top, a thin road along the bottom shows how far along you are. The resting step's content rises in (`.work-rise`, transform/opacity only); the next gesture after the last step glides on to Process. "Read the case study" opens the project's page, which grows out of its card (`WorkStage.tsx`; step map in `lib/work-return.ts`). By night the stage becomes a night sky of its own — deep blue, a moonlit glow, stars, the skyline's windows lit, periwinkle accents, no orange. Without chapters (reduced motion) the steps simply stack, a screen each, and the recordings show a still |
-| Case studies | `/work/[slug]` for the B Dashboard, Mangos and each UAE client site: the card grows into a dark page while its screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the screenshot), then — for the projects that have them — by the numbers, in motion (the recordings), what I built (a screen each), the hard parts, how it's wired, more screens, a client's words (only when real) and what I'd do next (`components/case/CaseExtras.tsx`). "All work" returns to the same step. A share image per project |
+| Work · 14:00 | **The high street**: every project is a shop, walked one at a time (the one you're at comes forward), in order — first the **flagship store**, the B Dashboard: wider, two storeys (a row of upper windows over its name sign and a "Flagship" plate), the dashboard in its display window and its key numbers by the door (95 screens, 380+ API routes, 13 backend services, 2 languages), which count up from zero each time the chapter arrives (`ui/CountUp`); then **Mangos** under a striped mango awning; then the four **UAE client sites**, each in its own style — an arched front, a gabled one with a pointed roof, a modern box with an outlined sign, a classic shop under a striped awning. Every store is about half the screen wide, so the one you're at and the next are all you see. Each has its name on the sign, its site in the window with an "Open" sign hanging in it (glowing at night), and a board under it: what it is, what Tayam did and when, what it's built with (on taller screens), and the ways in — the case study, and the live site where it loads. Lamp posts stand between the stores (lit at night, with a pool of light on the pavement), planters sit by every other door, and birds perch on the roofs, now and then pecking or hopping. The window or "Read the case study" opens the project's page, which grows out of the shopfront. The street ends at the workshop, where the template builds are pinned to a board (`sections/HighStreet.tsx`). The dark full-screen Work stage that replaced it for a while is kept, not deleted: `sections/WorkStage.tsx`, commented out in `app/page.tsx`, its styles resting on its own `.work-stage` class |
+| Case studies | `/work/[slug]` for the B Dashboard, Mangos and each UAE client site: the shopfront grows into a dark page while its screenshot flies to the top. Overview, "A closer look" (the camera glides between details of the screenshot), then — for the projects that have them — by the numbers, in motion (the recordings), what I built (a screen each), the hard parts, how it's wired, more screens, a client's words (only when real) and what I'd do next (`components/case/CaseExtras.tsx`). "All work" returns to the same shop. A share image per project |
 | Process · 16:00 | "From first call to launch." Four framed cards, each with a small paper browser showing the same website at that stage: notes on a blank page, a wireframe, half built with the code open, the live site. When the chapter arrives the cards build one after another — each edge lights up and its page builds itself |
 | Journey · 17:45 | "Where I've worked, and what I've learned." The job, the Meta certificate as a compact verifiable entry, the degree — side by side. Below, **the coast** comes to life (see the scenery notes) |
 | Testimonials | Hidden for now (not rendered in page.tsx); a chapter of its own once there are real quotes. Clients speak in the serif; manual pager, no auto-rotation |
@@ -227,9 +229,9 @@ chapters are simply shown and the page scrolls normally.
 | Site-wide | One sun travelling one day, page transitions between the street and the case studies, chapters, scroll-spy side nav with the story clock, full-screen mobile menu, no scrollbar, branded 404, OG images, favicon, sitemap, robots, manifest, JSON-LD. The welcome screen on every full load (see Welcome), then the hero's CSS intro |
 
 **Life in the sky** (`scenery/Life.tsx`) plays one moment per glide: leaving sunrise, a flock
-lifts off the mountains and flies up over the morning; between noon and the afternoon a small plane
-crosses the sky towing a banner with what Tayam does (the old marquee's message, told by the
-story); arriving at golden hour, a V of birds flies home towards the low sun. The page's clouds
+lifts off the mountains and flies up over the morning; arriving at golden hour, a V of birds flies
+home towards the low sun. (A small plane towed a banner with what Tayam does between noon and the
+afternoon; it's commented out in `Life.tsx`, ready to bring back.) The page's clouds
 take the hour's colour (cream at noon, warmer around it, golden by golden hour) and bob gently as
 they drift. After sunset the lighthouse on the far coast lights up and the town's lights come on
 one by one — the four brighter ones are the client sites. All of it is time-based transforms on
@@ -288,7 +290,7 @@ src/
                   HeroScroll (the hero's scroll progress, SinkLayer), Cloud (poster cloud art),
                   CloudLayer (clouds through the page, the noon cloud), Landscape +
                   LandscapeMotion (the scenery along the bottom of the screen, mountains to the
-                  sea), Town (the living town at noon), Life (birds, the plane)
+                  sea), Town (the living town at noon), Life (birds; the plane is commented out)
     chrome/       Header, SideNav, MobileMenu, SectionLink, StoryClock
     sections/     Hero, About, Services, HighStreet (work), Process, Journey, Testimonials, Contact
     sun/          disc.ts → SunDisc (SVG/CSS) + shaders.ts → the journey (journey.ts path,

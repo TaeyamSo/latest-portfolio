@@ -237,6 +237,74 @@ html.chapters [data-track-view] {
   overflow-y: visible;
 }
 
+/* The high street: the shop the street rests on comes forward, the others
+   step back a little (the lamp posts and planters on the pavement stay put). */
+.shop > :not(.street-prop) {
+  transform-origin: bottom center;
+  transition:
+    scale 0.7s var(--ease-expo),
+    filter 0.7s ease;
+}
+
+html.chapters .shop:not([data-active]) > :not(.street-prop) {
+  scale: 0.93;
+  filter: brightness(0.8) saturate(0.85);
+}
+
+/* The street's lamps light up at night, with a pool of light on the pavement. */
+.street-lamp-glow,
+.street-lamp-pool {
+  opacity: 0;
+  transition: opacity 0.9s ease-out;
+}
+html[data-theme="night"] :is(.street-lamp-glow, .street-lamp-pool) {
+  opacity: 1;
+}
+
+/* The birds on the roofs: now and then one pecks at the roof, or hops. */
+@media (prefers-reduced-motion: no-preference) {
+  .roof-bird {
+    animation: roof-bird-hop 11s ease-in-out calc(var(--delay, 0s) + 4s) infinite;
+  }
+  .roof-bird-body {
+    transform-box: fill-box;
+    transform-origin: 60% 95%;
+    animation: roof-bird-peck 6.5s ease-in-out var(--delay, 0s) infinite;
+  }
+}
+@keyframes roof-bird-peck {
+  0%,
+  78%,
+  100% {
+    rotate: 0deg;
+  }
+  83% {
+    rotate: 26deg;
+  }
+  87% {
+    rotate: 4deg;
+  }
+  91% {
+    rotate: 26deg;
+  }
+  96% {
+    rotate: 0deg;
+  }
+}
+@keyframes roof-bird-hop {
+  0%,
+  90%,
+  100% {
+    translate: -50% 0;
+  }
+  93% {
+    translate: -50% -45%;
+  }
+  96% {
+    translate: -50% 0;
+  }
+}
+
 /* Copy on ink bands, one per wrapped line (InkLabel). When its chapter arrives
    the bands sweep in from the left, then the words appear on them. */
 .ink-label {
@@ -1683,6 +1751,16 @@ html[data-theme="night"]:has(#home) .duotone-layer {
   filter: url(#duotone-moon);
 }
 
+/* The shops' signs glow like neon at night, and the flagship store's upper
+   windows are lit. */
+html[data-theme="night"] :is(.shop h3, .shop-open) {
+  text-shadow:
+    0 0 6px color-mix(in srgb, currentColor 70%, transparent),
+    0 0 18px color-mix(in srgb, currentColor 35%, transparent);
+}
+html[data-theme="night"] .shop-upper-window {
+  background: rgb(255 207 110 / 0.8);
+}
 html[data-theme="night"]:has(#home) body {
   background: linear-gradient(90deg, #18204a, #2b3a7a 49%);
 }
@@ -1709,7 +1787,7 @@ html[data-theme="night"] .hero-portfolio {
 }
 
 /* Inside the night's copy, a few things keep the day's ink: light text on
-   their own dark wood or paint (the work stage, the workshop, the signposts). */
+   their own dark wood or paint (the shopfronts, the workshop, the signposts). */
 html[data-theme="night"] [data-night-ink] [data-day-ink] {
   --color-ink: #0d0a08;
   --color-paper: #fffaf4;
@@ -2104,8 +2182,11 @@ html[data-theme-switch]::view-transition-new(root) {
    (`.work-rise`, staggered by --r) once the chapter has arrived, and steps
    aside while the page glides on. Everything is transform/opacity only.
    Without chapters (reduced motion) the steps stack, a screen each.
+   The stage is commented out in app/page.tsx for now (the high street is the
+   Work chapter again), so these rules hang on its own class, `.work-stage`,
+   rather than on #work: they rest until it comes back.
 --------------------------------------------------------------------------- */
-#work {
+.work-stage {
   background: var(--color-ink);
   isolation: isolate;
 }
@@ -2116,7 +2197,7 @@ html[data-theme-switch]::view-transition-new(root) {
     radial-gradient(46% 52% at 8% 92%, rgb(255 182 41 / 0.1), transparent 72%);
 }
 
-html.chapters #work .work-rise {
+html.chapters .work-stage .work-rise {
   opacity: 0;
   translate: 0 1.1rem;
   transition:
@@ -2124,7 +2205,7 @@ html.chapters #work .work-rise {
     translate 0.22s ease-in;
 }
 
-html.chapters #work[data-arrived] [data-step][data-active] .work-rise {
+html.chapters .work-stage[data-arrived] [data-step][data-active] .work-rise {
   opacity: 1;
   translate: 0 0;
   transition:
@@ -2134,37 +2215,37 @@ html.chapters #work[data-arrived] [data-step][data-active] .work-rise {
 }
 
 /* The road: how far along the work you are. */
-#work .work-progress {
+.work-stage .work-progress {
   transform: scaleX(0.1667);
   transform-origin: left;
   transition: transform 0.75s var(--ease-expo);
 }
-#work:has([data-step="1"][data-active]) .work-progress {
+.work-stage:has([data-step="1"][data-active]) .work-progress {
   transform: scaleX(0.3333);
 }
-#work:has([data-step="2"][data-active]) .work-progress {
+.work-stage:has([data-step="2"][data-active]) .work-progress {
   transform: scaleX(0.5000);
 }
-#work:has([data-step="3"][data-active]) .work-progress {
+.work-stage:has([data-step="3"][data-active]) .work-progress {
   transform: scaleX(0.6667);
 }
-#work:has([data-step="4"][data-active]) .work-progress {
+.work-stage:has([data-step="4"][data-active]) .work-progress {
   transform: scaleX(0.8333);
 }
-#work:has([data-step="5"][data-active]) .work-progress {
+.work-stage:has([data-step="5"][data-active]) .work-progress {
   transform: scaleX(1.0000);
 }
 
 /* "03 / 06": only the resting step's number shows. */
-#work .work-count {
+.work-stage .work-count {
   display: none;
 }
-#work:has([data-step="0"][data-active]) .work-count[data-n="0"],
-#work:has([data-step="1"][data-active]) .work-count[data-n="1"],
-#work:has([data-step="2"][data-active]) .work-count[data-n="2"],
-#work:has([data-step="3"][data-active]) .work-count[data-n="3"],
-#work:has([data-step="4"][data-active]) .work-count[data-n="4"],
-#work:has([data-step="5"][data-active]) .work-count[data-n="5"] {
+.work-stage:has([data-step="0"][data-active]) .work-count[data-n="0"],
+.work-stage:has([data-step="1"][data-active]) .work-count[data-n="1"],
+.work-stage:has([data-step="2"][data-active]) .work-count[data-n="2"],
+.work-stage:has([data-step="3"][data-active]) .work-count[data-n="3"],
+.work-stage:has([data-step="4"][data-active]) .work-count[data-n="4"],
+.work-stage:has([data-step="5"][data-active]) .work-count[data-n="5"] {
   display: inline;
 }
 
@@ -2176,21 +2257,21 @@ html.chapters #work[data-arrived] [data-step][data-active] .work-rise {
   transform: scale(0.6);
   transition: transform 0.4s var(--ease-expo);
 }
-#work:has([data-step="0"][data-active]) .work-rail-item[data-rail="0"],
-#work:has([data-step="1"][data-active]) .work-rail-item[data-rail="0"],
-#work:has([data-step="2"][data-active]) .work-rail-item[data-rail="0"],
-#work:has([data-step="3"][data-active]) .work-rail-item[data-rail="3"],
-#work:has([data-step="4"][data-active]) .work-rail-item[data-rail="4"],
-#work:has([data-step="5"][data-active]) .work-rail-item[data-rail="5"] {
+.work-stage:has([data-step="0"][data-active]) .work-rail-item[data-rail="0"],
+.work-stage:has([data-step="1"][data-active]) .work-rail-item[data-rail="0"],
+.work-stage:has([data-step="2"][data-active]) .work-rail-item[data-rail="0"],
+.work-stage:has([data-step="3"][data-active]) .work-rail-item[data-rail="3"],
+.work-stage:has([data-step="4"][data-active]) .work-rail-item[data-rail="4"],
+.work-stage:has([data-step="5"][data-active]) .work-rail-item[data-rail="5"] {
   opacity: 1;
   color: var(--color-sunlight);
 }
-#work:has([data-step="0"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
-#work:has([data-step="1"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
-#work:has([data-step="2"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
-#work:has([data-step="3"][data-active]) .work-rail-item[data-rail="3"] .work-rail-dot,
-#work:has([data-step="4"][data-active]) .work-rail-item[data-rail="4"] .work-rail-dot,
-#work:has([data-step="5"][data-active]) .work-rail-item[data-rail="5"] .work-rail-dot {
+.work-stage:has([data-step="0"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
+.work-stage:has([data-step="1"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
+.work-stage:has([data-step="2"][data-active]) .work-rail-item[data-rail="0"] .work-rail-dot,
+.work-stage:has([data-step="3"][data-active]) .work-rail-item[data-rail="3"] .work-rail-dot,
+.work-stage:has([data-step="4"][data-active]) .work-rail-item[data-rail="4"] .work-rail-dot,
+.work-stage:has([data-step="5"][data-active]) .work-rail-item[data-rail="5"] .work-rail-dot {
   transform: scale(1.4);
 }
 
@@ -2222,7 +2303,7 @@ html.chapters #work[data-arrived] [data-step][data-active] .work-rise {
   opacity: 0;
   transition: opacity 0.9s ease-out 0.3s;
 }
-html[data-theme="night"] #work {
+html[data-theme="night"] .work-stage {
   background: #060a1c;
 }
 html[data-theme="night"] .work-glow {
@@ -2233,37 +2314,37 @@ html[data-theme="night"] .work-glow {
 html[data-theme="night"] .work-stars {
   opacity: 0.8;
 }
-html[data-theme="night"] #work[data-arrived] .work-windows,
+html[data-theme="night"] .work-stage[data-arrived] .work-windows,
 html[data-theme="night"]:not(.chapters) .work-windows {
   opacity: 0.9;
 }
-html[data-theme="night"] #work .work-frame {
+html[data-theme="night"] .work-stage .work-frame {
   background: #c9d0ec;
 }
-html[data-theme="night"] #work .work-note {
+html[data-theme="night"] .work-stage .work-note {
   background: #d4daf4;
 }
 
 /* Without chapters (reduced motion, no script): a stack, one screen per step. */
-html:not(.chapters) #work {
+html:not(.chapters) .work-stage {
   height: auto;
   min-height: 100svh;
   overflow: visible;
 }
-html:not(.chapters) #work [data-track-view] {
+html:not(.chapters) .work-stage [data-track-view] {
   overflow: visible;
 }
-html:not(.chapters) #work [data-track] {
+html:not(.chapters) .work-stage [data-track] {
   height: auto;
   flex-direction: column;
   transform: none;
 }
-html:not(.chapters) #work .work-step {
+html:not(.chapters) .work-stage .work-step {
   height: auto;
   min-height: 100svh;
   flex-basis: auto;
   padding-block: 3rem;
 }
-html:not(.chapters) #work :is(.work-progress, .work-count) {
+html:not(.chapters) .work-stage :is(.work-progress, .work-count) {
   display: none;
 }
