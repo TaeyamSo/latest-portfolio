@@ -37,7 +37,7 @@ export function Duotone({ src, alt, sizes, className }: Props) {
           </feComponentTransfer>
         </filter>
       </svg>
-      <Image src={src} alt={alt} sizes={sizes} placeholder="blur" className="w-full" />
+      <Image src={src} alt={alt} sizes={sizes} className="w-full" />
       <Image
         src={src}
         alt=""

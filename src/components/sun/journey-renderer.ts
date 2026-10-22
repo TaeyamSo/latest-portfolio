@@ -8,6 +8,15 @@ import { journeyFragment, journeyVertex } from "./shaders";
 
 const UNIFORMS = ["uRes", "uDpr", "uTime", "uSun", "uPointer", "uFlare", "uIntro", "uFooter", "uMoon", "uPhase"] as const;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+/** How long the canvas takes to fade in when it doesn't start on the hero sun (s). */
+const APPEAR_S = 1.1;
+/** About the most pixels the canvas draws per frame on a desktop screen (half that on phones). */
+const PIXEL_BUDGET = 2.6e6;
+/** Shortest time between two drawn frames while something moves (~60 fps, however fast the screen is), and when only the shimmer does. */
+const BUSY_GAP_MS = 14;
+const IDLE_GAP_MS = 50;
+/** How long the CSS sunset takes to fade away over the canvas when the footer is in view (ms). */
+const SOFT_MS = 800;
 
 /**
  * Draws the travelling sun on a fixed, full-viewport canvas with one fragment
@@ -20,12 +29,18 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
  * are on screen it sets `html.sun-webgl`, which retires the SVG/CSS stand-ins
  * (see globals.css). It also moves the sun's wide glow, a CSS layer underneath.
  *
+ * When the hero sun isn't on screen as it starts (a reload further down the
+ * page) there is nothing to take over from, so the canvas fades in over
+ * APPEAR_S instead of popping on. If the footer is in view it has a stand-in
+ * of its own (the CSS sunset): the canvas is opaque underneath, and the
+ * stand-in fades away over it (SOFT_MS).
+ *
  * In the night theme the same orb is the moon (THEME_EVENT): switching, the sun
  * cools to silver as the phase's shadow slides in, over about a second and a
  * half, and the glow's layer cross-fades to moonlight (`moonGlow`).
  *
- * Renders at the display rate while something moves, ~30fps when only the
- * shimmer is moving.
+ * Renders at up to ~60fps while something moves, ~20fps when only the
+ * shimmer is moving, within a pixel budget (PIXEL_BUDGET).
  * Returns a cleanup that hands everything back to CSS.
  */
 export function startJourney(
@@ -109,6 +124,9 @@ export function startJourney(
   const lean = { x: 0, y: 0, hover: 0 }; // pointer relative to the sun, eased
   let flare = 0;
   let intro = 0;
+  let appear = 1; // the canvas's own opacity; below 1 while it fades in
+  let soft = false; // the stand-ins fade out over the canvas instead of switching off
+  let softTimer = 0;
   let moonTarget = getTheme() === "night" ? 1 : 0;
   let moon = moonTarget; // starts where the page is: no morph on load
   let time = 8;
@@ -124,7 +142,7 @@ export function startJourney(
     last = now;
 
     // Everything from the cached marks and the scroll position: no layout reads.
-    const scroll = window.scrollY;
+    const scroll = scrollNow;
     const vh = window.innerHeight;
     const { maxScroll, stops } = marks;
     const footerTop = marks.footerTop - scroll;
@@ -202,14 +220,31 @@ export function startJourney(
       }
     }
 
-    // Two frames in, the canvas is on screen: retire the SVG and CSS stand-ins.
-    if (++frames === 2) root.classList.add("sun-webgl");
+    // Two frames in, the canvas is on screen: retire the SVG and CSS stand-ins —
+    // or, when it's fading in, once it has (they'd leave a gap behind it otherwise).
+    frames++;
+    if (appear < 1) {
+      appear = Math.min(1, appear + dt / APPEAR_S);
+      canvas.style.opacity = appear >= 1 ? "" : (appear * appear * (3 - 2 * appear)).toFixed(3);
+      if (appear >= 1) root.classList.add("sun-webgl");
+    } else if (frames === 2) {
+      if (soft) {
+        root.classList.add("sun-webgl-soft");
+        softTimer = window.setTimeout(() => {
+          root.classList.add("sun-webgl");
+          root.classList.remove("sun-webgl-soft");
+        }, SOFT_MS);
+      } else root.classList.add("sun-webgl");
+    }
   };
 
   const resize = () => {
     desktop = window.matchMedia("(min-width: 64rem)").matches;
     deviceRatio = window.devicePixelRatio || 1;
-    dpr = Math.min(deviceRatio, desktop ? 2 : 1.5);
+    // A sharp canvas where it's cheap, a budgeted one where it isn't: a 1440x900 screen at 2x is five
+    // million pixels of shader, far more than a soft-edged sun needs (never below 1 pixel per CSS pixel).
+    const area = Math.max(1, canvas.clientWidth * canvas.clientHeight);
+    dpr = Math.min(deviceRatio, desktop ? 2 : 1.5, Math.max(1, Math.sqrt((desktop ? PIXEL_BUDGET : PIXEL_BUDGET / 2) / area)));
     const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
     const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
     svh = probe.offsetHeight || window.innerHeight;
@@ -217,6 +252,7 @@ export function startJourney(
     cssWidth = canvas.clientWidth;
     glowSize = glow?.offsetWidth || 1;
     measure();
+    scrollNow = window.scrollY;
     if (width === canvas.width && height === canvas.height) return;
     // Resizing clears the canvas, so paint again right away (no blank frame).
     canvas.width = width;
@@ -228,14 +264,21 @@ export function startJourney(
   const loop = (now: number) => {
     raf = requestAnimationFrame(loop);
     if ((window.devicePixelRatio || 1) !== deviceRatio) resize(); // zoomed or moved to another screen
-    const scroll = window.scrollY;
+    const scroll = scrollNow;
     if (scroll !== lastScroll) {
       lastScroll = scroll;
       activeUntil = now + 500;
     }
     // When nothing but the slow shimmer is moving, every other frame is plenty.
-    const busy = now < activeUntil || flare > 0.002 || intro < 1 || moon !== moonTarget;
-    if (busy || now - last >= 30) render(now);
+    const busy = now < activeUntil || flare > 0.002 || intro < 1 || appear < 1 || moon !== moonTarget;
+    if (now - last >= (busy ? BUSY_GAP_MS : IDLE_GAP_MS)) render(now);
+  };
+
+  // The scroll position, taken in the scroll event: reading it inside the frame would force a style
+  // and layout pass whenever the page's other layers have just written theirs.
+  let scrollNow = window.scrollY;
+  const onScroll = () => {
+    scrollNow = window.scrollY;
   };
 
   const onMove = (event: PointerEvent) => {
@@ -261,9 +304,18 @@ export function startJourney(
 
   const observer = new ResizeObserver(resize);
   resize();
+  const heroBox = stage?.getBoundingClientRect();
+  if (heroBox && (heroBox.bottom <= 0 || heroBox.top >= window.innerHeight)) {
+    if (footer && footer.getBoundingClientRect().top < window.innerHeight) soft = true;
+    else {
+      appear = 0;
+      canvas.style.opacity = "0";
+    }
+  }
   observer.observe(canvas);
   observer.observe(document.body); // the page's layout changed: measure again
   stage?.addEventListener("animationend", measure); // the hero sun's rise has settled
+  window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("pointermove", onMove, { passive: true });
   root.addEventListener("pointerleave", onLeave);
   window.addEventListener(FLARE_EVENT, onFlare);
@@ -278,13 +330,16 @@ export function startJourney(
     if (glow) glow.style.opacity = "0";
     if (moonGlow) moonGlow.style.opacity = "0";
     sunNow.x = -1;
+    window.removeEventListener("scroll", onScroll);
     window.removeEventListener("pointermove", onMove);
     root.removeEventListener("pointerleave", onLeave);
     window.removeEventListener(FLARE_EVENT, onFlare);
     window.removeEventListener(THEME_EVENT, onTheme);
     canvas.removeEventListener("webglcontextlost", onContextLost);
     probe.remove();
-    root.classList.remove("sun-webgl");
+    window.clearTimeout(softTimer);
+    root.classList.remove("sun-webgl", "sun-webgl-soft");
+    canvas.style.opacity = "";
     if (orbit) orbit.style.opacity = "";
     if (gl && !gl.isContextLost()) {
       gl.deleteBuffer(buffer);

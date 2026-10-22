@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { CHAPTER_ARRIVE, CHAPTER_LEAVE, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
+import { CHAPTER_ARRIVE, CHAPTER_LEAVE, SCENE_AFTER_TEXT_MS, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
 
 /**
  * Tells the foothills (Foothills.tsx) when the about is the chapter —
@@ -21,9 +21,16 @@ export function FoothillsCues() {
     let last = 0;
     let over = false;
 
-    const open = (on: boolean) => {
+    const openNow = (on: boolean) => {
       hills.toggleAttribute("data-open", on);
       if (!on) over = false;
+    };
+    // The scene wakes up once the chapter's text has built in (it is read first).
+    let wake = 0;
+    const open = (on: boolean) => {
+      window.clearTimeout(wake);
+      if (on) wake = window.setTimeout(() => openNow(true), SCENE_AFTER_TEXT_MS);
+      else openNow(false);
     };
 
     // Extra turns on top of the sails' own slow turn (composite: add), so nothing jumps.
@@ -59,6 +66,7 @@ export function FoothillsCues() {
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     return () => {
+      window.clearTimeout(wake);
       window.removeEventListener(CHAPTER_ARRIVE, onArrive);
       window.removeEventListener(CHAPTER_LEAVE, onLeave);
       window.removeEventListener("pointermove", onMove);

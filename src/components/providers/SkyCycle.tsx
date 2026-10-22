@@ -6,6 +6,14 @@ import { useEffect, useRef } from "react";
 import { NightSky } from "@/components/scenery/NightSky";
 import { DAY, NIGHT, dayAt, measureStops } from "@/components/sun/day";
 
+/** Two #rrggbb colours, `t` of the way from `a` to `b`. */
+function blend(a: string, b: string, t: number) {
+  const ca = parseInt(a.slice(1), 16);
+  const cb = parseInt(b.slice(1), 16);
+  const channel = (shift: number) => Math.round(((ca >> shift) & 255) * (1 - t) + ((cb >> shift) & 255) * t);
+  return `rgb(${channel(16)} ${channel(8)} ${channel(0)})`;
+}
+
 /** The same shape as the page's own background (body in globals.css). */
 const gradient = ({ sky: [left, right] }: { sky: readonly [string, string] }) => `linear-gradient(90deg, ${left}, ${right} 49%)`;
 
@@ -28,6 +36,7 @@ export function SkyCycle() {
   const nightNext = useRef<HTMLDivElement>(null);
   const stops = useRef<number[]>([]);
   const shown = useRef(-1);
+  const lastHaze = useRef("");
   const { scrollY } = useScroll();
 
   const update = (y: number) => {
@@ -43,6 +52,19 @@ export function SkyCycle() {
     const t = day.t.toFixed(3);
     next.current.style.opacity = t;
     nightNext.current.style.opacity = t;
+    // The haze over the landscape's scenes (globals.css): the sky's colours right now. Set on the
+    // strip itself — on <html> it would restyle the whole page every frame — and only when they change.
+    const strip = document.querySelector<HTMLElement>("[data-landscape]");
+    const [left, right] = [0, 1].map((i) => blend(DAY[day.index].sky[i], DAY[day.next].sky[i], day.t));
+    const [nightLeft, nightRight] = [0, 1].map((i) => blend(NIGHT[day.index].sky[i], NIGHT[day.next].sky[i], day.t));
+    const haze = `${left}|${right}|${nightLeft}|${nightRight}`;
+    if (strip && haze !== lastHaze.current) {
+      lastHaze.current = haze;
+      strip.style.setProperty("--haze-l", left);
+      strip.style.setProperty("--haze-r", right);
+      strip.style.setProperty("--haze-night-l", nightLeft);
+      strip.style.setProperty("--haze-night-r", nightRight);
+    }
   };
 
   useMotionValueEvent(scrollY, "change", update);

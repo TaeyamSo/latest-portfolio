@@ -101,6 +101,7 @@ export function Landscape() {
   return (
     <div
       aria-hidden="true"
+      data-landscape=""
       className="scenery pointer-events-none fixed inset-x-0 bottom-0 z-[4] h-(--strip) overflow-x-clip"
     >
       <Palette of={CITY} />
@@ -108,16 +109,11 @@ export function Landscape() {
         Own ? (
           <Own key={section} />
         ) : Scene ? (
-          <svg
-            key={section}
-            data-scene={section}
-            viewBox={`0 0 ${W} ${H}`}
-            preserveAspectRatio="xMidYMax slice"
-            className="absolute inset-0 size-full"
-            style={{ transform: "translate3d(0, 105%, 0)", display: "none" }}
-          >
-            <Scene />
-          </svg>
+          <div key={section} data-scene={section} className="absolute inset-0" style={{ transform: "translate3d(0, 105%, 0)", display: "none" }}>
+            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" className="absolute inset-0 size-full">
+              <Scene />
+            </svg>
+          </div>
         ) : null,
       )}
       <LandscapeMotion />

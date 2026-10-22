@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
-import { Cloud } from "@/components/scenery/Cloud";
+// import { Cloud } from "@/components/scenery/Cloud"; // the dusk clouds (commented out, below)
 import { cn } from "@/lib/cn";
 
 import { MOONSET, MOON_STAND } from "./day";
@@ -36,7 +36,8 @@ const SUN_BOX = "aspect-square w-[min(78vw,40rem)]";
 const MOON_LIFT = MOON_STAND.lift / (2 * SUN.extent);
 const moonUp = (boxes: number) => `calc(var(--moon) * ${boxes.toFixed(3)})`;
 
-/** Clouds dark against the setting sun, its light catching their undersides. */
+/* The dusk clouds — commented out for now (they sat behind the contact copy).
+/** Clouds dark against the setting sun, its light catching their undersides. * /
 const DUSK_CLOUDS = [
   // A low bank resting across the lower-left of the sun's cap…
   { id: "dusk-bank", shape: "bank", aspect: "aspect-[100/26]", above: "0.5svh", nightAbove: "0.5svh", className: "left-[8%] w-[40%] lg:left-[53%] lg:w-[22%]" },
@@ -44,6 +45,7 @@ const DUSK_CLOUDS = [
   // (At night it rides higher, clear of the moon standing over the sea.)
   { id: "dusk-wisp", shape: "wisp", aspect: "aspect-[100/14]", above: "13svh", nightAbove: "30svh", className: "left-[40%] w-[50%] lg:left-[67%] lg:w-[26%]" },
 ] as const;
+*/
 
 /**
  * The page ends at sunset: the sun in its evening colours sinks into the
@@ -62,7 +64,7 @@ export function SunsetStage() {
   const sink = useTransform(scrollYProgress, [0, 1], ["-14%", "18%"]);
   const rise = useTransform(scrollYProgress, [0, 1], ["14%", "-18%"]);
   const glow = useTransform(scrollYProgress, [0, 1], [1, 0.7]);
-  const drift = useTransform(scrollYProgress, [0, 1], ["translate3d(0px, -6svh, 0px)", "translate3d(0px, 0svh, 0px)"]);
+  // const drift = useTransform(scrollYProgress, [0, 1], ["translate3d(0px, -6svh, 0px)", "translate3d(0px, 0svh, 0px)"]); // the dusk clouds' drift
 
   return (
     <div ref={ref} aria-hidden="true" className="relative h-[46svh] min-h-[18rem] [--moon:min(23.4vw,12rem,26.3svh)] [--sunset-x:50%] lg:[--sunset-x:75%]">
@@ -137,8 +139,10 @@ export function SunsetStage() {
         />
       </div>
 
-      {/* Clouds over the setting sun — in both versions. Their box ends at the
-          horizon, so they can never drift down over the sea. */}
+      {/* The dusk clouds over the setting sun — commented out for now. Restore by
+          un-commenting this, DUSK_CLOUDS, `drift` and the Cloud import.
+      {/ * Clouds over the setting sun — in both versions. Their box ends at the
+          horizon, so they can never drift down over the sea. * /}
       <div className="scenery pointer-events-none absolute inset-x-0 h-[160%] overflow-hidden" style={{ bottom: `calc(100% - ${HORIZON})` }}>
         <motion.div style={{ transform: drift }} className="absolute inset-0">
           {DUSK_CLOUDS.map((cloud) => (
@@ -152,14 +156,16 @@ export function SunsetStage() {
           ))}
         </motion.div>
       </div>
+      */}
 
       {/* The far coast the day has travelled to, low on the horizon left of the
-          sun, with the journey's lighthouse — in both versions. */}
+          sun, with the journey's lighthouse — in both versions. On large screens it
+          starts where the copy does, clear of the side rail's counter and clock. */}
       <svg
         viewBox="0 0 400 40"
         preserveAspectRatio="xMinYMax meet"
         aria-hidden="true"
-        className="scenery pointer-events-none absolute left-0 w-[24%] lg:w-[40%]"
+        className="scenery pointer-events-none absolute left-0 w-[24%] lg:left-[calc(var(--gutter)+var(--rail))] lg:w-[32%]"
         style={{ bottom: `calc(100% - ${HORIZON})` }}
       >
         <path d="M0,40 L0,29 L40,26 L90,30 L150,27 L210,31 L262,29 L300,34 L330,38 L342,40 Z" fill="#070302" />

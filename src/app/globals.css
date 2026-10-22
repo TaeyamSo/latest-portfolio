@@ -207,7 +207,7 @@ html.chapters [data-chapter][data-arrived] [data-build] {
   transition:
     opacity 0.6s ease-out,
     translate 0.9s var(--ease-expo);
-  transition-delay: calc(0.12s + var(--b, 0) * 0.11s);
+  transition-delay: calc(0.1s + var(--b, 0) * 0.07s);
 }
 
 /* A sideways track: the controller slides it a step at a time when it doesn't
@@ -235,6 +235,224 @@ html.chapters [data-chapter][data-arrived] [data-build] {
 html.chapters [data-track-view] {
   overflow-x: clip;
   overflow-y: visible;
+}
+
+/* A timeline (sections/Journey.tsx): its line draws itself when the chapter
+   arrives — across on wide screens, down on narrow ones — and the dot for "now"
+   gives off a slow ring. Without chapters the line is simply there. */
+html.chapters [data-chapter] .tl-line {
+  scale: 0 1;
+  transform-origin: left center;
+  transition: scale 0.25s ease-in;
+}
+html.chapters [data-chapter][data-arrived] .tl-line {
+  scale: 1 1;
+  transition: scale 1.6s var(--ease-expo) 0.25s;
+}
+@media not (min-width: 1024px) {
+  html.chapters [data-chapter] .tl-line {
+    scale: 1 0;
+    transform-origin: center top;
+  }
+  html.chapters [data-chapter][data-arrived] .tl-line {
+    scale: 1 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tl-now::after {
+    content: "";
+    position: absolute;
+    inset: -0.3rem;
+    border-radius: 9999px;
+    border: 2px solid var(--color-ink);
+    opacity: 0;
+    animation: tl-ring 2.8s ease-out infinite;
+  }
+  @keyframes tl-ring {
+    0% {
+      scale: 0.6;
+      opacity: 0.7;
+    }
+    100% {
+      scale: 1.5;
+      opacity: 0;
+    }
+  }
+}
+
+/* How it's wired, on the case pages (case/CaseExtras.tsx): the stations sit on
+   one wire (the track) — down their left side on narrow screens, across their
+   middles from 64rem — and a spark of light runs along it to the backend while
+   a fainter one comes back. The track runs from the first station's centre to
+   the last one's. */
+.wire-track {
+  position: absolute;
+  top: 1.375rem;
+  bottom: 1.375rem;
+  left: calc(1.375rem - 0.5px);
+  width: 1px;
+  background: rgb(255 255 255 / 0.25);
+  pointer-events: none;
+}
+.wire-spark {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--color-sunlight);
+  box-shadow: 0 0 0.7rem var(--color-sunlight);
+  opacity: 0;
+}
+.wire-spark-back {
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: 0 0 0.5rem rgb(255 255 255 / 0.45);
+}
+@media (min-width: 64rem) {
+  .wire-track {
+    top: 2rem;
+    bottom: auto;
+    left: calc(50% / var(--wire-n));
+    right: calc(50% / var(--wire-n));
+    width: auto;
+    height: 1px;
+  }
+  .wire-spark {
+    top: 50%;
+    left: 0;
+  }
+  .wire-stations {
+    grid-template-columns: repeat(var(--wire-n), minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wire-spark {
+    animation: wire-down 4s ease-in-out infinite;
+  }
+  .wire-spark-back {
+    animation-name: wire-down-back;
+  }
+  @keyframes wire-down {
+    0% {
+      top: 0;
+      opacity: 0;
+    }
+    6%,
+    40% {
+      opacity: 1;
+    }
+    46% {
+      top: 100%;
+      opacity: 0;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+  @keyframes wire-down-back {
+    0%,
+    50% {
+      top: 100%;
+      opacity: 0;
+    }
+    56%,
+    90% {
+      opacity: 1;
+    }
+    96%,
+    100% {
+      top: 0;
+      opacity: 0;
+    }
+  }
+  @media (min-width: 64rem) {
+    .wire-spark {
+      animation-name: wire-across;
+    }
+    .wire-spark-back {
+      animation-name: wire-across-back;
+    }
+    @keyframes wire-across {
+      0% {
+        left: 0;
+        opacity: 0;
+      }
+      6%,
+      40% {
+        opacity: 1;
+      }
+      46%,
+      100% {
+        left: 100%;
+        opacity: 0;
+      }
+    }
+    @keyframes wire-across-back {
+      0%,
+      50% {
+        left: 100%;
+        opacity: 0;
+      }
+      56%,
+      90% {
+        opacity: 1;
+      }
+      96%,
+      100% {
+        left: 0;
+        opacity: 0;
+      }
+    }
+  }
+}
+
+/* The flagship's rooftop sign: two rows of bulbs that take turns — only while
+   the street rests at that store. */
+.sign-bulbs {
+  height: 0.5rem;
+  background: radial-gradient(circle, var(--trim) 0 0.17rem, transparent 0.2rem) 0 50% / 1.1rem 0.5rem repeat-x;
+}
+.sign-bulbs-b {
+  background-position: 0.55rem 50%;
+}
+html[data-theme="night"] .sign-bulbs {
+  filter: drop-shadow(0 0 3px var(--trim));
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.chapters .shop[data-active] .sign-bulbs {
+    animation: sign-bulb 1.8s steps(1) infinite;
+  }
+  html.chapters .shop[data-active] .sign-bulbs-b {
+    animation-delay: 0.9s;
+  }
+  .street-board-in {
+    animation: street-board-in 0.5s var(--ease-expo) both;
+  }
+  @keyframes sign-bulb {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  @keyframes street-board-in {
+    from {
+      opacity: 0;
+      translate: 0 0.4rem;
+    }
+  }
+}
+
+/* Endless decorations rest while their chapter isn't the one on screen (the
+   birds on the street's roofs, the rooftop sign's bulbs, the journey's "now"
+   ring): they'd only be costing frames off screen. */
+html.chapters [data-chapter]:not([data-arrived]) :is(.roof-bird, .roof-bird-body, .sign-bulbs, .tl-now)::after,
+html.chapters [data-chapter]:not([data-arrived]) :is(.roof-bird, .roof-bird-body, .sign-bulbs) {
+  animation-play-state: paused;
 }
 
 /* The high street: the shop the street rests on comes forward, the others
@@ -1609,6 +1827,42 @@ html[data-theme="night"] .w-night .w-pin {
   }
 }
 
+/* The short welcome, for every visit after the first (lib/welcome.ts):
+   no line and no halves — the page's own sky (the sunrise, or the night in the
+   night theme), TAYAM rising in letter by letter as on the first visit, a
+   moment, then slipping up out of sight as the screen fades into the page.
+   About a second and a half. */
+html[data-welcome-mini] .welcome {
+  background: linear-gradient(90deg, #fd5d16, #fd8916 49%);
+  animation:
+    welcome-release 1.55s linear both,
+    welcome-fade 0.4s ease-out 1.55s forwards;
+}
+html[data-welcome-mini][data-theme="night"] .welcome {
+  background: linear-gradient(90deg, #18204a, #2b3a7a 49%);
+}
+html[data-welcome-mini] :is(.w-panel, .w-line-window) {
+  display: none;
+}
+html[data-welcome-mini] .w-word-white {
+  color: var(--w-ink);
+}
+html[data-welcome-mini][data-theme="night"] .w-word-white {
+  color: #fff;
+}
+html[data-welcome-mini] .w-mask {
+  transform: none;
+}
+html[data-welcome-mini] .w-letter {
+  will-change: transform;
+  animation:
+    letter-in 0.85s var(--ease-expo) both,
+    letter-out 0.38s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  animation-delay:
+    calc(60ms + var(--i, 0) * 45ms),
+    calc(1.12s + var(--i, 0) * 30ms);
+}
+
 /* Until the word's font is in, the screen waits (lib/welcome.ts): all of it
    starts together once it is. */
 html[data-welcome-wait] :is(.welcome, .welcome *) {
@@ -1664,12 +1918,21 @@ body::-webkit-scrollbar {
    SVG stand-ins step aside; removing the class brings them straight back.
    Unlayered, so these win over the utility classes.
 --------------------------------------------------------------------------- */
-html.sun-webgl .sun-sky {
+html.sun-webgl .sun-sky,
+html.sun-webgl-soft .sun-sky {
   background: none;
 }
 
 html.sun-webgl .sunset-fallback {
   display: none;
+}
+
+/* A reload with the footer in view: the canvas is up (opaque there) underneath,
+   and the CSS sunset fades away over it, instead of vanishing at once
+   (journey-renderer.ts, SOFT_MS). */
+html.sun-webgl-soft .sunset-fallback {
+  opacity: 0;
+  transition: opacity 0.7s ease-in-out;
 }
 
 /* The WebGL sun is drawn exactly underneath: the disc cross-fades into it,
@@ -1753,7 +2016,7 @@ html[data-theme="night"]:has(#home) .duotone-layer {
 
 /* The shops' signs glow like neon at night, and the flagship store's upper
    windows are lit. */
-html[data-theme="night"] :is(.shop h3, .shop-open) {
+html[data-theme="night"] .shop h3 {
   text-shadow:
     0 0 6px color-mix(in srgb, currentColor 70%, transparent),
     0 0 18px color-mix(in srgb, currentColor 35%, transparent);
@@ -1943,6 +2206,119 @@ html[data-theme="night"] .dusk-cloud {
 html[data-theme="night"] .day-only,
 html:not([data-theme="night"]) .night-only {
   display: none !important;
+}
+
+/* The cloud pass (scenery/CloudPass.tsx): one bank of clouds — a billowing
+   edge of puffs, a solid middle wider than the screen, another edge — that
+   rolls in from the right (from the left going back up the page: the whole
+   thing is mirrored), covers the screen while the page jumps underneath, and
+   rolls on out the other side. Only its transform moves. Along x the bank is:
+   lead edge (0 … --cp-edge), middle (from half-way into one edge to half-way
+   into the other), trail edge; 100vw + 2 × --cp-edge in all. */
+.cloud-pass {
+  --cp-edge: 70vh;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+.cloud-pass[data-direction="up"] {
+  scale: -1 1;
+}
+.cloud-pass:not([data-state="idle"]) {
+  visibility: visible;
+  pointer-events: auto;
+}
+.cloud-pass-bank {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100vw + 2 * var(--cp-edge));
+  translate: 100vw 0;
+  will-change: translate;
+}
+.cloud-pass[data-state="cover"] .cloud-pass-bank {
+  translate: calc(var(--cp-edge) * -0.75) 0;
+  transition: translate var(--cp-cover) cubic-bezier(0.55, 0, 0.3, 1);
+}
+.cloud-pass[data-state="reveal"] .cloud-pass-bank {
+  translate: calc(-100vw - 2 * var(--cp-edge)) 0;
+  transition: translate var(--cp-reveal) cubic-bezier(0.6, 0, 0.4, 1);
+}
+.cloud-pass-core {
+  position: absolute;
+  overflow: hidden;
+  top: -5vh;
+  bottom: -5vh;
+  left: calc(var(--cp-edge) / 2);
+  right: calc(var(--cp-edge) / 2);
+  /* By day the bank is the sky of the hour you arrive at, a little softened towards cloud. */
+  background: linear-gradient(
+    var(--cp-dir, 90deg),
+    color-mix(in srgb, var(--cp-sky-l) 80%, var(--cp-lit)),
+    color-mix(in srgb, var(--cp-sky-r) 80%, var(--cp-lit)) 55%
+  );
+}
+/* Mirrored going up the page: the sky's gradient turned back the right way round. */
+.cloud-pass[data-direction="up"] {
+  --cp-dir: 270deg;
+}
+html[data-theme="night"] .cloud-pass-core {
+  background: linear-gradient(to bottom, var(--cp-lit), var(--cp-body) 18%);
+}
+.cloud-pass-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--cp-edge);
+}
+.cloud-pass-lead {
+  left: 0;
+}
+.cloud-pass-trail {
+  right: 0;
+}
+.cloud-pass-puff {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+/* Cloud forms inside the bank, a little see-through so they read as depth in the cloud. */
+.cloud-pass-inner {
+  position: absolute;
+  translate: -50% -50%;
+  opacity: 0.55;
+}
+
+/* Haze over each scene of the landscape strip (scenery/Landscape.tsx): the
+   sky's own colour of the hour (set by providers/SkyCycle), laid thinly over
+   the scene like the air between the reader and the distance — so the
+   silhouettes sit back, a step nearer the sky, and the chapter's words stand
+   clearly in front. It belongs to the scene, so it rises and sinks with it
+   (nothing over the hero's mountains or the footer's sea). A little thicker at
+   the top, where the scene is farthest. */
+.scenery [data-scene]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--haze-l, #f47a2e) 50%, transparent),
+    color-mix(in srgb, var(--haze-r, #fb9a3c) 50%, transparent) 49%
+  );
+  mask-image: linear-gradient(to bottom, #000, rgb(0 0 0 / 0.75));
+}
+html[data-theme="night"] .scenery [data-scene]::after {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--haze-night-l, #18204a) 38%, transparent),
+    color-mix(in srgb, var(--haze-night-r, #2b3a7a) 38%, transparent) 49%
+  );
 }
 
 /* The sky's night layers (providers/SkyCycle) lie over the day's. */

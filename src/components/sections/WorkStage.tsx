@@ -17,7 +17,8 @@ import {
   type Project,
 } from "@/content/site";
 import { cn } from "@/lib/cn";
-import { WORK_STEPS, workCardId } from "@/lib/work-return";
+import { workCardId } from "@/lib/work-return";
+import { WORK_STEPS } from "@/lib/work-steps";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
@@ -182,7 +183,7 @@ function Shot({ project, sizes }: { project: Project; sizes: string }) {
           className="relative w-full overflow-hidden bg-night [@media(max-height:46rem)]:max-h-[17svh] lg:[@media(max-height:46rem)]:max-h-none"
           style={{ aspectRatio: `${image.width} / ${image.height}` }}
         >
-          <Image src={image} alt={`${project.name} — screenshot`} fill sizes={sizes} placeholder="blur" className="object-cover object-top" />
+          <Image src={image} alt={`${project.name} — screenshot`} fill sizes={sizes} className="object-cover object-top" />
         </div>
       </ViewTransition>
     </BrowserFrame>
@@ -213,7 +214,7 @@ function Overview({ project }: { project: Project }) {
         <article aria-labelledby={`work-${project.slug}-title`} className={cn(PANEL, "gap-[clamp(0.75rem,2.5svh,1.5rem)] lg:grid lg:grid-cols-12 lg:items-center lg:gap-10")}>
           <div className="lg:col-span-5">
             <p className="meta work-rise text-sunlight" style={rise(0)}>
-              Flagship · NVT - PNE Pizza
+              Flagship · NVT - PNE Foods
             </p>
             <h3
               id={`work-${project.slug}-title`}
@@ -268,7 +269,6 @@ function Built({ project }: { project: Project }) {
                   alt={dive.alt}
                   fill
                   sizes="(min-width: 1024px) 30vw, 34vw"
-                  placeholder="blur"
                   className="object-cover object-top"
                 />
               </div>
@@ -368,7 +368,7 @@ function MangosStep({ project }: { project: Project }) {
             </div>
             {phone && (
               <div className="absolute right-0 bottom-[-4%] hidden w-[19%] overflow-hidden rounded-[1.1rem] border-[3px] border-paper bg-night shadow-[0_30px_50px_-20px_rgb(0_0_0/0.9)] sm:block">
-                <Image src={phone.image} alt={phone.alt} placeholder="blur" sizes="12vw" className="aspect-[780/1688] w-full object-cover object-top" />
+                <Image src={phone.image} alt={phone.alt} sizes="12vw" className="aspect-[780/1688] w-full object-cover object-top" />
               </div>
             )}
           </div>
@@ -416,7 +416,6 @@ function ClientTile({ project, order }: { project: Project; order: number }) {
                   alt={`${project.name} — home page screenshot`}
                   fill
                   sizes="(min-width: 1024px) 22vw, 44vw"
-                  placeholder="blur"
                   className="object-cover object-top transition-transform duration-[1200ms] ease-expo group-hover:scale-[1.04]"
                 />
               </div>

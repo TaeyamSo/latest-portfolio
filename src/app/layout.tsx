@@ -16,7 +16,7 @@ import "./globals.css";
 // The 2025 site asked for Kanit but never loaded it, so visitors saw Arial.
 const kanit = Kanit({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "800", "900"],
+  weight: ["400", "500", "600", "800"],
   variable: "--font-kanit",
   display: "swap",
 });

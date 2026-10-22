@@ -1,6 +1,6 @@
 "use client";
 
-import { sections, type SectionId } from "@/content/site";
+import { sections, type SectionId } from "@/content/profile";
 import { cn } from "@/lib/cn";
 import { useActiveSection } from "@/lib/use-active-section";
 import { useTheme } from "@/lib/theme";

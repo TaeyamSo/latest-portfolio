@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 
 import { EASE_EXPO } from "@/components/ui/Reveal";
-import { profile, sections } from "@/content/site";
+import { profile, sections } from "@/content/profile";
 import { useScrollTo } from "@/lib/use-scroll-to";
 
 import { SectionLink } from "./SectionLink";

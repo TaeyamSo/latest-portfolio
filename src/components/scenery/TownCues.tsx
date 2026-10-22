@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { CHAPTER_ARRIVE, CHAPTER_LEAVE, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
+import { CHAPTER_ARRIVE, CHAPTER_LEAVE, SCENE_AFTER_TEXT_MS, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
 
 /** A bell's strike, synthesised: a few inharmonic partials that ring and fade. */
 function strike(audio: AudioContext) {
@@ -48,10 +48,17 @@ export function TownCues() {
     let over = false;
     let area: DOMRect | null = null;
 
-    const open = (on: boolean) => {
+    const openNow = (on: boolean) => {
       town.toggleAttribute("data-open", on);
       area = null;
       if (!on) leave();
+    };
+    // The scene wakes up once the chapter's text has built in (it is read first).
+    let wake = 0;
+    const open = (on: boolean) => {
+      window.clearTimeout(wake);
+      if (on) wake = window.setTimeout(() => openNow(true), SCENE_AFTER_TEXT_MS);
+      else openNow(false);
     };
 
     const ring = () => {
@@ -102,6 +109,7 @@ export function TownCues() {
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("resize", onResize);
     return () => {
+      window.clearTimeout(wake);
       window.removeEventListener(CHAPTER_ARRIVE, onArrive);
       window.removeEventListener(CHAPTER_LEAVE, onLeave);
       window.removeEventListener("pointermove", onMove);

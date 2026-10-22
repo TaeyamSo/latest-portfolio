@@ -50,12 +50,12 @@ const ASPECT: Record<CloudShape, string> = {
 // can drift down to the sunset's horizon. One of the desktop clouds crosses the
 // sun in the top-right corner on the way.
 const CLOUDS: SkyCloud[] = [
-  { id: "sky-2", shape: "streak", left: 4, width: 24, travel: 270, enter: 0.16, opacity: 0.8, drift: "2.5vw", driftTime: "110s", driftDelay: "-40s", float: "0.45vw", floatTime: "10s", className: "hidden lg:block" },
+  { id: "sky-2", shape: "streak", left: 4, width: 24, travel: 270, enter: 0.115, opacity: 0.8, drift: "2.5vw", driftTime: "110s", driftDelay: "-40s", float: "0.45vw", floatTime: "10s", className: "hidden lg:block" },
   { id: "sky-3", shape: "puff", left: 30, width: 34, travel: 450, enter: 0.36, opacity: 1, drift: "3.5vw", driftTime: "90s", driftDelay: "-70s", float: "0.7vw", floatTime: "7s", className: "hidden lg:block" },
   { id: "sky-4", shape: "streak", left: 66, width: 26, travel: 320, enter: 0.52, opacity: 0.85, drift: "2.5vw", driftTime: "100s", driftDelay: "-25s", float: "0.45vw", floatTime: "9s", className: "hidden lg:block" },
-  { id: "sky-5", shape: "bank", left: 12, width: 32, travel: 450, enter: 0.62, opacity: 1, drift: "3vw", driftTime: "85s", driftDelay: "-55s", float: "0.6vw", floatTime: "8.5s", className: "hidden lg:block" },
+  { id: "sky-5", shape: "bank", left: 12, width: 32, travel: 450, enter: 0.53, opacity: 1, drift: "3vw", driftTime: "85s", driftDelay: "-55s", float: "0.6vw", floatTime: "8.5s", className: "hidden lg:block" },
   { id: "sky-m2", shape: "streak", left: 0, width: 55, travel: 270, enter: 0.3, opacity: 0.8, drift: "3vw", driftTime: "110s", driftDelay: "-40s", float: "0.9vw", floatTime: "10s", className: "lg:hidden" },
-  { id: "sky-m3", shape: "puff", left: 35, width: 65, travel: 450, enter: 0.6, opacity: 1, drift: "4vw", driftTime: "90s", driftDelay: "-70s", float: "1.3vw", floatTime: "7s", className: "lg:hidden" },
+  { id: "sky-m3", shape: "puff", left: 35, width: 65, travel: 450, enter: 0.55, opacity: 1, drift: "4vw", driftTime: "90s", driftDelay: "-70s", float: "1.3vw", floatTime: "7s", className: "lg:hidden" },
 ];
 
 // The cloud beside the noon sun (day.ts: x 60%, y 13svh on large screens, 8.5svh
@@ -170,12 +170,15 @@ export function CloudLayer() {
         style={{ opacity }}
         className="scenery pointer-events-none fixed inset-0 z-[3] overflow-hidden"
       >
+        {/* Softened towards the sky, so the clouds sit back behind the words. */}
+        <div className="absolute inset-0 opacity-60">
         {CLOUDS.map((cloud) => (
           <SkyCloudItem key={cloud.id} cloud={cloud} progress={scrollYProgress} golden={golden} />
         ))}
         {NOON_CLOUDS.map((cloud) => (
           <NoonCloudItem key={cloud.id} cloud={cloud} fromNoon={fromNoon} golden={golden} />
         ))}
+        </div>
       </motion.div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { CHAPTER_ARRIVE, CHAPTER_LEAVE, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
+import { CHAPTER_ARRIVE, CHAPTER_LEAVE, SCENE_AFTER_TEXT_MS, type ChapterArrive, type ChapterLeave } from "@/lib/chapters";
 
 /** A friendly double "beep-beep", synthesised. */
 function honk(audio: AudioContext) {
@@ -46,9 +46,16 @@ export function HighwayCues() {
     let audio: AudioContext | null = null;
     let over: HTMLElement | null = null;
 
-    const open = (on: boolean) => {
+    const openNow = (on: boolean) => {
       road.toggleAttribute("data-open", on);
       if (!on) over = null;
+    };
+    // The scene wakes up once the chapter's text has built in (it is read first).
+    let wake = 0;
+    const open = (on: boolean) => {
+      window.clearTimeout(wake);
+      if (on) wake = window.setTimeout(() => openNow(true), SCENE_AFTER_TEXT_MS);
+      else openNow(false);
     };
 
     const toot = (car: HTMLElement) => {
@@ -99,6 +106,7 @@ export function HighwayCues() {
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     return () => {
+      window.clearTimeout(wake);
       window.removeEventListener(CHAPTER_ARRIVE, onArrive);
       window.removeEventListener(CHAPTER_LEAVE, onLeave);
       window.removeEventListener("pointermove", onMove);

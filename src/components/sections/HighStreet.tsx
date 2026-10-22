@@ -2,46 +2,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { ViewTransition } from "react";
 
+import { UaeStore, type UaeSlide } from "@/components/sections/UaeStore";
 import { CountUp } from "@/components/ui/CountUp";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
+import { WindowSlides } from "@/components/ui/WindowSlides";
 import {
   archiveProjects,
   caseStudyPath,
   chapters,
-  featuredProjects,
   flagshipProjects,
   freelanceProjects,
+  uaeStore,
   type Project,
 } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { Palette, palette } from "@/lib/palette";
-import { workCardId } from "@/lib/work-return";
-
-type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
+import { SIGN, STORE, WORKSHOP, type Vars } from "@/lib/street";
+import { UAE_STORE_ID, workCardId } from "@/lib/work-return";
 
 /**
- * Each shop has its own front, so the street reads as a street: the flagship
- * store, two storeys high; a classic shop under a striped awning; an arched
- * front; a gabled one with a pointed roof; and a modern box with an outlined
- * sign. `wall` is the facade, `trim` the sign letters and frames, `awning`
- * the striped shops' two stripes, `roof` the gabled one's roof. At night (the
+ * By day the walls are dark wood and stone and the signs gold; at night (the
  * second colours) the walls are night blues and the signs glow in cool neon —
- * cyan, pink, mint, lilac, a soft yellow for the restaurant (globals.css).
+ * cyan for the flagship, a soft yellow for the restaurant, lilac for the UAE
+ * store (globals.css), so no orange is left in the dark but the lamps and the
+ * windows.
  */
 const PAINT = palette("shops", {
-  wall0: ["#0d0a08", "#0f1330"],
-  trim0: ["#ffb629", "#8fe3ff"],
-  awnA0: ["#fd5d16", "#3a4a8c"],
-  awnB0: ["#fffaf4", "#c9d0ec"],
-  wall1: ["#3b1409", "#24183f"],
-  trim1: ["#ffd84a", "#ff9ec4"],
-  wall2: ["#1f1611", "#112434"],
-  trim2: ["#fd8916", "#9ff0c8"],
-  roof2: ["#fd8916", "#2c3a6a"],
-  wall3: ["#4a1d0c", "#1c1a44"],
-  trim3: ["#ffd84a", "#c9b6ff"],
-  awnA3: ["#fd8916", "#4a3f8c"],
   // The flagship store: dark stone, a gold sign; by night a cyan one.
   wallF: ["#120d0a", "#0c1230"],
   upperF: ["#2a1209", "#18204a"],
@@ -51,6 +38,10 @@ const PAINT = palette("shops", {
   trimM: ["#ffd84a", "#fff3a0"],
   awnAM: ["#ff9f1c", "#3b4a8c"],
   awnBM: ["#fff4d6", "#c9d0ec"],
+  // The UAE store: warm brown and an arched board; by night lilac neon.
+  wallU: ["#2b160a", "#10183a"],
+  archU: ["#4a1d0c", "#1c1a44"],
+  trimU: ["#ffd84a", "#c9b6ff"],
   // Between the stores: lamp posts, their glass (lit at night), planters.
   post: ["#3b1409", "#141a3a"],
   glass: ["#fff1c4", "#ffcf6e"],
@@ -62,29 +53,8 @@ const PAINT = palette("shops", {
 });
 const P = PAINT.C;
 
-const FRONTS = [
-  { kind: "awning", wall: P.wall0, trim: P.trim0, roof: P.trim0, awning: [P.awnA0, P.awnB0] },
-  { kind: "arch", wall: P.wall1, trim: P.trim1, roof: P.trim1, awning: [P.trim1, P.wall0] },
-  { kind: "gable", wall: P.wall2, trim: P.trim2, roof: P.roof2, awning: [P.awnB0, P.wall2] },
-  { kind: "modern", wall: P.wall3, trim: P.trim3, roof: P.trim3, awning: [P.awnA3, P.awnB0] },
-] as const;
-
-type Front = { kind: (typeof FRONTS)[number]["kind"]; wall: string; trim: string; roof: string; awning: readonly [string, string] };
-
-/** Mangos, a restaurant group: the striped awning, in mango. */
-const RESTAURANT: Front = { kind: "awning", wall: P.wallM, trim: P.trimM, roof: P.trimM, awning: [P.awnAM, P.awnBM] };
-/** The UAE client sites: the arched, gabled, modern and striped fronts in turn. */
-const CLIENT_FRONTS: readonly Front[] = [FRONTS[1], FRONTS[2], FRONTS[3], FRONTS[0]];
-
-/**
- * Every store takes about half the screen, so the one you're at and the next
- * are all you see. From laptops up (and on phones on their side) a store is a proper shopfront: the display
- * window on the left, the board beside it like a sign by the door — wide
- * rather than tall, so the street fits under the title.
- */
-const STORE = "w-[84vw] shrink-0 md:w-[min(48vw,120svh)] short:w-[100svh]";
-/** The workshop's board of notes, a little narrower on phones on their side. */
-const WORKSHOP = "w-[84vw] shrink-0 md:w-[min(48vw,120svh)] short:w-[70svh]";
+/** Mangos, a restaurant group: a shop under a striped awning, in mango. */
+const RESTAURANT = { wall: P.wallM, trim: P.trimM, awning: [P.awnAM, P.awnBM] } as const;
 
 /** A bird sitting on a roof: where along it (%), which way it faces, and when it first pecks (s). */
 type Perch = { at: number; flip?: boolean; delay: number };
@@ -92,34 +62,47 @@ const FLAGSHIP_BIRDS: Perch[] = [
   { at: 9, delay: 0.8 },
   { at: 15, delay: 3.1, flip: true },
 ];
-/** The birds on the other shops, in street order (Mangos, then the UAE sites). */
-const SHOP_BIRDS: Perch[][] = [[{ at: 74, delay: 1.9, flip: true }], [{ at: 50, delay: 4.2 }], [{ at: 50, delay: 1.2, flip: true }], [{ at: 20, delay: 2.6 }, { at: 28, delay: 5.3, flip: true }]];
+const MANGOS_BIRDS: Perch[] = [{ at: 74, delay: 1.9, flip: true }];
+/** On the crown of the UAE store's arch, where the curve meets the top of the store. */
+const UAE_BIRDS: Perch[] = [
+  { at: 45, delay: 2.6 },
+  { at: 53, delay: 5.3, flip: true },
+];
 
-const SIGN = "text-[clamp(1.05rem,1.75vw,1.75rem)] leading-tight font-extrabold tracking-[0.04em] text-(--trim) uppercase";
+/** The short names on the UAE store's hanging tabs. */
+const UAE_LABELS: Record<string, string> = { baddar: "Baddar", hazo: "Hazo", alaktabout: "Al Aktabout", "al-ain": "Al Ain" };
 
 /**
- * 14:00, afternoon, in town: the high street. Every project is a shop about
- * half the screen wide — the one you're at and the next are all you see —
- * its name on the sign, its site in the window (an "Open" sign hanging in
- * it) and a board below saying what it is, what Tayam did and when, what it's
- * built with, and the ways in: the case study, and the live site where it
- * loads. First the flagship store — the B Dashboard, two storeys, its numbers
- * counting up when the chapter arrives — then Mangos, then the UAE client
- * sites, each in its own style. Lamp posts stand between the
- * stores (lit at night), planters by some doors, and birds sit on the roofs,
- * now and then pecking or hopping. Scrolling walks along the street a shop at a
- * time (the shop you're at comes forward); the window opens the case study,
- * which grows out of the shopfront. The street ends at the workshop, where
- * the template builds are pinned to a board.
+ * 14:00, afternoon, in town: the high street. Every project is a store about
+ * half the screen wide — the one you're at and the next are all you see — with
+ * its name on the sign and a line under it saying what it is, its site in
+ * the window, and a board beside it saying what
+ * Tayam did and when, what it's built with, and the ways in: the case study,
+ * and the live site where it loads. First the flagship store — the B Dashboard,
+ * two storeys under a big rooftop sign, its window playing the product's
+ * screens and its numbers counting up when the chapter arrives — then Mangos,
+ * then one store for the UAE client sites, whose window shows them in turn.
+ * Lamp posts stand between the stores (lit at night), planters by some doors,
+ * and birds sit on the roofs, now and then pecking or hopping. Scrolling walks
+ * along the street a store at a time (the store you're at comes forward); the
+ * window opens the case study, which grows out of the shopfront. The street
+ * ends at the workshop, where the template builds are pinned to a board.
  */
 export function HighStreet() {
   const { statement, hint } = chapters.work;
   const [flagship] = flagshipProjects;
-  const shops = [
-    ...freelanceProjects.map((project) => ({ project, front: RESTAURANT })),
-    ...featuredProjects.map((project, i) => ({ project, front: CLIENT_FRONTS[i % CLIENT_FRONTS.length] })),
-  ];
-  const first = flagship ? 1 : 0;
+  const [mangos] = freelanceProjects;
+  const uaeSlides: UaeSlide[] = uaeStore.projects.map((project) => ({
+    slug: project.slug,
+    name: project.name,
+    label: UAE_LABELS[project.slug] ?? project.name,
+    category: project.category,
+    role: project.role,
+    image: project.image,
+    alt: `${project.name} — home page screenshot`,
+    href: project.caseStudy ? caseStudyPath(project.slug) : null,
+    live: project.url && project.linkable !== false ? project.url : null,
+  }));
 
   return (
     <section
@@ -138,14 +121,32 @@ export function HighStreet() {
       <div data-track-view="" className="-mx-(--gutter) mt-auto px-(--gutter) pt-[clamp(0.5rem,2.5svh,1.5rem)] short:pt-1">
         <ol data-track="" aria-label="Projects" className="items-end gap-(--street-gap) [--street-gap:clamp(1rem,3vw,3rem)]">
           {flagship && <FlagshipStore project={flagship} />}
-          {shops.map(({ project, front }, i) => (
-            <Shop key={project.slug} project={project} front={front} order={first + i} birds={SHOP_BIRDS[i] ?? []} planter={i % 2 === 0} />
-          ))}
-          <Workshop order={first + shops.length} />
+          {mangos && <Shop project={mangos} order={1} birds={MANGOS_BIRDS} planter />}
+          <UaeStore
+            id={UAE_STORE_ID}
+            projects={uaeStore.projects.map((project) => project.slug)}
+            order={2}
+            title={uaeStore.title}
+            tagline={uaeStore.tagline}
+            slides={uaeSlides}
+            className={STORE}
+            roof={UAE_BIRDS.map((perch) => (
+              <RoofBird key={perch.at} {...perch} />
+            ))}
+          >
+            <Planter />
+            <StreetLamp />
+          </UaeStore>
+          <Workshop order={3} />
         </ol>
       </div>
-      {/* The pavement the shops stand on. */}
-      <div aria-hidden="true" className="-mx-(--gutter) h-[clamp(0.5rem,1.4svh,0.9rem)] border-t-[3px] border-ink bg-(--shops-street)" />
+      {/* The pavement the stores stand on: it builds in and steps aside with them. */}
+      <div
+        aria-hidden="true"
+        data-build=""
+        style={{ "--b": 2 } as Vars}
+        className="-ml-[calc(var(--gutter)+var(--rail))] -mr-(--gutter) h-[clamp(0.5rem,1.4svh,0.9rem)] border-t-[3px] border-ink bg-(--shops-street)"
+      />
       <Palette of={PAINT} />
     </section>
   );
@@ -162,20 +163,20 @@ function ShopName({ project }: { project: Project }) {
   );
 }
 
-/** The live site (or the product's screen) behind the glass; the case page's frame morphs with it. */
+/**
+ * The display window: the project's screens behind the glass (WindowSlides —
+ * they move while the street rests at this store). The case page's frame
+ * morphs with the glass.
+ */
 function ShopWindow({ project, sizes, className }: { project: Project; sizes: string; className?: string }) {
   const href = project.caseStudy ? caseStudyPath(project.slug) : null;
+  const slides = project.windowSlides ?? [
+    { image: project.image, alt: `${project.name} — ${project.kind === "Flagship" ? "dashboard" : "home page"} screenshot` },
+  ];
   const glass = (
     <ViewTransition name={`shot-${project.slug}`} share="case-shot" default="none">
       <div className="relative overflow-hidden bg-night" style={{ aspectRatio: `${project.image.width} / ${project.image.height}` }}>
-        <Image
-          src={project.image}
-          alt={`${project.name} — ${project.kind === "Flagship" ? "dashboard" : "home page"} screenshot`}
-          fill
-          sizes={sizes}
-          placeholder="blur"
-          className="object-cover object-top transition-transform duration-[1200ms] ease-expo group-hover:scale-[1.04]"
-        />
+        <WindowSlides slides={slides} sizes={sizes} />
         {/* The glass. */}
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/18 via-transparent to-transparent" />
       </div>
@@ -183,13 +184,6 @@ function ShopWindow({ project, sizes, className }: { project: Project; sizes: st
   );
   return (
     <div className={cn("relative overflow-hidden border-[3px] border-(--trim)", className)}>
-      {/* The sign hanging in the window. */}
-      <span
-        aria-hidden="true"
-        className="shop-open meta pointer-events-none absolute top-[5%] right-[4%] z-10 rounded-sm border-2 border-(--trim) bg-black/60 px-1.5 py-0.5 text-[clamp(0.5rem,0.7vw,0.65rem)] text-(--trim)"
-      >
-        Open
-      </span>
       {href ? (
         // The window opens the case study for pointer users; keyboard users get the link below.
         <Link href={href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="block">
@@ -203,7 +197,7 @@ function ShopWindow({ project, sizes, className }: { project: Project; sizes: st
 }
 
 /**
- * The board under the window: what the project is; what Tayam did and when;
+ * The board beside the window: what the project is; what Tayam did and when;
  * what it's built with; and the ways in — the case study, and the live site
  * when it loads. On short screens only the ways in stay.
  */
@@ -254,10 +248,11 @@ function ShopInfo({ project }: { project: Project }) {
 }
 
 /**
- * The flagship store, first on the street: two storeys — a row of upper
- * windows (lit at night) over the name sign and a "Flagship" plate — then
- * the ground floor's display window with the dashboard and its key numbers
- * beside it, counting up, and the board under them.
+ * The flagship store, first on the street: a big rooftop sign over two
+ * storeys — a marquee board with the name in lights and what it is, standing
+ * on two posts — a row of upper windows (lit at night), then the ground
+ * floor's display window with the dashboard moving in it, the key numbers
+ * under it, counting up, and the board beside them.
  */
 function FlagshipStore({ project }: { project: Project }) {
   const titleId = `shop-${project.slug}`;
@@ -265,6 +260,7 @@ function FlagshipStore({ project }: { project: Project }) {
   return (
     <li
       id={workCardId(project.slug)}
+      data-projects={project.slug}
       data-step=""
       data-build=""
       style={{ "--b": 2, "--trim": P.trimF } as Vars}
@@ -276,28 +272,48 @@ function FlagshipStore({ project }: { project: Project }) {
           {FLAGSHIP_BIRDS.map((perch) => (
             <RoofBird key={perch.at} {...perch} />
           ))}
+
+          {/* The rooftop sign: the name in lights. */}
+          <div className="relative mx-[1.5%] mb-[clamp(0.45rem,1.4svh,0.8rem)]">
+            <div className="border-x-4 border-(--trim) px-[3%] py-[clamp(0.3rem,0.9svh,0.55rem)]" style={{ background: P.wallF }}>
+              <div aria-hidden="true" className="sign-bulbs short:hidden [@media(max-height:46rem)]:hidden" />
+              <div className="flex items-center justify-between gap-3 py-[clamp(0.2rem,0.8svh,0.5rem)]">
+                <div className="min-w-0">
+                  <h3
+                    id={titleId}
+                    className="sign-title text-[clamp(1.6rem,4.1vw,4.2rem)] leading-none font-extrabold tracking-[0.05em] text-(--trim) uppercase [@media(max-height:46rem)]:text-[clamp(1.4rem,3.3vw,2.6rem)] short:text-[1.3rem]"
+                  >
+                    <ShopName project={project} />
+                  </h3>
+                  {project.tagline && (
+                    <p className="mt-[clamp(0.2rem,0.6svh,0.4rem)] text-[clamp(0.7rem,1.1vw,1.1rem)] leading-snug text-paper/90 short:hidden">{project.tagline}</p>
+                  )}
+                </div>
+                <span className="meta shrink-0 -rotate-3 rounded-sm bg-(--trim) px-2 py-0.5 text-[0.58rem] text-ink">Flagship</span>
+              </div>
+              <div aria-hidden="true" className="sign-bulbs sign-bulbs-b short:hidden [@media(max-height:46rem)]:hidden" />
+            </div>
+            {/* The posts it stands on. */}
+            <span aria-hidden="true" className="absolute top-full left-[12%] h-[0.7rem] w-[0.45rem] bg-(--trim) short:hidden [@media(max-height:46rem)]:hidden" />
+            <span aria-hidden="true" className="absolute top-full right-[12%] h-[0.7rem] w-[0.45rem] bg-(--trim) short:hidden [@media(max-height:46rem)]:hidden" />
+          </div>
+
           {/* The upper storey. */}
-          <div className="px-[4%] pt-[clamp(0.55rem,1.6svh,0.9rem)] pb-[clamp(0.45rem,1.3svh,0.75rem)]" style={{ background: P.upperF }}>
-            <div aria-hidden="true" className="grid grid-cols-6 gap-[3%] short:hidden">
+          <div className="px-[4%] py-[clamp(0.45rem,1.3svh,0.75rem)] short:hidden [@media(max-height:46rem)]:hidden" style={{ background: P.upperF }}>
+            <div aria-hidden="true" className="grid grid-cols-6 gap-[3%]">
               {Array.from({ length: 6 }, (_, i) => (
                 <span key={i} className="shop-upper-window h-[clamp(0.6rem,1.8svh,1rem)] border border-(--trim)/50 bg-black/30" />
               ))}
-            </div>
-            <div className="mt-[clamp(0.45rem,1.3svh,0.75rem)] flex items-center justify-between gap-3 border-y-2 border-(--trim) py-[clamp(0.3rem,0.9svh,0.55rem)]">
-              <h3 id={titleId} className={cn(SIGN, "text-[clamp(1.1rem,1.9vw,1.85rem)]")}>
-                <ShopName project={project} />
-              </h3>
-              <span className="meta shrink-0 rounded-sm bg-(--trim) px-2 py-0.5 text-[0.58rem] text-ink">Flagship</span>
             </div>
           </div>
 
           {/* The ground floor: the display window, and beside it its numbers and the board. */}
           <div className="px-[4%] pt-[clamp(0.7rem,2svh,1.1rem)] pb-[4%]" style={{ background: P.wallF }}>
             <div className="lg:grid lg:grid-cols-[1fr_36%] lg:items-start lg:gap-x-[4%] short:grid short:grid-cols-[1fr_36%] short:items-start short:gap-x-[4%]">
-              <ShopWindow project={project} sizes="(min-width: 768px) 30vw, 84vw" />
-              <div className="flex flex-col">
+              <div>
+                <ShopWindow project={project} sizes="(min-width: 768px) 30vw, 84vw" />
                 {numbers.length > 0 && (
-                  <dl className="mt-[clamp(0.5rem,1.6svh,0.9rem)] grid grid-cols-4 gap-2 md:mt-0 md:grid-cols-2 md:gap-x-3 md:gap-y-[clamp(0.4rem,1.2svh,0.8rem)] short:hidden">
+                  <dl className="mt-[clamp(0.6rem,1.8svh,1rem)] grid grid-cols-4 gap-2 md:gap-x-3 short:hidden">
                     {numbers.map((metric, i) => (
                       <div key={metric.label} className="flex flex-col-reverse border-t-2 border-(--trim)/60 pt-1">
                         <dt className="meta text-[0.56rem] leading-tight text-paper/70">{metric.short ?? metric.label}</dt>
@@ -308,8 +324,8 @@ function FlagshipStore({ project }: { project: Project }) {
                     ))}
                   </dl>
                 )}
-                <ShopInfo project={project} />
               </div>
+              <ShopInfo project={project} />
             </div>
           </div>
         </article>
@@ -378,14 +394,19 @@ function Planter() {
   );
 }
 
-function Shop({ project, front, order, birds, planter }: { project: Project; front: Front; order: number; birds: Perch[]; planter: boolean }) {
+/**
+ * Mangos: a shop under a striped awning — its name and what it is on the
+ * sign, then the window and the board.
+ */
+function Shop({ project, order, birds, planter }: { project: Project; order: number; birds: Perch[]; planter: boolean }) {
   const titleId = `shop-${project.slug}`;
+  const front = RESTAURANT;
   const wall = { background: front.wall };
-  const name = <ShopName project={project} />;
 
   return (
     <li
       id={workCardId(project.slug)}
+      data-projects={project.slug}
       data-step=""
       data-build=""
       style={{ "--b": 2 + order, "--trim": front.trim } as Vars}
@@ -397,78 +418,34 @@ function Shop({ project, front, order, birds, planter }: { project: Project; fro
           {birds.map((perch) => (
             <RoofBird key={perch.at} {...perch} />
           ))}
-          {front.kind === "awning" && (
-            <>
-              <h3 id={titleId} className={cn(SIGN, "relative mx-[5%] border-2 border-(--trim) px-3 py-[clamp(0.35rem,1svh,0.6rem)] text-center")} style={wall}>
-                {name}
-              </h3>
-              {/* The awning: stripes, and a scalloped edge hanging below them. */}
-              <div aria-hidden="true">
-                <div
-                  className="h-[clamp(1.1rem,3svh,1.9rem)]"
-                  style={{ background: `repeating-linear-gradient(90deg, ${front.awning[0]} 0 1.4rem, ${front.awning[1]} 1.4rem 2.8rem)` }}
-                />
-                <div
-                  className="h-[0.7rem]"
-                  style={{
-                    background: `radial-gradient(circle at 50% 0, ${front.awning[0]} 0.7rem, transparent 0.72rem) 0 0 / 2.8rem 0.7rem repeat-x, radial-gradient(circle at 50% 0, ${front.awning[1]} 0.7rem, transparent 0.72rem) 1.4rem 0 / 2.8rem 0.7rem repeat-x`,
-                  }}
-                />
-              </div>
-            </>
-          )}
-
-          {front.kind === "arch" && (
-            // An arched front: the name set in the curve of the top.
-            <div
-              className="border-x-[3px] border-t-[3px] border-(--trim) px-[12%] pt-[clamp(1.8rem,5.5svh,3rem)] pb-[clamp(0.4rem,1.2svh,0.7rem)] text-center"
-              style={{ ...wall, borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }}
-            >
-              <h3 id={titleId} className={SIGN}>
-                {name}
-              </h3>
-            </div>
-          )}
-
-          {front.kind === "gable" && (
-            <>
-              {/* A pointed roof, its gable in the trim colour with a round window. */}
-              <div aria-hidden="true" className="relative mx-[3%] h-[clamp(2.4rem,8svh,4.2rem)]" style={{ background: front.roof, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}>
-                <span className="absolute bottom-[18%] left-1/2 size-[clamp(0.5rem,1.4svh,0.8rem)] -translate-x-1/2 rounded-full" style={wall} />
-              </div>
-              <div className="border-b-4 border-(--trim) px-[6%] py-[clamp(0.4rem,1.2svh,0.7rem)] text-center" style={wall}>
-                <h3 id={titleId} className={SIGN}>
-                  {name}
-                </h3>
-              </div>
-            </>
-          )}
-
-          {front.kind === "modern" && (
-            <>
-              {/* A flat modern front: an outlined sign, then a slim canopy. */}
-              <div className="px-[5%] pt-[clamp(0.7rem,2svh,1.1rem)] pb-[clamp(0.5rem,1.4svh,0.8rem)]" style={wall}>
-                <h3 id={titleId} className={cn(SIGN, "inline-block rounded-md border-2 border-(--trim) px-3 py-1 tracking-[0.18em]")}>
-                  {name}
-                </h3>
-              </div>
-              <div aria-hidden="true" className="h-[clamp(0.45rem,1.2svh,0.7rem)]" style={{ background: front.awning[0] }} />
-            </>
-          )}
-
-          {/* The shop window, the plaque, and the way in. */}
-          <div
-            className={cn(
-              "px-[5%] pb-[5%] lg:grid lg:grid-cols-[1fr_36%] lg:items-start lg:gap-x-[4%] short:grid short:grid-cols-[1fr_36%] short:items-start short:gap-x-[4%]",
-              front.kind === "awning" ? "-mt-[0.7rem] pt-[clamp(1rem,3svh,1.6rem)]" : "pt-[clamp(0.8rem,2.4svh,1.3rem)]",
+          <div className="relative mx-[5%] border-2 border-(--trim) px-3 py-[clamp(0.35rem,1svh,0.6rem)] text-center" style={wall}>
+            <h3 id={titleId} className={SIGN}>
+              <ShopName project={project} />
+            </h3>
+            {project.tagline && (
+              <p className="mt-0.5 text-[clamp(0.65rem,0.9vw,0.9rem)] leading-snug font-medium text-paper/85 short:hidden">{project.tagline}</p>
             )}
+          </div>
+          {/* The awning: stripes, and a scalloped edge hanging below them. */}
+          <div aria-hidden="true">
+            <div
+              className="h-[clamp(1.1rem,3svh,1.9rem)]"
+              style={{ background: `repeating-linear-gradient(90deg, ${front.awning[0]} 0 1.4rem, ${front.awning[1]} 1.4rem 2.8rem)` }}
+            />
+            <div
+              className="h-[0.7rem]"
+              style={{
+                background: `radial-gradient(circle at 50% 0, ${front.awning[0]} 0.7rem, transparent 0.72rem) 0 0 / 2.8rem 0.7rem repeat-x, radial-gradient(circle at 50% 0, ${front.awning[1]} 0.7rem, transparent 0.72rem) 1.4rem 0 / 2.8rem 0.7rem repeat-x`,
+              }}
+            />
+          </div>
+
+          {/* The shop window, the board, and the way in. */}
+          <div
+            className="-mt-[0.7rem] px-[5%] pt-[clamp(1rem,3svh,1.6rem)] pb-[5%] lg:grid lg:grid-cols-[1fr_36%] lg:items-start lg:gap-x-[4%] short:grid short:grid-cols-[1fr_36%] short:items-start short:gap-x-[4%]"
             style={wall}
           >
-            <ShopWindow
-              project={project}
-              sizes="(min-width: 768px) 30vw, 84vw"
-              className={cn(front.kind === "arch" && "rounded-t-[clamp(1rem,3vw,2rem)]", front.kind === "modern" && "rounded-sm")}
-            />
+            <ShopWindow project={project} sizes="(min-width: 768px) 30vw, 84vw" />
             <ShopInfo project={project} />
           </div>
         </article>

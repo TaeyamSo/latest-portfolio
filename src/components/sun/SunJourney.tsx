@@ -15,6 +15,12 @@ import { canUseWebGL, whenIdle } from "./webgl";
  */
 const INTRO_MS = 2000;
 
+/** Whether the hero sun's box is on screen (it is until the page is scrolled past it). */
+function heroSunInView() {
+  const box = document.querySelector("[data-sun-stage]")?.getBoundingClientRect();
+  return !box || (box.bottom > 0 && box.top < window.innerHeight);
+}
+
 /**
  * One sun for the whole page. Once the intro has played and the page is idle,
  * a fixed WebGL canvas takes over from the SVG suns: it sits exactly on the
@@ -22,6 +28,12 @@ const INTRO_MS = 2000;
  * and sets into the sea in the footer. Without WebGL, on data saver, with
  * reduced motion or forced colours, the SVG and CSS versions simply stay.
  * The renderer is its own small chunk, loaded only when it's needed.
+ *
+ * The wait for the intro only makes sense while the hero sun is what's on
+ * screen (the canvas takes over from it, unseen). Anywhere else — a reload
+ * halfway down the page, or a scroll past the hero before the handover — there
+ * is no sun or moon to hand over from, so it starts at once and fades in
+ * (journey-renderer.ts) rather than leaving the sky empty and then popping in.
  */
 export function SunJourney() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -36,18 +48,30 @@ export function SunJourney() {
     if (!allowed || status !== "waiting" || !canUseWebGL()) return;
     let cancelIdle: (() => void) | undefined;
     let timer = 0;
-    const start = () => {
-      timer = window.setTimeout(
-        () => {
-          cancelIdle = whenIdle(() => setStatus("on"));
-        },
-        Math.max(0, INTRO_MS - (performance.now() - welcomeReleasedAt())),
-      );
+    let started = false;
+    const go = (idle = 1200) => {
+      if (started) return;
+      started = true;
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      cancelIdle = whenIdle(() => setStatus("on"), idle);
     };
+    // Left the hero before the handover: nothing on screen to hand over from.
+    function onScroll() {
+      if (!heroSunInView()) go(200);
+    }
+    const start = () => {
+      if (!heroSunInView()) return go(200);
+      timer = window.setTimeout(() => go(), Math.max(0, INTRO_MS - (performance.now() - welcomeReleasedAt())));
+      window.addEventListener("scroll", onScroll, { passive: true });
+    };
+    // While the welcome screen plays, have the renderer's chunk ready for the moment it lets go.
+    void import("./journey-renderer").catch(() => {});
     if (welcomeActive()) window.addEventListener(WELCOME_DONE, start, { once: true });
     else start();
     return () => {
       window.removeEventListener(WELCOME_DONE, start);
+      window.removeEventListener("scroll", onScroll);
       window.clearTimeout(timer);
       cancelIdle?.();
     };

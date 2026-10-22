@@ -50,6 +50,8 @@ import mangosVenue from "@/assets/projects/mangos/venue.webp";
 import certificate from "@/assets/study/certificate.webp";
 import metaBadge from "@/assets/study/meta-badge.webp";
 
+import { profile, sections, type SectionId } from "./profile";
+
 /**
  * The live address of the Mangos site (the Vercel URL). Fill it in and the
  * project gets its "visit the live site" links, its address bar and its
@@ -57,39 +59,15 @@ import metaBadge from "@/assets/study/meta-badge.webp";
  */
 export const MANGOS_URL: string = "";
 
-export const profile = {
-  firstName: "Tayam",
-  lastName: "Soubuh",
-  fullName: "Tayam Soubuh",
-  role: "Full Stack / Front End Developer",
-  age: 23,
-  // DRAFT — replace with your own positioning line.
-  tagline: ["Full-stack developer", "building web products that feel *alive*."],
-  email: "taeyamfrontend@gmail.com",
-  socials: [{ label: "GitHub", href: "https://github.com/TaeyamSo" }],
-  // Real (not mock) — the clock follows `timeZone` (the UAE has one).
-  availability: { text: "Open to full-time roles" } as { text: string; mock?: boolean },
-  location: { city: "UAE", timeZone: "Asia/Dubai" } as { city: string; timeZone: string; mock?: boolean },
-} as const;
-
-export const sections = [
-  { id: "home", label: "Home" },
-  { id: "about", label: "About" },
-  { id: "services", label: "Services" },
-  { id: "work", label: "Work" },
-  { id: "process", label: "Process" },
-  { id: "journey", label: "Journey" },
-  { id: "contact", label: "Contact" },
-] as const;
-
-export type SectionId = (typeof sections)[number]["id"];
+export { profile, sections };
+export type { SectionId };
 
 export const about = {
   // DRAFT — the chapter's title is a plain sentence.
   statement: "I'm Tayam. I build web products for real businesses.",
   body: [
     `I'm a ${profile.age}-year-old developer who works across the front end and the API layer: React, Next.js and TypeScript, with real-time video, role-based access and interfaces in English and Arabic.`,
-    "At NVT - PNE Pizza I'm the largest contributor to the B Dashboard, the operations platform a multi-store pizza business runs on. Before that I built bilingual websites for UAE businesses, and I delivered a brand site for a restaurant group in Columbus, Ohio.",
+    "At NVT - PNE Foods I'm the largest contributor to the B Dashboard, the operations platform a multi-store pizza business runs on. Before that I built bilingual websites for UAE businesses, and I delivered a brand site for a restaurant group in Columbus, Ohio.",
   ],
   portrait: {
     src: portrait,
@@ -115,7 +93,7 @@ export const skills: Skill[] = [
 /** The journey's work history, newest first. */
 export const experience = [
   {
-    period: "Now · NVT - PNE Pizza",
+    period: "Now · NVT - PNE Foods",
     title: "Web developer engineer",
     text: "Largest contributor to the B Dashboard, the operations platform a multi-store pizza business runs on: live store monitoring, hiring, scheduling and analytics.",
   },
@@ -178,7 +156,8 @@ export type CaseStudy = {
   /** The hard parts, in plain words. */
   challenges?: { title: string; text: string }[];
   /** How it's wired, step by step. */
-  architecture?: { label: string; note: string }[];
+  /** Where each part runs, and the small picture drawn for it. */
+  architecture?: { label: string; note: string; zone: "browser" | "server"; icon: WireIcon }[];
   /** More screens. */
   gallery?: Shot[];
   /** A client's own words — shown only when there are real ones. */
@@ -187,7 +166,13 @@ export type CaseStudy = {
   nextUp?: string;
 };
 
+/** The pictures the case page can draw for a part of the architecture. */
+export type WireIcon = "screen" | "hook" | "service" | "route" | "backend";
+
 export type ProjectKind = "Flagship" | "Client" | "Freelance" | "Template build";
+
+/** One thing the Work chapter's shop window shows: a still and, optionally, the same screen moving. */
+export type WindowSlide = { image: StaticImageData; motion?: StaticImageData; alt: string; seconds?: number };
 
 export type Project = {
   slug: string;
@@ -201,6 +186,10 @@ export type Project = {
   /** What the browser frame shows when there is no public address. */
   displayUrl?: string;
   image: StaticImageData;
+  /** A line under the name on the Work chapter's sign: what it is, in a few words. */
+  tagline?: string;
+  /** What the shop window shows, in turn (the Work chapter); the main `image` alone when left out. */
+  windowSlides?: WindowSlide[];
   /** What Tayam did on it. */
   role?: string;
   period?: string;
@@ -219,8 +208,14 @@ export const projects: Project[] = [
     kind: "Flagship",
     displayUrl: "internal tool — screenshots only",
     image: bDashboard,
+    tagline: "Stores, staff, sales and live cameras — run from one place",
+    windowSlides: [
+      { image: bDashboard, alt: "B Dashboard — the whole dashboard", seconds: 4 },
+      { image: bdDriveThruStill, motion: bdDriveThru, alt: "B Dashboard — the drive-thru screen at work", seconds: 6.5 },
+      { image: bdReportProblemStill, motion: bdReportProblem, alt: "B Dashboard — reporting a problem", seconds: 6.5 },
+    ],
     role: "Largest contributor: front end and API layer",
-    period: "NVT - PNE Pizza · now",
+    period: "NVT - PNE Foods · now",
     stack: "Next.js 16 · React 19 · TypeScript · Tailwind CSS · Zustand · LiveKit",
     caseStudy: {
       summary:
@@ -300,11 +295,11 @@ export const projects: Project[] = [
         },
       ],
       architecture: [
-        { label: "Screen", note: "React components" },
-        { label: "Hook", note: "one per feature" },
-        { label: "Service", note: "typed API calls" },
-        { label: "Route handler", note: "Next.js: auth, errors, uploads" },
-        { label: "Backend", note: "13 services" },
+        { label: "Screen", note: "React components", zone: "browser", icon: "screen" },
+        { label: "Hook", note: "one per feature", zone: "browser", icon: "hook" },
+        { label: "Service", note: "typed API calls", zone: "browser", icon: "service" },
+        { label: "Route handler", note: "Next.js: auth, errors, uploads", zone: "server", icon: "route" },
+        { label: "Backend", note: "13 services", zone: "server", icon: "backend" },
       ],
       gallery: [
         { image: bdEmployeeForm, alt: "The Add Employee form, with its Personal, Availability, Compensation and Admin tabs", caption: "Add an employee, in four tabs." },
@@ -323,6 +318,11 @@ export const projects: Project[] = [
     linkable: Boolean(MANGOS_URL),
     displayUrl: "mangos — live link coming",
     image: mangos,
+    tagline: "Two venues, one brand — online",
+    windowSlides: [
+      { image: mangos, alt: "Mangos — home page", seconds: 4.5 },
+      { image: mangosVenue, alt: "Mangos — a venue's page", seconds: 4.5 },
+    ],
     role: "Design and development",
     period: "Jul–Sep 2026 · freelance, part-time · Columbus, Ohio",
     stack: "Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Motion",
@@ -502,11 +502,17 @@ export const projects: Project[] = [
   },
 ];
 
-/** The flagship, then the freelance work: the first two stops of the Work chapter. */
+/** The flagship, then the freelance work, then the UAE store: the street's stores, in order. */
 export const flagshipProjects = projects.filter((project) => project.kind === "Flagship");
 export const freelanceProjects = projects.filter((project) => project.kind === "Freelance");
 /** The UAE client websites (the town scene lights exactly four windows for them). */
 export const featuredProjects = projects.filter((project) => project.kind === "Client");
+/** The UAE client sites share one store on the Work chapter's street (a window that changes from site to site). */
+export const uaeStore = {
+  title: "UAE client sites",
+  tagline: "Client websites for UAE businesses",
+  projects: featuredProjects,
+};
 /** Template builds live in the workshop at the end of the Work chapter. */
 export const archiveProjects = projects.filter((project) => project.kind === "Template build");
 
@@ -517,31 +523,29 @@ export const caseStudies = projects.filter(
 
 export const caseStudyPath = (slug: string) => `/work/${slug}`;
 
-const projectName = (slug: string) => projects.find((project) => project.slug === slug)?.name ?? slug;
-
-// DRAFT — "what I do", each backed by work that exists. The intro is the chapter's title.
+// DRAFT — "what I do". The intro is the chapter's title; each description is written to run about the same length, so the four cards match in height.
 export const services = {
   intro: "Websites that look right, systems that run right.",
   items: [
     {
       title: "Business websites",
-      description: "Fast, responsive sites that make a company look as good online as it does in person — landing pages included.",
-      proof: ["hazo", "al-ain", "alaktabout"].map(projectName),
+      description:
+        "Fast, responsive sites that make a company look as good online as it does in person: a clear structure, a design that fits the brand, and landing pages for launches, offers and campaigns.",
     },
     {
       title: "E-commerce stores",
-      description: "Product catalogues and shopping flows that are a pleasure to browse on any device.",
-      proof: ["baddar"].map(projectName),
+      description:
+        "Product catalogues and shopping flows that are a pleasure to browse on any device, built so customers find what they want quickly and feel confident enough to buy, from the first product to the checkout.",
     },
     {
       title: "Web apps & systems",
-      description: "Dashboards and internal tools that run a business day to day: live video monitoring, hiring, scheduling and analytics.",
-      proof: ["B Dashboard"],
+      description:
+        "Dashboards and internal tools that run a business day to day: live video monitoring, hiring, scheduling and analytics, kept clear and quick even with a lot of data on screen.",
     },
     {
       title: "Interactive experiences",
-      description: "Motion, micro-interactions and the small details that make an interface feel alive.",
-      proof: ["Mangos", "This portfolio"],
+      description:
+        "Motion, micro-interactions and the small details that make an interface feel alive: smooth transitions, thoughtful hover and scroll behaviour, and animation that helps rather than distracts.",
     },
   ],
 };

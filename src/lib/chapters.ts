@@ -31,6 +31,28 @@ export type ChapterLeave = { from: string; to: string };
 export const CHAPTER_ARRIVE = "chapter:arrive";
 export type ChapterArrive = { id: string };
 
+/**
+ * How long after a chapter arrives its scene below wakes up (the scenery cues:
+ * the town's shops opening, the windmill, the road, the coast's lights) — so
+ * the first thing that moves, and the first thing read, is the chapter's own
+ * text, which has built in by then.
+ */
+export const SCENE_AFTER_TEXT_MS = 900;
+
+/**
+ * The cloud pass (scenery/CloudPass.tsx): a jump of CLOUD_PASS_MIN chapters or
+ * more goes through the clouds instead of racing the day past — fired on
+ * `window` when the bank starts to cover the screen ("cover", going `direction`
+ * 1 down the page or -1 up it, to chapter `to`) and when it rolls away ("reveal").
+ */
+export const CLOUD_PASS = "chapter:cloud-pass";
+export type CloudPassDetail = { phase: "cover" | "reveal"; direction: number; to: string };
+export const CLOUD_PASS_MIN = 4;
+/** The bank rolling in until the screen is covered; how long it stays (the page jumps under it); rolling away. */
+export const CLOUD_PASS_COVER_MS = 650;
+export const CLOUD_PASS_HOLD_MS = 250;
+export const CLOUD_PASS_REVEAL_MS = 800;
+
 export const chapterNav: { current: Navigator | null } = { current: null };
 
 /** Go to a chapter by its section id. False when chapters aren't running. */

@@ -125,7 +125,6 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
                       fill
                       preload
                       sizes="(min-width: 1536px) 88rem, 92vw"
-                      placeholder="blur"
                       className="object-cover object-top"
                     />
                   </div>
@@ -162,7 +161,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
 
             <CaseExtras caseStudy={caseStudy} name={project.name} from={3} />
 
-            <NextProject project={next} />
+            <CaseEnd next={next} />
           </main>
 
           <footer className="shell flex flex-col gap-12 border-t border-paper/15 py-16 lg:flex-row lg:items-end lg:justify-between">
@@ -179,7 +178,6 @@ export default async function CaseStudyPage({ params }: PageProps<"/work/[slug]"
               </div>
             </div>
             <div className="meta flex flex-col gap-3 text-paper/55 lg:items-end">
-              <BackToWork label="Back to all work" />
               <p>
                 © {new Date().getFullYear()} {profile.fullName}
               </p>
@@ -234,38 +232,66 @@ function BackToWork({ label = "All work" }: { label?: string }) {
   );
 }
 
-function NextProject({ project }: { project: Project }) {
+/**
+ * The end of a case study: the two ways on, side by side so neither is missed —
+ * back to all the work (the home page folds back into this project's store),
+ * and on to the next project.
+ */
+function CaseEnd({ next }: { next: Project }) {
   return (
-    <section aria-labelledby="next-title" className="border-t border-paper/15">
-      <Link
-        href={caseStudyPath(project.slug)}
-        transitionTypes={["case-next"]}
-        className="group shell flex flex-col gap-10 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28"
-      >
-        <div>
-          <p className="meta flex items-center gap-3 text-paper/60">
-            Next project
-            <span aria-hidden="true" className="transition-transform duration-500 ease-expo group-hover:translate-x-2">
-              →
-            </span>
-          </p>
-          <h2
-            id="next-title"
-            className="mt-6 text-[clamp(2.8rem,8vw,8.5rem)] leading-[0.9] font-extrabold uppercase transition-colors duration-300 group-hover:text-sunlight"
-          >
-            {project.name}
-          </h2>
-          <p className="mt-5 text-lg text-paper/70">{project.category}</p>
-        </div>
-        <BrowserFrame
-          url={project.url ?? project.displayUrl ?? project.name}
-          className="w-full max-w-[28rem] shrink-0 transition-transform duration-700 ease-expo group-hover:-translate-y-2 group-hover:-rotate-2"
+    <section aria-label="Where next" className="border-t border-paper/15">
+      <div className="shell grid gap-4 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6 lg:py-24">
+        <Link
+          href="/"
+          scroll={false}
+          transitionTypes={["case-close"]}
+          className="group flex min-h-56 flex-col justify-between rounded-2xl border border-paper/20 p-8 transition-colors duration-300 hover:border-sunlight hover:bg-paper/5 lg:p-10"
         >
-          <div className="relative overflow-hidden bg-night" style={{ aspectRatio: `${project.image.width} / ${project.image.height}` }}>
-            <Image src={project.image} alt="" fill sizes="28rem" placeholder="blur" className="object-cover object-top" />
+          <p className="meta text-paper/60">Back to</p>
+          <div>
+            <span
+              aria-hidden="true"
+              className="block text-[clamp(2.4rem,4vw,3.6rem)] leading-none text-sunlight transition-transform duration-500 ease-expo group-hover:-translate-x-2"
+            >
+              ←
+            </span>
+            <p className="mt-4 text-[clamp(1.8rem,3.2vw,3rem)] leading-[0.95] font-extrabold uppercase transition-colors duration-300 group-hover:text-sunlight">
+              All work
+            </p>
+            <p className="mt-3 text-paper/60">Every project, back on the high street.</p>
           </div>
-        </BrowserFrame>
-      </Link>
+        </Link>
+
+        <Link
+          href={caseStudyPath(next.slug)}
+          transitionTypes={["case-next"]}
+          className="group flex flex-col gap-8 rounded-2xl border border-paper/20 p-8 transition-colors duration-300 hover:border-sunlight hover:bg-paper/5 lg:flex-row lg:items-end lg:justify-between lg:p-10"
+        >
+          <div className="min-w-0">
+            <p className="meta flex items-center gap-3 text-paper/60">
+              Next project
+              <span aria-hidden="true" className="transition-transform duration-500 ease-expo group-hover:translate-x-2">
+                →
+              </span>
+            </p>
+            <h2
+              id="next-title"
+              className="mt-6 text-[clamp(2.4rem,5.5vw,6rem)] leading-[0.9] font-extrabold uppercase transition-colors duration-300 group-hover:text-sunlight"
+            >
+              {next.name}
+            </h2>
+            <p className="mt-4 text-lg text-paper/70">{next.category}</p>
+          </div>
+          <BrowserFrame
+            url={next.url ?? next.displayUrl ?? next.name}
+            className="w-full max-w-[22rem] shrink-0 transition-transform duration-700 ease-expo group-hover:-translate-y-2 group-hover:-rotate-2"
+          >
+            <div className="relative overflow-hidden bg-night" style={{ aspectRatio: `${next.image.width} / ${next.image.height}` }}>
+              <Image src={next.image} alt="" fill sizes="22rem" className="object-cover object-top" />
+            </div>
+          </BrowserFrame>
+        </Link>
+      </div>
     </section>
   );
 }

@@ -7,7 +7,7 @@ import { MoonGlyph } from "@/components/sun/MoonGlyph";
 import { SunGlyph } from "@/components/sun/SunGlyph";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { RollText } from "@/components/ui/RollText";
-import { profile } from "@/content/site";
+import { profile } from "@/content/profile";
 import { cn } from "@/lib/cn";
 import { useTheme } from "@/lib/theme";
 import { useDarkAt } from "@/lib/use-dark-at";

@@ -1,6 +1,7 @@
 import { Header } from "@/components/chrome/Header";
 import { SideNav } from "@/components/chrome/SideNav";
 import { Chapters } from "@/components/providers/Chapters";
+import { CloudPass } from "@/components/scenery/CloudPass";
 import { HomeLanding } from "@/components/providers/HomeLanding";
 import { SkyCycle } from "@/components/providers/SkyCycle";
 import { About } from "@/components/sections/About";
@@ -44,6 +45,7 @@ export default function Home() {
       />
       <Chapters />
       <HomeLanding />
+      <CloudPass />
       <SkyCycle />
       <SunJourney />
       <CloudLayer />

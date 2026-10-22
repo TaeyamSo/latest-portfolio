@@ -18,6 +18,17 @@
 
 export const WELCOME_ATTR = "data-welcome";
 export const WELCOME_WAIT_ATTR = "data-welcome-wait";
+/** On every visit after the first: the short welcome (globals.css), the page's sky and TAYAM rising in. */
+export const WELCOME_MINI_ATTR = "data-welcome-mini";
+/** Remembered once the full welcome has played (localStorage), so later visits get the short one. */
+const WELCOME_SEEN_KEY = "welcome-seen";
+/** Left for a moment by the proxy (src/proxy.ts) on a hard refresh: play the full welcome again. */
+export const WELCOME_FULL_COOKIE = "welcome-full";
+/** Fired on `window` once the page has hydrated (WelcomeGuard): the screen starts then, when the page is quiet. */
+export const WELCOME_READY = "welcome:ready";
+
+/** The longest the screen waits for the page to hydrate before it starts anyway (ms after its script runs). */
+export const WELCOME_START_CAP_MS = 3000;
 export const WELCOME_DONE = "welcome:done";
 
 /** The longest the screen waits for the word's font before it starts anyway (ms). */
@@ -39,16 +50,24 @@ export const welcomeReleased = () => typeof window !== "undefined" && (window as
 
 /**
  * In <head>, before the first paint: hold the page, and the screen until its
- * font is in — unless the visitor prefers reduced motion.
+ * font is in — unless the visitor prefers reduced motion. The first visit gets
+ * the whole welcome, and so does a hard refresh (the proxy's cookie); every
+ * other load (remembered in localStorage) the short one.
  */
-export const WELCOME_HEAD_SCRIPT = `(function(){try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches){var r=document.documentElement;r.setAttribute("${WELCOME_ATTR}","");r.setAttribute("${WELCOME_WAIT_ATTR}","")}}catch(e){}})()`;
+export const WELCOME_HEAD_SCRIPT = `(function(){try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches){var r=document.documentElement;r.setAttribute("${WELCOME_ATTR}","");r.setAttribute("${WELCOME_WAIT_ATTR}","");var full=/(?:^|; )${WELCOME_FULL_COOKIE}=1/.test(document.cookie);if(full)document.cookie="${WELCOME_FULL_COOKIE}=; Max-Age=0; path=/";try{if(!full&&localStorage.getItem("${WELCOME_SEEN_KEY}"))r.setAttribute("${WELCOME_MINI_ATTR}","");else localStorage.setItem("${WELCOME_SEEN_KEY}","1")}catch(e){}}}catch(e){}})()`;
 
 /**
  * Right after the screen in <body>: start it once the word's font is in (or
- * WELCOME_FONT_WAIT_MS has passed), then let the page go when the screen says
- * so (or, should that never come, a little after it should have).
+ * WELCOME_FONT_WAIT_MS has passed) — and the short welcome also only once the
+ * page has hydrated (WELCOME_READY: the busiest moment of a load is over, so
+ * it plays smoothly from its first frame; WELCOME_START_CAP_MS at the latest;
+ * the full welcome starts as it always has) — then let the page go
+ * when the screen says so (or, should that never come, a little after it
+ * should have). Once it has
+ * faded it is taken out of the page (display: none), so its endless wave and
+ * stars stop costing frames.
  */
-export const WELCOME_END_SCRIPT = `(function(){var r=document.documentElement,o=document.getElementById("welcome"),on=0;function done(){if(window.__welcomeAt!==undefined)return;window.__welcomeAt=performance.now();r.removeAttribute("${WELCOME_ATTR}");window.dispatchEvent(new Event("${WELCOME_DONE}"))}function go(){if(on)return;on=1;r.removeAttribute("${WELCOME_WAIT_ATTR}");setTimeout(done,${WELCOME_RELEASE_MS + 2500})}if(!o||!r.hasAttribute("${WELCOME_ATTR}")){r.removeAttribute("${WELCOME_WAIT_ATTR}");done();return}o.addEventListener("animationend",function(e){if(e.target===o&&e.animationName==="welcome-release")done()});setTimeout(go,${WELCOME_FONT_WAIT_MS});try{var s=getComputedStyle(o.querySelector(".w-word"));document.fonts.load(s.fontWeight+" 16px "+s.fontFamily,"TAYAM").then(go,go)}catch(e){go()}})()`;
+export const WELCOME_END_SCRIPT = `(function(){var r=document.documentElement,o=document.getElementById("welcome"),on=0,font=0,ready=r.hasAttribute("${WELCOME_MINI_ATTR}")?0:1;function done(){if(window.__welcomeAt!==undefined)return;window.__welcomeAt=performance.now();r.removeAttribute("${WELCOME_ATTR}");window.dispatchEvent(new Event("${WELCOME_DONE}"))}function start(){r.removeAttribute("${WELCOME_WAIT_ATTR}");setTimeout(done,${WELCOME_RELEASE_MS + 2500})}function go(){if(on)return;on=1;requestAnimationFrame(function(){requestAnimationFrame(start)})}function check(){if(font&&ready)go()}function fontIn(){font=1;check()}if(!o||!r.hasAttribute("${WELCOME_ATTR}")){r.removeAttribute("${WELCOME_WAIT_ATTR}");done();return}o.addEventListener("animationend",function(e){if(e.target!==o)return;if(e.animationName==="welcome-release")done();if(e.animationName==="welcome-fade")o.style.display="none"});window.addEventListener("${WELCOME_READY}",function(){ready=1;check()},{once:true});setTimeout(fontIn,${WELCOME_FONT_WAIT_MS});if(!ready)setTimeout(go,${WELCOME_START_CAP_MS});try{var s=getComputedStyle(o.querySelector(".w-word"));document.fonts.load(s.fontWeight+" 16px "+s.fontFamily,"TAYAM").then(fontIn,fontIn)}catch(e){fontIn()}})()`;
 
 /* --- The wiggly line ------------------------------------------------------- */
 

@@ -3,14 +3,28 @@
 import { useLenis } from "lenis/react";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
-import { CHAPTER_ARRIVE, CHAPTER_LEAVE, chapterNav, type ChapterArrive, type ChapterLeave, type ChapterOptions } from "@/lib/chapters";
+import {
+  CHAPTER_ARRIVE,
+  CHAPTER_LEAVE,
+  CLOUD_PASS,
+  CLOUD_PASS_COVER_MS,
+  CLOUD_PASS_HOLD_MS,
+  CLOUD_PASS_MIN,
+  CLOUD_PASS_REVEAL_MS,
+  chapterNav,
+  type ChapterArrive,
+  type ChapterLeave,
+  type ChapterOptions,
+  type CloudPassDetail,
+} from "@/lib/chapters";
 import { WELCOME_DONE, welcomeActive } from "@/lib/welcome";
 
 /** One place the page can rest: a chapter, its scroll position and (for a sideways track) which step. */
 type Stop = { chapter: HTMLElement; y: number; track?: HTMLElement; shift?: number; step?: number };
 
-const GLIDE = 1.25; // seconds from one chapter to the next — the hour passing
+const GLIDE = 0.95; // seconds from one chapter to the next — the hour passing
 const STEP_MS = 650; // a step along a sideways track
+const SETTLE_MS = 700; // after arriving at a chapter, input waits while its content builds in
 const WHEEL_QUIET = 220; // ms without wheel events before a new gesture can start (trackpad inertia)
 const WHEEL_STEP = 24; // px of wheel travel that make a gesture
 const SWIPE = 40; // px of finger travel that make a swipe
@@ -35,6 +49,10 @@ const isTyping = (el: EventTarget | null) =>
  * With reduced motion none of this runs: the page scrolls normally and every
  * chapter's content is simply there.
  *
+ * A jump of four chapters or more (the side nav, the menu, a link) goes
+ * through the clouds instead of gliding (scenery/CloudPass.tsx): the page
+ * jumps while a bank of clouds covers the screen, then the bank rolls away.
+ *
  * While the welcome screen is up (lib/welcome.ts) the page doesn't move, and
  * the chapter it opens on builds in only once the screen lets it go.
  */
@@ -53,7 +71,7 @@ export function Chapters() {
     let stops: Stop[] = [];
     let at = 0;
     let busy = false;
-    let queued = 0;
+    let settleUntil = 0; // when the chapter just arrived at has built in
     let lastWheel = 0;
     let wheelTravel = 0;
     let gestureOpen = true;
@@ -161,7 +179,15 @@ export function Chapters() {
       title.focus({ preventScroll: true });
     };
 
-    const go = (index: number, { immediate = false, focus = false }: { immediate?: boolean; focus?: boolean } = {}) => {
+    /**
+     * `quiet`: don't write the chapter into the URL. The first placement uses it —
+     * it only follows where the browser left the page, and the hash it would
+     * write is read by HomeLanding as an instruction (`/#contact`).
+     */
+    const go = (
+      index: number,
+      { immediate = false, focus = false, quiet = false }: { immediate?: boolean; focus?: boolean; quiet?: boolean } = {},
+    ) => {
       const to = stops[Math.max(0, Math.min(stops.length - 1, index))];
       if (!to) return;
       const from = stops[at];
@@ -180,12 +206,9 @@ export function Chapters() {
         arrive(to.chapter);
         if (focus) focusTitle(to.chapter);
         const hash = to.chapter.id && to.chapter.id !== "home" ? `#${to.chapter.id}` : "";
-        if (location.hash !== hash) history.replaceState(history.state, "", `${location.pathname}${location.search}${hash}`);
-        if (queued) {
-          const direction = queued;
-          queued = 0;
-          step(direction);
-        }
+        if (!quiet && location.hash !== hash) history.replaceState(history.state, "", `${location.pathname}${location.search}${hash}`);
+        // A new chapter builds in before the page will move on (one section at a time).
+        if (changing && !immediate) settleUntil = performance.now() + SETTLE_MS;
       };
 
       const distance = Math.abs(window.scrollY - to.y);
@@ -210,11 +233,9 @@ export function Chapters() {
       }
     };
 
+    /** One section (or one step of a track) at a time: input while the page is moving, or while a chapter is still building in, is ignored. */
     const step = (direction: number) => {
-      if (busy) {
-        queued = direction;
-        return;
-      }
+      if (busy || performance.now() < settleUntil) return;
       const next = at + direction;
       if (next < 0 || next >= stops.length) return;
       go(next);
@@ -348,6 +369,42 @@ export function Chapters() {
       else if (index !== -1) placeTrack(stops[index], true);
     };
 
+    /**
+     * The cloud pass: the bank covers the screen, the page jumps to the chapter
+     * under it (the old content stepping aside unseen), and as the bank rolls
+     * away the chapter arrives and builds in. Input waits until it's done.
+     */
+    let passing = false;
+    let passTimer = 0;
+    const cloudPass = (detail: CloudPassDetail) => window.dispatchEvent(new CustomEvent(CLOUD_PASS, { detail }));
+    const passThroughClouds = (index: number, direction: number, focus: boolean) => {
+      const to = stops[index];
+      const from = stops[at];
+      passing = busy = true;
+      window.clearTimeout(doneTimer);
+      cloudPass({ phase: "cover", direction, to: to.chapter.id });
+      passTimer = window.setTimeout(() => {
+        if (from && from.chapter !== to.chapter) {
+          from.chapter.removeAttribute("data-arrived");
+          const detail: ChapterLeave = { from: from.chapter.id, to: to.chapter.id };
+          window.dispatchEvent(new CustomEvent(CHAPTER_LEAVE, { detail }));
+        }
+        at = index;
+        placeTrack(to, true);
+        window.scrollTo({ top: to.y, behavior: "instant" });
+        lenisRef.current?.scrollTo(to.y, { immediate: true, force: true });
+        passTimer = window.setTimeout(() => {
+          cloudPass({ phase: "reveal", direction, to: to.chapter.id });
+          passing = busy = false;
+          arrive(to.chapter);
+          if (focus) focusTitle(to.chapter);
+          const hash = to.chapter.id && to.chapter.id !== "home" ? `#${to.chapter.id}` : "";
+          if (location.hash !== hash) history.replaceState(history.state, "", `${location.pathname}${location.search}${hash}`);
+          settleUntil = performance.now() + CLOUD_PASS_REVEAL_MS * 0.6 + SETTLE_MS;
+        }, CLOUD_PASS_HOLD_MS);
+      }, CLOUD_PASS_COVER_MS);
+    };
+
     chapterNav.current = {
       goTo(id, options: ChapterOptions = {}) {
         if (!stops.length) measure();
@@ -360,9 +417,15 @@ export function Chapters() {
           const last = stops.reduce((found, stop, i) => (stop.chapter.id === id ? i : found), first);
           index = wanted !== -1 ? wanted : last;
         }
-        if (busy && !options.immediate) {
-          queued = 0;
-          busy = false;
+        if (passing) return true; // already on its way through the clouds
+        if (busy && !options.immediate) busy = false;
+        // A long jump goes through the clouds rather than racing the whole day past.
+        const from = stops[at]?.chapter;
+        const all = chapters();
+        const distance = from ? all.indexOf(stops[index].chapter) - all.indexOf(from) : 0;
+        if (!options.immediate && Math.abs(distance) >= CLOUD_PASS_MIN) {
+          passThroughClouds(index, Math.sign(distance), Boolean(options.focus));
+          return true;
         }
         go(index, { immediate: options.immediate, focus: options.focus });
         return true;
@@ -399,7 +462,7 @@ export function Chapters() {
 
     measure();
     at = initial();
-    go(at, { immediate: true });
+    go(at, { immediate: true, quiet: true });
 
     const observer = new ResizeObserver(onResize);
     observer.observe(document.body);
@@ -427,6 +490,7 @@ export function Chapters() {
       window.removeEventListener(WELCOME_DONE, onWelcome);
       window.clearTimeout(settleTimer);
       window.clearTimeout(doneTimer);
+      window.clearTimeout(passTimer);
       root.classList.remove("chapters");
       for (const chapter of chapters()) chapter.removeAttribute("data-arrived");
     };

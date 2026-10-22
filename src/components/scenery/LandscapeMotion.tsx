@@ -15,7 +15,10 @@ const ease = (t: number) => t * t * (3 - 2 * t);
  * Cheap on purpose: section positions are measured once (and on resize), a
  * scroll only writes transforms, a scene that is fully down isn't rendered at
  * all (the town is skipped with content-visibility, keeping its layout ready),
- * and only a moving scene is promoted to its own layer.
+ * and only a moving scene is promoted to its own layer. The scroll position is
+ * taken in the scroll event, never read in the frame (where reading it would
+ * force a style and layout pass after the other layers' writes), and a scene's
+ * visibility and layer hint are written only when they change.
  */
 export function LandscapeMotion() {
   useEffect(() => {
@@ -25,12 +28,15 @@ export function LandscapeMotion() {
       top: Infinity,
       bottom: Infinity,
       shown: -1,
+      up: false,
+      moving: false,
     }));
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
+    let sy = window.scrollY;
 
     const measure = () => {
-      const sy = window.scrollY;
+      sy = window.scrollY;
       for (const scene of scenes) {
         const rect = scene.section?.getBoundingClientRect();
         scene.top = rect ? rect.top + sy : Infinity;
@@ -41,7 +47,6 @@ export function LandscapeMotion() {
 
     const update = () => {
       frame = 0;
-      const sy = window.scrollY;
       const vh = window.innerHeight;
       const span = 0.45 * vh;
       for (const scene of scenes) {
@@ -54,9 +59,17 @@ export function LandscapeMotion() {
         const { style } = scene.el;
         // The town keeps its layout while it's down (content-visibility skips it
         // all the same), so bringing it back up costs ~2ms, not ~20.
-        if (scene.el instanceof HTMLElement) style.contentVisibility = v > 0 ? "" : "hidden";
-        else style.display = v > 0 ? "" : "none";
-        style.willChange = v > 0 && v < 1 ? "transform, opacity" : "";
+        const up = v > 0;
+        const moving = v > 0 && v < 1;
+        if (up !== scene.up) {
+          scene.up = up;
+          if (scene.el instanceof HTMLElement) style.contentVisibility = up ? "" : "hidden";
+          else style.display = up ? "" : "none";
+        }
+        if (moving !== scene.moving) {
+          scene.moving = moving;
+          style.willChange = moving ? "transform" : "";
+        }
         if (still.matches) {
           style.transform = "none";
           style.opacity = String(v);
@@ -69,20 +82,28 @@ export function LandscapeMotion() {
     const schedule = () => {
       frame ||= requestAnimationFrame(update);
     };
+    const onScroll = () => {
+      sy = window.scrollY;
+      schedule();
+    };
     const restyle = () => {
-      scenes.forEach((scene) => (scene.shown = -1));
+      scenes.forEach((scene) => {
+        scene.shown = -1;
+        scene.up = !scene.up; // write them all again
+        scene.moving = !scene.moving;
+      });
       schedule();
     };
 
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(document.body);
-    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     still.addEventListener("change", restyle);
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", onScroll);
       still.removeEventListener("change", restyle);
     };
   }, []);
