@@ -415,28 +415,6 @@ route is statically prerendered. The WebGL renderer is a 6 KB (gzipped) chunk lo
 intro; three.js and React Three Fiber (~240 KB) are gone. The initial JavaScript is ~265 KB
 gzipped (React, Next.js, Motion, Lenis).
 
-### Publishing on GitHub Pages
-
-The site is published as a **static export** at `https://taeyamso.github.io/latest-portfolio/` (a project page, so it lives under the `/latest-portfolio` sub-folder). There are two ways to build it:
-
-| | command | for | output |
-|---|---|---|---|
-| server build | `pnpm build`, then `pnpm start` | any Node host (Vercel, a VPS) | `.next-build/` |
-| static export | `pnpm build:pages` | GitHub Pages (or any static host) | `out/` |
-
-`pnpm build:pages` (`scripts/build-pages.mjs`) sets `STATIC_EXPORT=1`, which makes `next.config.ts` switch on `output: "export"`, `trailingSlash` (each page becomes `…/index.html`), the `basePath`, and `images.unoptimized` (an export has no server to resize images; they are already optimised WebP). The address is read from two variables, with this project's defaults:
-
-- `NEXT_PUBLIC_BASE_PATH` — the sub-folder (`/latest-portfolio`; empty for a root or custom domain);
-- `NEXT_PUBLIC_SITE_URL` — the full address, used for canonical links, the sitemap, robots and share-image URLs.
-
-The script then writes `out/.nojekyll`, prefixes the one link Next leaves without the base path (the page head's `apple-touch-icon`), and writes each page's prefetch data under the flat, dotted names the browser asks for (Next writes them into folders; a server maps one to the other, a static host can't). Routes that Next generates itself (`apple-icon`, the share images, `manifest`, `robots`, `sitemap`) declare `dynamic = "force-static"`, which an export requires; paths written by hand use `lib/base-path.ts` (only the manifest does).
-
-**Deploying.** `.github/workflows/pages.yml` builds with `pnpm build:pages` on every push to `main` and publishes `out/` (the address comes from the repository: `https://<owner>.github.io/<repo>/`). One-time setup: push the repo, then **Settings → Pages → Source: GitHub Actions**. For a custom domain, set both variables in the workflow (an empty base path and the domain) and add a `CNAME` file to `public/`.
-
-**Folders.** `next dev` uses `.next-dev`, `pnpm build` `.next-build`, and an export builds in `.next` (Next always does an export's working-folder build there) and writes the site to `out/` — so none of them ever touches another's folder, and a build can't fail with EBUSY because the dev server holds its folder open on Windows.
-
-**Limits of a static host.** No server: no response headers or cache lifetimes of our own, and a future contact form would need a form service. The share images (`/opengraph-image` and one per case study) and `apple-icon` are real PNGs but are written without a file extension; GitHub Pages serves such files as a generic type, so some social-media link previews may not show them — if previews matter, pre-render them as `.png` files or host on a platform that serves them with the right type.
-
 ## 5. Roadmap — where the visuals can go next
 
 Done: Phase 3, the WebGL sunset (stars, a rippling water reflection) and one sun for the page;
