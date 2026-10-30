@@ -147,7 +147,7 @@ WebGL sun cools to silver and the moon's shadow slides in.
 
 ### Welcome
 
-Every full page load opens on a welcome screen (`welcome/Welcome.tsx`; styles in `globals.css`,
+Every full page load opens on a welcome screen (the full one below on a first visit; every later visit the short one — see "The two welcome screens") (`welcome/Welcome.tsx`; styles in `globals.css`,
 "Welcome"; timing, geometry and the hand-over in `lib/welcome.ts`), about four seconds long:
 
 - **The sequence.** Black, with TAYAM in white — Kanit ExtraBold with the hero's kerning, rising
@@ -350,7 +350,7 @@ forced colours hide it.
 
 **One section at a time.** A scroll, swipe or key moves one stop; while the page is moving, and for `SETTLE_MS` (0.7 s) after a new chapter arrives while its content builds in, further input is ignored (nothing queues up), so every section is seen loaded before the next.
 
-**The short welcome.** The full welcome plays on a visitor's first visit (remembered in localStorage, `welcome-seen`) and on every hard refresh (Ctrl+Shift+R / Ctrl+F5 / Cmd+Shift+R — the browser asks for the page with `Cache-Control: no-cache`, and `src/proxy.ts` answers with a 30-second `welcome-full` cookie the head script reads and clears); every other load gets the short one (`data-welcome-mini`): the page's own sky — sunrise, or the night in the night theme — with TAYAM rising in and slipping away, about 1.5 s. The full welcome starts as it always has (once its font is in); the short one waits until the page has hydrated (`welcome:ready` from `WelcomeGuard`, at most 3 s), so the heavy part of loading happens while its screen is still and it plays smoothly from its first frame. Either way the screen is taken out of the page (`display: none`) once it has faded, so its endless animations stop.
+**The two welcome screens — one rule, one key.** Which welcome plays is decided once per load, before the first paint (`lib/welcome.ts`): if `localStorage["welcome-seen"]` is empty, the **full** welcome (`#welcome`: black, the wiggly line, the sun/night split); if it is set, the **short** one (`#welcome-mini`: the page's own sky — sunrise, or the night's in the night theme — with TAYAM rising in letter by letter and slipping away, about 1.5 s). The key is written when a full welcome has played to its end, never at its start, so a first visit interrupted by a reload still gets the full one next time, and a full welcome is never replaced half-way by the short one. To see the full welcome again, delete the key (DevTools → Application → Local Storage). A hard refresh is no different from a normal reload: it plays whichever the key says. The two screens are separate markup and CSS (`.welcome` / `.wm-*`); `<html data-welcome-mode="full|mini">` is set once and never removed, and the other screen is `display: none`; `<html data-welcome>` is the hold on the page while a screen plays. The full screen starts once its font is in; the short one also waits for the page to hydrate (`welcome:ready`, at most 3 s) so it plays smoothly from its first frame. Starting needs a painted frame but never waits for one for ever (a hidden tab still starts), and a screen is taken out of the page (`display: none`) once it has faded, so its endless animations stop. Reduced motion has no welcome at all.
 
 **The sun's journey.** One fixed, full-viewport canvas and a single fragment shader, no 3D
 engine. Each frame `journey.ts` turns the scroll position and a few measured marks (the hero
@@ -385,7 +385,7 @@ their store is reached, the UAE store's slides are the same lazy images, `profil
 live in `content/profile.ts` so the header, menu and side nav don't pull every project into the
 browser, the image optimiser makes WebP only (the sources already are, and AVIF is slow to encode
 on first request) and caches for a month, and Kanit loads only the weights the site uses. The
-welcome screen is untouched on purpose.
+welcome screens are left as they are on purpose.
 
 **Smooth glides — one rule.** Nothing reads `window.scrollY` inside an animation frame: in Chrome that read forces a full style and layout pass whenever another layer has just written its styles, and during a glide several do (the landscape, the clouds, the sky, the sun). The scroll position is taken in the scroll event instead (`LandscapeMotion`, the sun's renderer, `useDarkAt`); the landscape writes a scene's visibility and layer hint only when they change; and the haze colours live on the landscape strip, never on `<html>` (a custom property changed on the root restyles the whole page). Measured over five glides: slowest frame 83 ms → 17.5 ms, none over 50 ms, main-thread work about a third.
 
@@ -414,6 +414,28 @@ served as AVIF/WebP at the right size by `next/image`). Fonts are self-hosted an
 route is statically prerendered. The WebGL renderer is a 6 KB (gzipped) chunk loaded after the
 intro; three.js and React Three Fiber (~240 KB) are gone. The initial JavaScript is ~265 KB
 gzipped (React, Next.js, Motion, Lenis).
+
+### Publishing on GitHub Pages
+
+The site is published as a **static export** at `https://taeyamso.github.io/latest-portfolio/` (a project page, so it lives under the `/latest-portfolio` sub-folder). There are two ways to build it:
+
+| | command | for | output |
+|---|---|---|---|
+| server build | `pnpm build`, then `pnpm start` | any Node host (Vercel, a VPS) | `.next-build/` |
+| static export | `pnpm build:pages` | GitHub Pages (or any static host) | `out/` |
+
+`pnpm build:pages` (`scripts/build-pages.mjs`) sets `STATIC_EXPORT=1`, which makes `next.config.ts` switch on `output: "export"`, `trailingSlash` (each page becomes `…/index.html`), the `basePath`, and `images.unoptimized` (an export has no server to resize images; they are already optimised WebP). The address is read from two variables, with this project's defaults:
+
+- `NEXT_PUBLIC_BASE_PATH` — the sub-folder (`/latest-portfolio`; empty for a root or custom domain);
+- `NEXT_PUBLIC_SITE_URL` — the full address, used for canonical links, the sitemap, robots and share-image URLs.
+
+The script then writes `out/.nojekyll`, prefixes the one link Next leaves without the base path (the page head's `apple-touch-icon`), and writes each page's prefetch data under the flat, dotted names the browser asks for (Next writes them into folders; a server maps one to the other, a static host can't). Routes that Next generates itself (`apple-icon`, the share images, `manifest`, `robots`, `sitemap`) declare `dynamic = "force-static"`, which an export requires; paths written by hand use `lib/base-path.ts` (only the manifest does).
+
+**Deploying.** `.github/workflows/pages.yml` builds with `pnpm build:pages` on every push to `main` and publishes `out/` (the address comes from the repository: `https://<owner>.github.io/<repo>/`). One-time setup: push the repo, then **Settings → Pages → Source: GitHub Actions**. For a custom domain, set both variables in the workflow (an empty base path and the domain) and add a `CNAME` file to `public/`.
+
+**Folders.** `next dev` uses `.next-dev`, `pnpm build` `.next-build`, and an export builds in `.next` (Next always does an export's working-folder build there) and writes the site to `out/` — so none of them ever touches another's folder, and a build can't fail with EBUSY because the dev server holds its folder open on Windows.
+
+**Limits of a static host.** No server: no response headers or cache lifetimes of our own, and a future contact form would need a form service. The share images (`/opengraph-image` and one per case study) and `apple-icon` are real PNGs but are written without a file extension; GitHub Pages serves such files as a generic type, so some social-media link previews may not show them — if previews matter, pre-render them as `.png` files or host on a platform that serves them with the right type.
 
 ## 5. Roadmap — where the visuals can go next
 

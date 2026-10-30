@@ -38,7 +38,36 @@ function Word({ tone, rise }: { tone: "ink" | "white"; rise?: boolean }) {
 }
 
 /**
- * The welcome screen, over everything on every full page load. Black, with
+ * TAYAM for the short welcome (`.welcome-mini`): the same word, kerned the same
+ * way, in a mask its letters rise out of and slip back into — with classes of
+ * its own (`wm-*`), so nothing of the full screen's CSS can reach it.
+ */
+function MiniWord() {
+  const letters = Array.from(WORD);
+  return (
+    <div className="wm-word">
+      <span className="wm-mask">
+        {letters.map((char, i) => (
+          <span
+            key={i}
+            className="wm-letter"
+            style={{ "--i": i, marginLeft: i ? `${kern(letters[i - 1], char)}em` : undefined } as Vars}
+          >
+            {char}
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The welcome screens, over everything on every full page load — which of the
+ * two plays is one rule (lib/welcome.ts): the full one until it has played
+ * once, the short one on every visit after. Both are in the markup; the page's
+ * `data-welcome-mode` leaves one of them `display: none`.
+ *
+ * The full screen: black, with
  * TAYAM in white; a thin wiggly line draws itself down through the Y; then the
  * sun's sky fills the left half from the left edge (the letters there turn
  * black) and the night's sky the right half from the right edge (the letters
@@ -56,8 +85,24 @@ function Word({ tone, rise }: { tone: "ink" | "white"; rise?: boolean }) {
  * (their wave repeats every screen), the contents sliding back so they stay
  * put — the wave runs along the line and the edges follow it. Pure CSS from the first paint
  * (globals.css, "Welcome"); lib/welcome.ts has the line and the hand-over.
+ *
+ * The short screen: the page's own sky — sunrise, or the night's in the night
+ * theme — with TAYAM rising in letter by letter, then slipping away as the
+ * screen fades into the page.
  */
 export function Welcome() {
+  return (
+    <>
+      <FullScreen />
+      <div id="welcome-mini" className="welcome-mini" aria-hidden="true">
+        <MiniWord />
+      </div>
+      <WelcomeGuard />
+    </>
+  );
+}
+
+function FullScreen() {
   return (
     <div id="welcome" className="welcome" aria-hidden="true" style={{ "--w-release": `${WELCOME_RELEASE_MS}ms` } as Vars}>
       <Word tone="white" rise />
@@ -92,8 +137,6 @@ export function Welcome() {
           <div className="w-line" style={{ clipPath: WELCOME_SHAPES.line }} />
         </div>
       </div>
-
-      <WelcomeGuard />
     </div>
   );
 }

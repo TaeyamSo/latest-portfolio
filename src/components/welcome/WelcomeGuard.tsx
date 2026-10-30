@@ -2,23 +2,26 @@
 
 import { useEffect, useLayoutEffect } from "react";
 
-import { WELCOME_ATTR, WELCOME_READY, welcomeReleased } from "@/lib/welcome";
+import { WELCOME_ATTR, WELCOME_MODE_ATTR, WELCOME_READY, welcomeMode, welcomeReleased } from "@/lib/welcome";
 
 /**
- * In development React's Strict Mode remounts the page once and resets <html>
- * to the attributes it renders itself, dropping the `data-welcome` the head
- * script set — the page underneath would then play its intro behind the
- * screen. Put it back if the screen hasn't let go yet. (A no-op in production.)
- * It also tells the screen when the page has hydrated, so it starts then.
+ * In development React's Strict Mode remounts the page once and may reset
+ * <html> to the attributes it renders itself, dropping the ones the head script
+ * set — the page underneath would then play its intro behind the screen, or the
+ * wrong screen would show. Put them back, exactly as decided (the hold while the
+ * screen hasn't let go yet, and the mode for the whole load). A no-op in
+ * production. It also tells the screens when the page has hydrated: the short
+ * one starts then.
  */
 export function WelcomeGuard() {
   useLayoutEffect(() => {
-    if (welcomeReleased() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const root = document.documentElement;
-    if (!root.hasAttribute(WELCOME_ATTR)) root.setAttribute(WELCOME_ATTR, "");
+    const mode = welcomeMode();
+    if (mode && root.getAttribute(WELCOME_MODE_ATTR) !== mode) root.setAttribute(WELCOME_MODE_ATTR, mode);
+    if (!welcomeReleased() && !root.hasAttribute(WELCOME_ATTR)) root.setAttribute(WELCOME_ATTR, "");
   }, []);
 
-  // The page has hydrated: the welcome screen can start now, smoothly (lib/welcome.ts).
   useEffect(() => {
     window.dispatchEvent(new Event(WELCOME_READY));
   }, []);

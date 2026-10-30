@@ -1827,33 +1827,57 @@ html[data-theme="night"] .w-night .w-pin {
   }
 }
 
-/* The short welcome, for every visit after the first (lib/welcome.ts):
-   no line and no halves — the page's own sky (the sunrise, or the night in the
-   night theme), TAYAM rising in letter by letter as on the first visit, a
-   moment, then slipping up out of sight as the screen fades into the page.
-   About a second and a half. */
-html[data-welcome-mini] .welcome {
+/* The short welcome, for every visit after the first (lib/welcome.ts) — a
+   screen of its own, with nothing shared with the full one: the page's own sky
+   (the sunrise; the night's under the night theme), TAYAM rising in letter by
+   letter as on the first visit, a moment, then slipping up out of sight as the
+   screen fades into the page. About a second and a half. The page's
+   `data-welcome-mode` decides which of the two screens shows. */
+.welcome-mini {
+  display: none;
+}
+html[data-welcome-mode="mini"] .welcome {
+  display: none;
+}
+html[data-welcome-mode="mini"] .welcome-mini {
+  --wm-fs: min(12vw, 24svh); /* the word's size, as in the full screen */
+  --wm-ink: #0d0a08;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--wm-ink);
   background: linear-gradient(90deg, #fd5d16, #fd8916 49%);
   animation:
     welcome-release 1.55s linear both,
     welcome-fade 0.4s ease-out 1.55s forwards;
 }
-html[data-welcome-mini][data-theme="night"] .welcome {
+html[data-welcome-mode="mini"][data-theme="night"] .welcome-mini {
+  color: #fff;
   background: linear-gradient(90deg, #18204a, #2b3a7a 49%);
 }
-html[data-welcome-mini] :is(.w-panel, .w-line-window) {
-  display: none;
+.wm-word {
+  font-family: var(--font-sans);
+  font-size: var(--wm-fs);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-html[data-welcome-mini] .w-word-white {
-  color: var(--w-ink);
+.wm-mask {
+  display: block;
+  overflow: hidden;
+  margin-block: -0.08em;
+  padding-block: 0.08em;
 }
-html[data-welcome-mini][data-theme="night"] .w-word-white {
-  color: #fff;
+.wm-mask > span {
+  display: inline-block;
 }
-html[data-welcome-mini] .w-mask {
-  transform: none;
-}
-html[data-welcome-mini] .w-letter {
+.wm-letter {
   will-change: transform;
   animation:
     letter-in 0.85s var(--ease-expo) both,
@@ -1865,7 +1889,7 @@ html[data-welcome-mini] .w-letter {
 
 /* Until the word's font is in, the screen waits (lib/welcome.ts): all of it
    starts together once it is. */
-html[data-welcome-wait] :is(.welcome, .welcome *) {
+html[data-welcome-wait] :is(.welcome, .welcome *, .welcome-mini, .welcome-mini *) {
   animation-play-state: paused;
 }
 
@@ -1883,14 +1907,16 @@ html[data-welcome-wait] :is(.welcome, .welcome *) {
 
 /* With reduced motion the site has no intro to wait for: no welcome either. */
 @media (prefers-reduced-motion: reduce) {
-  .welcome {
-    display: none;
+  .welcome,
+  .welcome-mini {
+    display: none !important;
   }
 }
 
 @media print {
-  .welcome {
-    display: none;
+  .welcome,
+  .welcome-mini {
+    display: none !important;
   }
 }
 

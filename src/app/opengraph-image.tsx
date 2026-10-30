@@ -5,6 +5,9 @@ import { ImageResponse } from "next/og";
 import { sunSvg } from "@/components/sun/geometry";
 import { profile } from "@/content/site";
 
+// Prerendered at build time (a static export needs routes to say so).
+export const dynamic = "force-static";
+
 export const alt = `${profile.fullName} — ${profile.role} portfolio`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

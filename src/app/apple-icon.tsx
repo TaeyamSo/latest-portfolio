@@ -2,6 +2,9 @@ import { ImageResponse } from "next/og";
 
 import { sunSvg } from "@/components/sun/geometry";
 
+// Prerendered at build time (a static export needs routes to say so).
+export const dynamic = "force-static";
+
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
