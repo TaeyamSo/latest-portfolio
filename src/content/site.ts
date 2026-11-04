@@ -71,7 +71,7 @@ export const about = {
   ],
   portrait: {
     src: portrait,
-    alt: "Illustrated avatar: a dark-haired character resting their chin on one hand",
+    alt: "Portrait of Tayam in a dark suit and navy striped tie, with curly dark hair and a slight smile",
   },
 };
 

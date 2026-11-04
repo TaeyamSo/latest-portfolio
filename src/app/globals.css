@@ -2035,11 +2035,6 @@ html[data-theme="night"] {
   --balloon-rope: #0a0e22;
 }
 
-/* The portrait at night: the same duotone in moonlight (ui/Duotone). */
-html[data-theme="night"]:has(#home) .duotone-layer {
-  filter: url(#duotone-moon);
-}
-
 /* The shops' signs glow like neon at night, and the flagship store's upper
    windows are lit. */
 html[data-theme="night"] .shop h3 {

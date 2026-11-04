@@ -1,4 +1,5 @@
-import { Duotone } from "@/components/ui/Duotone";
+import Image from "next/image";
+
 import { Statement } from "@/components/ui/Statement";
 import { Tilt } from "@/components/ui/Tilt";
 import { about, facts, profile } from "@/content/site";
@@ -33,14 +34,14 @@ export function About() {
 
         <div data-build="" style={{ "--b": 2 } as Vars} className="relative hidden sm:block lg:col-span-5 lg:justify-self-end">
           <AboutBalloon />
-          <Tilt max={6} className="w-[min(100%,21rem,36svh)]">
+          <Tilt max={6} className="w-[min(100%,15rem,28svh)] lg:w-[min(100%,20rem,33svh)]">
             <figure className="group bg-ink p-3.5 sm:p-4">
               <div className="overflow-hidden">
-                <Duotone
+                <Image
                   src={about.portrait.src}
                   alt={about.portrait.alt}
-                  sizes="(min-width: 1024px) 21rem, 50vw"
-                  className="transition-transform duration-700 ease-expo group-hover:scale-110"
+                  sizes="(min-width: 1024px) 20rem, 50vw"
+                  className="w-full transition-transform duration-700 ease-expo group-hover:scale-105"
                 />
               </div>
               <figcaption className="meta mt-3 flex justify-between gap-4 text-paper/65">
