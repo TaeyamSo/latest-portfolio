@@ -12,9 +12,15 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const APPEAR_S = 1.1;
 /** About the most pixels the canvas draws per frame on a desktop screen (half that on phones). */
 const PIXEL_BUDGET = 2.6e6;
-/** Shortest time between two drawn frames while something moves (~60 fps, however fast the screen is), and when only the shimmer does. */
+/**
+ * Shortest time between two drawn frames while something moves (~60 fps, however fast the screen is), and when only the shimmer does.
+ * While only the shimmer moves, the loop sleeps between its frames rather than waking every frame for nothing: a frame loop
+ * that never stops makes the browser update every running CSS animation's style on every frame (the scenery has dozens).
+ */
 const BUSY_GAP_MS = 14;
 const IDLE_GAP_MS = 50;
+/** How early, before an idle frame is due, the loop asks for a frame (about one screen refresh). */
+const WAKE_EARLY_MS = 16;
 /** How long the CSS sunset takes to fade away over the canvas when the footer is in view (ms). */
 const SOFT_MS = 800;
 
@@ -262,16 +268,25 @@ export function startJourney(
   };
 
   const loop = (now: number) => {
-    raf = requestAnimationFrame(loop);
+    raf = 0;
     if ((window.devicePixelRatio || 1) !== deviceRatio) resize(); // zoomed or moved to another screen
     const scroll = scrollNow;
     if (scroll !== lastScroll) {
       lastScroll = scroll;
       activeUntil = now + 500;
     }
-    // When nothing but the slow shimmer is moving, every other frame is plenty.
+    // When nothing but the slow shimmer is moving, a frame every IDLE_GAP_MS is plenty.
     const busy = now < activeUntil || flare > 0.002 || intro < 1 || appear < 1 || moon !== moonTarget;
     if (now - last >= (busy ? BUSY_GAP_MS : IDLE_GAP_MS)) render(now);
+    if (busy) raf = requestAnimationFrame(loop);
+    else nap = window.setTimeout(wake, Math.max(0, IDLE_GAP_MS - WAKE_EARLY_MS - (performance.now() - last)));
+  };
+  /** Back to the frame loop: the next idle frame is due, or something moved (scroll, pointer, flare, theme). */
+  let nap = 0;
+  const wake = () => {
+    window.clearTimeout(nap);
+    nap = 0;
+    raf ||= requestAnimationFrame(loop);
   };
 
   // The scroll position, taken in the scroll event: reading it inside the frame would force a style
@@ -279,6 +294,7 @@ export function startJourney(
   let scrollNow = window.scrollY;
   const onScroll = () => {
     scrollNow = window.scrollY;
+    wake();
   };
 
   const onMove = (event: PointerEvent) => {
@@ -287,15 +303,18 @@ export function startJourney(
     pointer.y = event.clientY;
     pointer.inside = true;
     activeUntil = performance.now() + 500;
+    wake();
   };
   const onLeave = () => {
     pointer.inside = false;
   };
   const onFlare = () => {
     flare = 1;
+    wake();
   };
   const onTheme = (event: Event) => {
     moonTarget = (event as CustomEvent<ThemeChange>).detail.theme === "night" ? 1 : 0;
+    wake();
   };
   const onContextLost = () => {
     stop();
@@ -325,6 +344,7 @@ export function startJourney(
 
   function stop() {
     cancelAnimationFrame(raf);
+    window.clearTimeout(nap);
     observer.disconnect();
     stage?.removeEventListener("animationend", measure);
     if (glow) glow.style.opacity = "0";

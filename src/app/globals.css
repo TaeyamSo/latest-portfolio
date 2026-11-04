@@ -237,6 +237,14 @@ html.chapters [data-track-view] {
   overflow-y: visible;
 }
 
+/* Out of sight, nothing animates: a chapter off screen and a scene that has
+   sunk away (providers/Chapters.tsx, scenery/LandscapeMotion.tsx) pause their
+   animations, and carry on where they were when they're back. */
+[data-asleep],
+[data-asleep] :is(*, *::before, *::after) {
+  animation-play-state: paused !important;
+}
+
 /* A timeline (sections/Journey.tsx): its line draws itself when the chapter
    arrives — across on wide screens, down on narrow ones — and the dot for "now"
    gives off a slow ring. Without chapters the line is simply there. */
@@ -485,8 +493,8 @@ html[data-theme="night"] :is(.street-lamp-glow, .street-lamp-pool) {
     animation: roof-bird-hop 11s ease-in-out calc(var(--delay, 0s) + 4s) infinite;
   }
   .roof-bird-body {
-    transform-box: fill-box;
-    transform-origin: 60% 95%;
+    /* Where the body meets the legs (60% across, 95% down the body's own outline). */
+    transform-origin: 58.8% 79.5%;
     animation: roof-bird-peck 6.5s ease-in-out var(--delay, 0s) infinite;
   }
 }
@@ -1030,9 +1038,12 @@ html.chapters .foothills:not([data-open]) :is(.fh-mill, .fh-smoke) {
 
 /* Life in the sky (scenery/Life.tsx): wings beat only while a flock is in the
    air; the plane's banner ripples in the wind. */
+/* The wings fold about the middle of their own outline (Life.tsx, each in its own svg). */
 .bird-wings {
-  transform-box: fill-box;
-  transform-origin: center;
+  transform-origin: 50% 60.91%;
+}
+.bat-wings {
+  transform-origin: 50% 65.81%;
 }
 
 .flying .bird-wings {
@@ -1178,7 +1189,8 @@ html.chapters .town:not([data-open]) .town-awning {
   transform-box: fill-box;
   transform-origin: center;
   transition: opacity 0s calc(0.75s + var(--i) * 0.15s);
-  animation: wing-beat 0.14s ease-in-out infinite alternate;
+  /* As long as the flight (they've faded away by ~4s), not for ever after. */
+  animation: wing-beat 0.14s ease-in-out 34 alternate;
 }
 
 

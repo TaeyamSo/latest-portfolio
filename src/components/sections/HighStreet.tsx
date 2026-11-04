@@ -7,6 +7,7 @@ import { CountUp } from "@/components/ui/CountUp";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
 import { WindowSlides } from "@/components/ui/WindowSlides";
+import { PointerLink } from "@/components/ui/PointerLink";
 import {
   archiveProjects,
   caseStudyPath,
@@ -89,7 +90,7 @@ const UAE_LABELS: Record<string, string> = { baddar: "Baddar", hazo: "Hazo", ala
  * ends at the workshop, where the template builds are pinned to a board.
  */
 export function HighStreet() {
-  const { statement, hint } = chapters.work;
+  const { statement, hint, hintTouch } = chapters.work;
   const [flagship] = flagshipProjects;
   const [mangos] = freelanceProjects;
   const uaeSlides: UaeSlide[] = uaeStore.projects.map((project) => ({
@@ -115,7 +116,8 @@ export function HighStreet() {
         {statement}
       </Statement>
       <p data-build="" style={{ "--b": 1 } as Vars} className="meta mt-3 flex items-center gap-2 text-ink/75 short:hidden">
-        {hint} <span aria-hidden="true">→</span>
+        <span className="lg:hidden">{hintTouch}</span>
+        <span className="hidden lg:inline">{hint}</span> <span aria-hidden="true">→</span>
       </p>
 
       <div data-track-view="" className="-mx-(--gutter) mt-auto px-(--gutter) pt-[clamp(0.5rem,2.5svh,1.5rem)] short:pt-1">
@@ -186,9 +188,9 @@ function ShopWindow({ project, sizes, className }: { project: Project; sizes: st
     <div className={cn("relative overflow-hidden border-[3px] border-(--trim)", className)}>
       {href ? (
         // The window opens the case study for pointer users; keyboard users get the link below.
-        <Link href={href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="block">
+        <PointerLink href={href} transitionTypes={["case-open"]} className="block">
           {glass}
-        </Link>
+        </PointerLink>
       ) : (
         glass
       )}
@@ -343,15 +345,18 @@ function RoofBird({ at, flip, delay }: Perch) {
       className="roof-bird pointer-events-none absolute bottom-full w-[clamp(0.85rem,1.5vw,1.25rem)] -translate-x-1/2"
       style={{ left: `${at}%`, "--delay": `${delay}s` } as Vars}
     >
-      <svg viewBox="0 0 20 14" className={cn("block w-full overflow-visible", flip && "-scale-x-100")}>
-        <g className="roof-bird-body" fill={P.bird}>
+      {/* The body and the legs are drawn apart, so the peck turns a whole element (on the GPU) and the legs stay put. */}
+      <span className={cn("relative block", flip && "-scale-x-100")}>
+        <svg viewBox="0 0 20 14" className="roof-bird-body block w-full overflow-visible" fill={P.bird}>
           <path d="M3,8.5 Q5,4.6 10,5 Q14.4,5.3 15.6,8 Q14,11.6 9,11.6 Q5,11.6 3,8.5 Z" />
           <circle cx="15" cy="4.7" r="2.5" />
           <path d="M17.2,4.2 L19.6,4.9 L17.2,5.6 Z" />
           <path d="M3.5,8.6 L0,6.6 L0.7,9.9 Z" />
-        </g>
-        <path d="M8.6,11.4 V14 M11,11.4 V14" stroke={P.bird} strokeWidth="0.9" />
-      </svg>
+        </svg>
+        <svg viewBox="0 0 20 14" className="absolute inset-0 block size-full overflow-visible">
+          <path d="M8.6,11.4 V14 M11,11.4 V14" stroke={P.bird} strokeWidth="0.9" />
+        </svg>
+      </span>
     </span>
   );
 }

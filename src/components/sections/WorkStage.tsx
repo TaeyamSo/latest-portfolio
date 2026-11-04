@@ -6,6 +6,7 @@ import { WorkRail } from "@/components/sections/WorkRail";
 import { BrowserFrame } from "@/components/ui/BrowserFrame";
 import { RollText } from "@/components/ui/RollText";
 import { Statement } from "@/components/ui/Statement";
+import { PointerLink } from "@/components/ui/PointerLink";
 import {
   archiveProjects,
   caseStudyPath,
@@ -408,7 +409,7 @@ function ClientTile({ project, order }: { project: Project; order: number }) {
     <li id={workCardId(project.slug)} style={rise(order + 2)} className="work-rise">
       <ViewTransition name={`case-${project.slug}`} share="case-close" default="none">
         <article aria-labelledby={titleId} className="group">
-          <Link href={href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="block">
+          <PointerLink href={href} transitionTypes={["case-open"]} className="block">
             <ViewTransition name={`shot-${project.slug}`} share="case-shot" default="none">
               <div className="relative aspect-[4/3] overflow-hidden border border-paper/20 bg-night [@media(max-height:46rem)]:aspect-[16/9]">
                 <Image
@@ -420,7 +421,7 @@ function ClientTile({ project, order }: { project: Project; order: number }) {
                 />
               </div>
             </ViewTransition>
-          </Link>
+          </PointerLink>
           <h4 id={titleId} className="mt-2.5 text-[clamp(0.92rem,1.2vw,1.15rem)] leading-tight font-bold">
             {project.name}
           </h4>

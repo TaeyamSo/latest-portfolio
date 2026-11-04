@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, ViewTransition, type ReactNode } from "rea
 
 import { RollText } from "@/components/ui/RollText";
 import { useStoreActive } from "@/components/ui/WindowSlides";
+import { PointerLink } from "@/components/ui/PointerLink";
 import { cn } from "@/lib/cn";
 import { SIGN, type Vars } from "@/lib/street";
 import { useReducedMotionSafe } from "@/lib/use-media-query";
@@ -151,9 +152,9 @@ export function UaeStore({
                         <div className="absolute inset-0">
                           {slide.href ? (
                             // The window opens the case study for pointer users; keyboard users get the link on the board.
-                            <Link href={slide.href} transitionTypes={["case-open"]} tabIndex={-1} aria-hidden="true" className="relative block size-full">
+                            <PointerLink href={slide.href} transitionTypes={["case-open"]} className="relative block size-full">
                               {picture}
-                            </Link>
+                            </PointerLink>
                           ) : (
                             picture
                           )}

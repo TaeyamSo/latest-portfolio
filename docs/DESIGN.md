@@ -211,9 +211,22 @@ The home page reads as **chapters**, one screen and one hour each (`providers/Ch
 small scroll, a swipe or a key press glides to the next chapter: the content steps aside, the page
 glides — so the sky, the sun, the clock and the landscape change with it — and once it rests the
 new chapter's content builds in, piece by piece. Content that doesn't fit one screen walks
-sideways instead (the high street's shops; services and process cards on phones). Every chapter
+sideways instead (the high street's shops). Every chapter
 title is a plain sentence: no section numbers, no italic accent word. With reduced motion the
 chapters are simply shown and the page scrolls normally.
+
+**On phones and tablets (under 1024px)** the chapters glide the same way, but a sideways row —
+the services, the high street, the process cards — is never walked for you: a swipe up or down goes
+on to the next chapter (arriving at the row as it was left), and a sideways swipe walks the row a
+step at a time ("Swipe to move through the work").
+
+**Keeping it light.** Nothing runs a frame loop that never stops: Lenis is driven only while it is
+moving the page (`SmoothScroll`), and the WebGL sun sleeps between its shimmer frames (a loop that
+runs every frame makes the browser update every running CSS animation's style on every frame). A
+chapter off screen and a scene that has sunk away are `data-asleep`, which pauses every animation
+inside them; on a phone only the step in view of a sideways row animates. Endless animations sit
+on whole elements (an `<svg>`, a `<span>`), not on shapes inside an SVG, so the browser can run
+them on the GPU — the roof birds' peck and the flock's wings are drawn as separate pieces for that.
 
 | Chapter | What it does |
 | --- | --- |

@@ -555,6 +555,8 @@ export const chapters = {
   work: {
     statement: "The things I've built, for real businesses.",
     hint: "Scroll to move through the work",
+    /** On phones and tablets the street is swiped by hand (the page scrolls freely there). */
+    hintTouch: "Swipe to move through the work",
     workshop: { title: "The workshop", text: "Template builds — sites I made to practise and to learn." },
   },
   process: { statement: "From first call to launch." },

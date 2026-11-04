@@ -65,6 +65,8 @@ export function LandscapeMotion() {
           scene.up = up;
           if (scene.el instanceof HTMLElement) style.contentVisibility = up ? "" : "hidden";
           else style.display = up ? "" : "none";
+          // Its little lives (walkers, birds, smoke…) pause too, until it comes back up (globals.css).
+          scene.el.toggleAttribute("data-asleep", !up);
         }
         if (moving !== scene.moving) {
           scene.moving = moving;

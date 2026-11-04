@@ -8,25 +8,30 @@ import { CHAPTER_LEAVE, type ChapterLeave } from "@/lib/chapters";
 /**
  * A bird in flight, as a simple silhouette; its wings beat while it flies
  * (globals.css). At night (the night theme) it's a bat, flapping faster.
+ * Each silhouette is its own <svg>, so the beat turns a whole element (on the
+ * GPU) instead of a shape inside one, which the browser would lay out again on
+ * every frame of the flight.
  */
 function Bird({ size }: { size: number }) {
   return (
-    <svg viewBox="-14 -9 28 12" width={28 * size} height={12 * size} className="block overflow-visible">
-      <path
-        className="bird-wings day-only"
-        d="M-12,1 C-8,-7 -3,-5 0,0 C3,-5 8,-7 12,1"
-        fill="none"
-        stroke="#3b1409"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        className="bird-wings bat-wings night-only"
-        d="M0,-1.6 L-1.2,-3.4 L-1.6,-1.2 C-4,-4 -8,-5.4 -13,-3.6 C-11,-2.4 -11.2,-0.4 -9.6,0.8 C-8,-0.2 -6.6,0.4 -5.6,1.8 C-4.4,0.8 -2.4,0.8 -1.2,2.2 L0,1.2 L1.2,2.2 C2.4,0.8 4.4,0.8 5.6,1.8 C6.6,0.4 8,-0.2 9.6,0.8 C11.2,-0.4 11,-2.4 13,-3.6 C8,-5.4 4,-4 1.6,-1.2 L1.2,-3.4 Z"
-        fill="#070a1a"
-      />
-    </svg>
+    <span className="relative block" style={{ width: 28 * size, height: 12 * size }}>
+      <svg viewBox="-14 -9 28 12" className="bird-wings day-only absolute inset-0 size-full overflow-visible">
+        <path
+          d="M-12,1 C-8,-7 -3,-5 0,0 C3,-5 8,-7 12,1"
+          fill="none"
+          stroke="#3b1409"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <svg viewBox="-14 -9 28 12" className="bird-wings bat-wings night-only absolute inset-0 size-full overflow-visible">
+        <path
+          d="M0,-1.6 L-1.2,-3.4 L-1.6,-1.2 C-4,-4 -8,-5.4 -13,-3.6 C-11,-2.4 -11.2,-0.4 -9.6,0.8 C-8,-0.2 -6.6,0.4 -5.6,1.8 C-4.4,0.8 -2.4,0.8 -1.2,2.2 L0,1.2 L1.2,2.2 C2.4,0.8 4.4,0.8 5.6,1.8 C6.6,0.4 8,-0.2 9.6,0.8 C11.2,-0.4 11,-2.4 13,-3.6 C8,-5.4 4,-4 1.6,-1.2 L1.2,-3.4 Z"
+          fill="#070a1a"
+        />
+      </svg>
+    </span>
   );
 }
 
