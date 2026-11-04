@@ -459,3 +459,7 @@ and from what git shows he built (the B Dashboard) or from the projects themselv
 - A real photo for About — it gets the duotone treatment automatically.
 - Unused assets in the old repo (`baker.png` — Tayam's Bakery, `fin.jpg`, `htmllogo.png`) were
   not carried over; the bakery project could be added to `projects`.
+
+## Hosting
+
+The site is an ordinary Next.js server build (every page is prerendered), so it runs on Netlify or Vercel by importing the GitHub repo; both detect Next.js and pnpm. The site's address (canonical links, sitemap, robots, share images) is found in `src/lib/site-url.ts`: `NEXT_PUBLIC_SITE_URL` first (set it for a custom domain), then Vercel's production URL, then Netlify's `URL`. `netlify.toml` only pins the build command and Node 22. Locally, `build`/`start` write to `.next-build` so they never fight the dev server over `.next` (an EBUSY on Windows); on Netlify and Vercel `next.config.ts` uses the usual `.next`.

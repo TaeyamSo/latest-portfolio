@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
+/** True while Netlify or Vercel is building the site. */
+const onHost = Boolean(process.env.NETLIFY || process.env.VERCEL);
+
 const nextConfig = (phase: string): NextConfig => ({
-  // The dev server and the production build each have their own folder. On Windows the dev
-  // server (and editors and antivirus watching the project) keep `.next` open, so a build
-  // that had to clear it failed with EBUSY; this way `build` and `dev` never touch the same one.
-  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next" : ".next-build",
+  // On a local machine the dev server and the production build each have their own folder. On
+  // Windows the dev server (and editors and antivirus watching the project) keep `.next` open, so
+  // a build that had to clear it failed with EBUSY; this way `build` and `dev` never touch the
+  // same one. A host (Netlify, Vercel) builds on its own clean machine and expects the usual `.next`.
+  distDir: phase === PHASE_DEVELOPMENT_SERVER || onHost ? ".next" : ".next-build",
   poweredByHeader: false,
   images: {
     // The sources are already WebP (see scripts/optimize-images.mjs), so WebP is what the

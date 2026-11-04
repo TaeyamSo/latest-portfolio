@@ -1,0 +1,7 @@
+# Netlify detects Next.js and sets up its own runtime; this only pins the build command and Node.
+# The site's address is found automatically (src/lib/site-url.ts); set NEXT_PUBLIC_SITE_URL for a custom domain.
+[build]
+  command = "pnpm build"
+
+[build.environment]
+  NODE_VERSION = "22"
